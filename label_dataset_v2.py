@@ -41,19 +41,33 @@ def extract_all_features(window_data, sfreq):
 def build_complete_dataset(base_path, global_labels_csv, window_sec=4):
     df = pd.read_csv(global_labels_csv)
     X, y = [], []
-    sfreq = 256 # Definido no sumário 
+    sfreq = 256 
 
-    # Para evitar carregar o mesmo EDF várias vezes se houver múltiplas crises
+    # Canais padrão do sistema 10-20 presentes no CHB-MIT
+    channels_to_keep = [
+        'FP1-F7', 'F7-T7', 'T7-P7', 'P7-O1', 'FP1-F3', 'F3-C3', 'C3-P3', 'P3-O1',
+        'FP2-F4', 'F4-C4', 'C4-P4', 'P4-O2', 'FP2-F8', 'F8-T8', 'T8-P8', 'P8-O2',
+        'FZ-CZ', 'CZ-PZ'
+    ]
+
     for file_name, group in df.groupby('file_name'):
         patient = group['patient'].iloc[0]
         path_edf = os.path.join(base_path, patient, file_name)
         
         if not os.path.exists(path_edf): continue
         
-        print(f"Processando: {file_name}")
+        print(f"Lendo: {file_name}")
         raw = mne.io.read_raw_edf(path_edf, preload=True, verbose=False)
-        raw.filter(0.5, 40, verbose=False) # Recomendação clínica
-        raw.notch_filter(60, verbose=False) # Notch local
+        
+        # Tenta selecionar apenas os canais padrão. Ignora arquivos que não os possuam.
+        try:
+            raw.pick_channels(channels_to_keep)
+        except ValueError:
+            print(f"Aviso: Arquivo {file_name} não possui a montagem padrão. Pulando...")
+            continue
+
+        raw.filter(0.5, 40, verbose=False)
+        raw.notch_filter(60, verbose=False)
         data = raw.get_data()
         
         # 1. Extrair Janelas de Crise (Label 1)
