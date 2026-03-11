@@ -74,20 +74,21 @@ def build_complete_dataset(base_path, global_labels_csv, window_sec=4):
         seizures = group[group['label'] == 1]
         for _, row in seizures.iterrows():
             s_idx, e_idx = int(row['start_sec']*sfreq), int(row['end_sec']*sfreq)
-            for i in range(s_idx, e_idx - int(window_sec*sfreq), int(window_sec*sfreq)):
-                win = data[:, i : i + int(window_sec*sfreq)]
-                X.append(extract_all_features(win, sfreq))
-                y.append(1)
-        
-        # 2. Extrair Janelas de Não-Crise (Label 0) - Amostragem para balancear
-        # Se o arquivo não tem crise, pegamos algumas janelas aleatórias
-        if len(seizures) == 0:
-            # Pega 10 janelas aleatórias por arquivo sem crise para não sobrecarregar
-            for _ in range(10):
-                start = np.random.randint(0, data.shape[1] - int(window_sec*sfreq))
-                win = data[:, start : start + int(window_sec*sfreq)]
-                X.append(extract_all_features(win, sfreq))
-                y.append(0)
+            duracao_samples = e_idx - s_idx
+            janela_samples = int(window_sec * sfreq)
+
+            # Se a crise for mais curta que a janela, pegamos a janela começando no início da crise
+            if duracao_samples < janela_samples:
+                # Garante que não ultrapasse o fim do arquivo
+                if s_idx + janela_samples < data.shape[1]:
+                    win = data[:, s_idx : s_idx + janela_samples]
+                    X.append(extract_all_features(win, sfreq))
+                    y.append(1)
+            else:
+                for i in range(s_idx, e_idx - janela_samples, janela_samples):
+                    win = data[:, i : i + janela_samples]
+                    X.append(extract_all_features(win, sfreq))
+                    y.append(1)
 
     return np.array(X), np.array(y)
 
