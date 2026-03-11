@@ -40,26 +40,41 @@ def process_single_file(file_name, group, base_path, window_sec, sfreq):
     if not os.path.exists(path_edf): return None
     
     try:
+        # 1. Carrega o arquivo permitindo nomes duplicados (ele vai renomear automaticamente)
         raw = mne.io.read_raw_edf(path_edf, preload=True, verbose=False)
-        raw.pick_channels(CHANNELS_TO_KEEP)
-        raw.filter(0.5, 40, verbose=False)
-        raw.notch_filter(60, verbose=False)
-        data = raw.get_data()
-        janela_samples = int(window_sec * sfreq)
         
-        # 1. Crises (Label 1)
-        seizures = group[group['label'] == 1]
-        for _, row in seizures.iterrows():
-            s_idx, e_idx = int(row['start_sec']*sfreq), int(row['end_sec']*sfreq)
-            duracao = e_idx - s_idx
-            if duracao < janela_samples:
-                if s_idx + janela_samples < data.shape[1]:
-                    X_local.append(extract_all_features(data[:, s_idx:s_idx+janela_samples], sfreq))
-                    y_local.append(1)
+        # 2. Limpeza de nomes: remove espaços e converte para maiúsculas para facilitar a comparação
+        raw.rename_channels(lambda x: x.strip().upper())
+        
+        # 3. Mapeamento de sinonimos comuns no CHB-MIT (Ex: T8-P8 as vezes vem com -1 ou .1)
+        # Vamos tentar encontrar os canais que REALMENTE existem no arquivo
+        existing_channels = raw.ch_names
+        final_selection = []
+        
+        # Lista de canais desejados (em maiúsculas para bater com o rename acima)
+        target_channels = [c.upper() for c in CHANNELS_TO_KEEP]
+        
+        for target in target_channels:
+            if target in existing_channels:
+                final_selection.append(target)
             else:
-                for i in range(s_idx, e_idx - janela_samples, janela_samples):
-                    X_local.append(extract_all_features(data[:, i:i+janela_samples], sfreq))
-                    y_local.append(1)
+                # Tenta buscar variações comuns (ex: T8-P8-1)
+                found_alt = [ch for ch in existing_channels if ch.startswith(target)]
+                if found_alt:
+                    final_selection.append(found_alt[0])
+
+        # 4. Verifica se temos canais suficientes para treinar (ex: pelo menos 15 dos 18)
+        if len(final_selection) < 15:
+            print(f"Erro em {file_name}: Apenas {len(final_selection)} canais encontrados. Pulando.")
+            return None
+            
+        # 5. Usa o novo método .pick (o pick_channels é legado)
+        raw.pick(final_selection)
+        
+        # 6. Garante que agora todos tenham EXATAMENTE os mesmos nomes para o NumPy não reclamar
+        # Renomeia de volta para os nomes originais da sua lista CHANNELS_TO_KEEP
+        rename_dict = {actual: original for actual, original in zip(raw.ch_names, CHANNELS_TO_KEEP)}
+        raw.rename_channels(rename_dict)
         
         # 2. Background (Label 0) - Amostragem robusta
         is_seizure = np.zeros(data.shape[1], dtype=bool)
