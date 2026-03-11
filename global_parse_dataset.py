@@ -6,7 +6,6 @@ def extrair_dados_sumario(caminho_arquivo):
     with open(caminho_arquivo, 'r') as f:
         conteudo = f.read()
 
-    # Divide por blocos de arquivo
     blocos = conteudo.split('File Name: ')
     lista_dados = []
 
@@ -14,14 +13,14 @@ def extrair_dados_sumario(caminho_arquivo):
         linhas = bloco.split('\n')
         nome_arquivo = linhas[0].strip()
         
-        # Regex para capturar o número de crises 
-        match_crises = re.search(r'Number of Seizures in File: (\d+)', bloco)
+        # Regex mais robusto para capturar números mesmo com espaços extras
+        match_crises = re.search(r'Number of Seizures in File:\s*(\d+)', bloco)
         num_crises = int(match_crises.group(1)) if match_crises else 0
         
         if num_crises > 0:
-            # Captura todos os tempos de início e fim, ignorando se há número ou não 
-            starts = re.findall(r'Seizure (?:\d+ )?Start Time: (\d+) seconds', bloco)
-            ends = re.findall(r'Seizure (?:\d+ )?End Time: (\d+) seconds', bloco)
+            # Captura tempos garantindo que ignore variações de texto entre "Seizure 1" e "Seizure Start"
+            starts = re.findall(r'Seizure (?:\d+ )?Start Time:\s*(\d+)\s*seconds', bloco)
+            ends = re.findall(r'Seizure (?:\d+ )?End Time:\s*(\d+)\s*seconds', bloco)
             
             for s, e in zip(starts, ends):
                 lista_dados.append({
