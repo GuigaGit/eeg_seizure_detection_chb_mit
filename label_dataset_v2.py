@@ -6,6 +6,8 @@ from scipy.signal import welch
 from scipy.stats import skew, kurtosis
 from joblib import Parallel, delayed
 
+mne.set_log_level('ERROR') # This forces MNE to only print fatal errors, hiding the warnings
+
 # Canais padrão do sistema 10-20 (Montagem comum no CHB-MIT)
 CHANNELS_TO_KEEP = [
     'FP1-F7', 'F7-T7', 'T7-P7', 'P7-O1', 'FP1-F3', 'F3-C3', 'C3-P3', 'P3-O1',
@@ -71,24 +73,44 @@ def process_single_file(file_name, group, base_path, window_sec, sfreq):
         # 5. Usa o novo método .pick (o pick_channels é legado)
         raw.pick(final_selection)
         
-        # 6. Garante que agora todos tenham EXATAMENTE os mesmos nomes para o NumPy não reclamar
-        # Renomeia de volta para os nomes originais da sua lista CHANNELS_TO_KEEP
+        # 6. Garante que agora todos tenham EXATAMENTE os mesmos nomes
         rename_dict = {actual: original for actual, original in zip(raw.ch_names, CHANNELS_TO_KEEP)}
         raw.rename_channels(rename_dict)
         
-        # 2. Background (Label 0) - Amostragem robusta
-        is_seizure = np.zeros(data.shape[1], dtype=bool)
-        for _, row in seizures.iterrows():
-            is_seizure[int(row['start_sec']*sfreq) : int(row['end_sec']*sfreq)] = True
+        # FIX 1: Extract the actual numpy data array from the MNE object
+        data = raw.get_data() 
         
+        # FIX 2: Define missing variables
+        janela_samples = int(window_sec * sfreq)
+        seizures = group[group['label'] == 1]
+        
+        # Array to map where seizures happen to avoid sampling background there
+        is_seizure = np.zeros(data.shape[1], dtype=bool)
+        
+        # FIX 3: Extract Seizure Windows (Label 1)
+        for _, row in seizures.iterrows():
+            start_idx = int(row['start_sec'] * sfreq)
+            end_idx = int(row['end_sec'] * sfreq)
+            
+            is_seizure[start_idx:end_idx] = True
+            
+            for start in range(start_idx, end_idx - janela_samples, janela_samples):
+                window = data[:, start:start+janela_samples]
+                X_local.append(extract_all_features(window, sfreq))
+                y_local.append(1)
+        
+        # 2. Background (Label 0)
         cont_bg = 0
         while cont_bg < 15:
             start = np.random.randint(0, data.shape[1] - janela_samples)
             if not np.any(is_seizure[start : start + janela_samples]):
-                X_local.append(extract_all_features(data[:, start:start+janela_samples], sfreq))
+                window = data[:, start:start+janela_samples]
+                X_local.append(extract_all_features(window, sfreq))
                 y_local.append(0)
                 cont_bg += 1
+                
         return np.array(X_local), np.array(y_local)
+    
     except Exception as e:
         print(f"Erro em {file_name}: {e}")
         return None
@@ -112,7 +134,29 @@ def build_complete_dataset(base_path, global_labels_csv, window_sec=4):
     return np.vstack(X), np.concatenate(y)
 
 if __name__ == "__main__":
-    X, y = build_complete_dataset('./dataset_chbmit', 'chb_mit_global_labels.csv')
-    np.save('X_final.npy', X)
-    np.save('y_final.npy', y)
-    print(f"Processamento concluído. Dataset: {X.shape}")
+    df = pd.read_csv('chb_mit_global_labels.csv')
+    base_path = './dataset_chbmit'
+    window_sec = 4
+    sfreq = 256
+    
+    # Process per patient instead of globally
+    for patient_id, group in df.groupby('patient'):
+        print(f"Processando {patient_id}...")
+        
+        results = Parallel(n_jobs=-1)(
+            delayed(process_single_file)(f, file_group, base_path, window_sec, sfreq) 
+            for f, file_group in group.groupby('file_name')
+        )
+        
+        X_patient, y_patient = [], []
+        for res in results:
+            if res is not None:
+                X_patient.append(res[0])
+                y_patient.append(res[1])
+                
+        if X_patient:
+            X_stacked = np.vstack(X_patient)
+            y_stacked = np.concatenate(y_patient)
+            np.save(f'X_{patient_id}.npy', X_stacked)
+            np.save(f'y_{patient_id}.npy', y_stacked)
+            print(f"Salvo {patient_id}: X={X_stacked.shape}")
