@@ -5,6 +5,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, accuracy_score, recall_score, precision_score
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
+import matplotlib.pyplot as plt
 
 def train_patient_specific_models(training_rate=0.50):
     """
@@ -94,7 +95,7 @@ def train_patient_specific_models(training_rate=0.50):
         joblib.dump(grid.best_estimator_, f'models/svm_{patient_id}.pkl')
         joblib.dump(scaler, f'models/scaler_{patient_id}.pkl')
 
-    # 6. Final Aggregate Report
+    # 6. Final Aggregate Report and Visualization
     if all_accuracies:
         print(f"\n{'='*40}")
         print("OVERALL PIPELINE PERFORMANCE")
@@ -103,6 +104,52 @@ def train_patient_specific_models(training_rate=0.50):
         print(f"Average Specificity: {np.mean(all_specificities):.4f}")
         print(f"Average Accuracy:    {np.mean(all_accuracies):.4f}")
         print(f"{'='*40}")
+
+        # --- Plotting the Results ---
+        print("\nGenerating performance graphs...")
+        
+        # We need the list of patients that actually processed successfully
+        patient_labels = [f"chb{i:02d}" for i in range(1, 25) if os.path.exists(f"X_chb{i:02d}.npy")]
+        
+        # Ensure lengths match before plotting (in case a patient was skipped)
+        if len(patient_labels) == len(all_accuracies):
+            x = np.arange(len(patient_labels))
+            width = 0.25
+
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 12))
+
+            # Subplot 1: Bar Chart per Patient
+            rects1 = ax1.bar(x - width, all_sensitivities, width, label='Sensitivity', color='#1f77b4')
+            rects2 = ax1.bar(x, all_specificities, width, label='Specificity', color='#ff7f0e')
+            rects3 = ax1.bar(x + width, all_accuracies, width, label='Accuracy', color='#2ca02c')
+
+            ax1.set_ylabel('Score')
+            ax1.set_title('SVM Performance Metrics per Patient')
+            ax1.set_xticks(x)
+            ax1.set_xticklabels(patient_labels, rotation=45)
+            ax1.legend()
+            ax1.grid(axis='y', linestyle='--', alpha=0.7)
+            ax1.set_ylim([0, 1.05])
+
+            # Subplot 2: Boxplot for overall variance
+            data = [all_sensitivities, all_specificities, all_accuracies]
+            ax2.boxplot(data, labels=['Sensitivity', 'Specificity', 'Accuracy'], patch_artist=True)
+            ax2.set_title('Overall Performance Distribution')
+            ax2.set_ylabel('Score')
+            ax2.grid(axis='y', linestyle='--', alpha=0.7)
+            ax2.set_ylim([0, 1.05])
+
+            plt.tight_layout()
+            
+            # Save the figure to your directory
+            os.makedirs('results', exist_ok=True)
+            plt.savefig('results/svm_performance_summary.png', dpi=300)
+            print("Graphs saved to 'results/svm_performance_summary.png'")
+            
+            # Show the plot on screen
+            # plt.show()
+        else:
+            print("[ERROR] Mismatch between patient labels and recorded metrics. Skipping plot.")
 
 if __name__ == "__main__":
     # You can easily change this to 0.25 to replicate the 25% training rate experiment
