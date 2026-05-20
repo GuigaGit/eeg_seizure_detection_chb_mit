@@ -19,15 +19,29 @@ def extract_all_features(window_data, sfreq):
     all_features = []
     for channel_signal in window_data:
         # Domínio do Tempo
+        # media da janela
         all_features.append(np.mean(channel_signal))
+
+        # variância
         all_features.append(np.var(channel_signal))
+
+        # assimetria
         all_features.append(skew(channel_signal))
+
+        # curtose
         all_features.append(kurtosis(channel_signal))
+
+        # energia
         all_features.append(np.sqrt(np.mean(channel_signal**2)))
+
+        # contagem de zero-crossings (quantas vezes o sinal cruza a linha zero)
         all_features.append(np.sum(np.abs(np.diff(channel_signal))))
         
         # Domínio da Frequência (Bandas de EEG)
+        # Calcula a densidade espectral de potência usando o método de Welch
         freqs, psd = welch(channel_signal, sfreq, nperseg=sfreq) 
+
+        # Calcula a energia em cada banda usando a regra do trapézio para integração
         bands = [(0.5, 4), (4, 8), (8, 13), (13, 30), (30, 45)]
         for fmin, fmax in bands:
             idx = np.logical_and(freqs >= fmin, freqs <= fmax)
