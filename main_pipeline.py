@@ -21,6 +21,7 @@ if __name__ == "__main__":
         "global_parse_dataset.py",
         "label_dataset_v2.py",
         "svm_training.py"
+        "inter_patient_validation.py"
     ]
     
     for script in pipeline:
