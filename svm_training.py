@@ -20,7 +20,7 @@ def train_patient_specific_models(training_rate=0.50):
     all_specificities = []
 
     # Iterate through all 24 patients in the CHB-MIT dataset
-    for i in range(1, 25):
+    for i in range(1, 2):
         patient_id = f"chb{i:02d}"
         x_path = f"X_{patient_id}.npy"
         y_path = f"y_{patient_id}.npy"
