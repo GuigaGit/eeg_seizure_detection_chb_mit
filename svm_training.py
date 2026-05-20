@@ -18,6 +18,7 @@ def train_patient_specific_models(training_rate=0.50):
     all_accuracies = []
     all_sensitivities = []
     all_specificities = []
+    trained_patients = []
 
     # Iterate through all 24 patients in the CHB-MIT dataset
     for i in range(1, 2):
@@ -86,6 +87,7 @@ def train_patient_specific_models(training_rate=0.50):
         all_accuracies.append(acc)
         all_sensitivities.append(sen)
         all_specificities.append(spe)
+        trained_patients.append(patient_id)
 
         print(f"[{patient_id}] Best Params: {grid.best_params_}")
         print(f"[{patient_id}] Sensitivity: {sen:.4f} | Specificity: {spe:.4f} | Accuracy: {acc:.4f}")
@@ -109,7 +111,7 @@ def train_patient_specific_models(training_rate=0.50):
         print("\nGenerating performance graphs...")
         
         # We need the list of patients that actually processed successfully
-        patient_labels = [f"chb{i:02d}" for i in range(1, 25) if os.path.exists(f"X_chb{i:02d}.npy")]
+        patient_labels = trained_patients
         
         # Ensure lengths match before plotting (in case a patient was skipped)
         if len(patient_labels) == len(all_accuracies):
