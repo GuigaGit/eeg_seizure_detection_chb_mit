@@ -21,7 +21,7 @@ def train_patient_specific_models(training_rate=0.50):
     os.makedirs('models', exist_ok=True)
 
     # Iterando apenas o chb01 para teste rápido (mude para range(1, 25) quando quiser rodar todos)
-    for i in [1]:
+    for i in range(1, 25):
         patient_id = f"chb{i:02d}"
         x_path = f"X_{patient_id}.npy"
         y_path = f"y_{patient_id}.npy"

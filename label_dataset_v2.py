@@ -136,7 +136,7 @@ def build_complete_dataset(base_path, global_labels_csv, window_sec=4):
 if __name__ == "__main__":
     df = pd.read_csv('chb_mit_global_labels.csv')
 
-    df = df[df['patient'] == 'chb01']
+    # df = df[df['patient'] == 'chb01']
 
     base_path = './dataset_chbmit'
     window_sec = 4
