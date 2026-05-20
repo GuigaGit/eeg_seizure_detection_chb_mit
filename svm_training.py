@@ -4,7 +4,7 @@ import os
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, accuracy_score, recall_score, precision_score
-from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
+from sklearn.model_selection import GridSearchCV, StratifiedKFold, TimeSeriesSplit
 import matplotlib.pyplot as plt
 
 def train_patient_specific_models(training_rate=0.50):
@@ -51,9 +51,9 @@ def train_patient_specific_models(training_rate=0.50):
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
 
-        # 3. Time-Series Cross Validation for GridSearch
-        # This prevents "future" epochs from leaking into validation sets during hyperparameter tuning
-        tscv = TimeSeriesSplit(n_splits=3)
+        # 3. Stratified Cross Validation for GridSearch
+        # Ensures every internal fold has at least some seizure data to prevent "1 class" crashes
+        skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
 
         param_grid = {
             'C': [0.1, 1, 10, 100],
@@ -66,9 +66,9 @@ def train_patient_specific_models(training_rate=0.50):
             SVC(class_weight='balanced'), 
             param_grid, 
             refit=True, 
-            cv=tscv, 
+            cv=skf,       # <--- Updated to use StratifiedKFold
             n_jobs=-1,
-            scoring='recall' # Optimizing for sensitivity (detecting seizures)
+            scoring='recall' 
         )
         
         grid.fit(X_train_scaled, y_train)
