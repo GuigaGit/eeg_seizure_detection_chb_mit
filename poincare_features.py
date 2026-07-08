@@ -49,6 +49,10 @@ def get_poincare_intersections(embedded_space):
     if embedded_space.shape[0] < 2:
         return np.array([])
         
+    # Check variance BEFORE PCA to avoid divide-by-zero warnings on flat signals
+    if np.var(embedded_space) <= 1e-12:
+        return np.array([])
+    
     pca = PCA(n_components=2)
     pcs = pca.fit_transform(embedded_space)
     pc1, pc2 = pcs[:, 0], pcs[:, 1]
@@ -132,6 +136,11 @@ def extract_all_poincare_features(window_data):
 # 5. Processamento do Dataset
 # ==========================================
 def process_single_file(file_name, group, base_path, window_sec, sfreq):
+    # [NEW FIX]: Force joblib worker threads to suppress warnings locally
+    import warnings
+    warnings.filterwarnings('ignore')
+    mne.set_log_level('ERROR')
+    
     X_local, y_local = [], []
     patient = group['patient'].iloc[0]
     path_edf = os.path.join(base_path, patient, file_name)
