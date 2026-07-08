@@ -52,6 +52,10 @@ def get_poincare_intersections(embedded_space):
     if embedded_space.shape[0] < 2:
         return np.array([])
         
+    # Check variance BEFORE PCA to avoid divide-by-zero warnings on flat signals
+    if np.var(embedded_space) <= 1e-12:
+        return np.array([])
+    
     pca = PCA(n_components=2)
     pcs = pca.fit_transform(embedded_space)
     pc1, pc2 = pcs[:, 0], pcs[:, 1]
@@ -135,6 +139,11 @@ def extract_all_poincare_features(window_data):
 # 5. Processamento do Dataset
 # ==========================================
 def process_single_file(file_name, group, base_path, window_sec, sfreq):
+    # Force joblib worker threads to suppress warnings locally
+    import warnings
+    warnings.filterwarnings('ignore')
+    mne.set_log_level('ERROR')
+
     X_local, y_local = [], []
     patient = group['patient'].iloc[0]
     path_edf = os.path.join(base_path, patient, file_name)
@@ -148,38 +157,34 @@ def process_single_file(file_name, group, base_path, window_sec, sfreq):
         # 2. Limpeza de nomes
         raw.rename_channels(lambda x: x.strip().upper())
         
-        # 3. Mapeamento de sinonimos comuns no CHB-MIT
+        # 3. Mapeamento de sinônimos e Extração Direta
         existing_channels = raw.ch_names
-        final_selection = []
         target_channels = [c.upper() for c in CHANNELS_TO_KEEP]
+        selected_data = []
         
         for target in target_channels:
             if target in existing_channels:
-                final_selection.append(target)
+                ch_idx = existing_channels.index(target)
+                selected_data.append(raw.get_data(picks=ch_idx)[0])
             else:
                 found_alt = [ch for ch in existing_channels if ch.startswith(target)]
                 if found_alt:
-                    final_selection.append(found_alt[0])
+                    ch_idx = existing_channels.index(found_alt[0])
+                    selected_data.append(raw.get_data(picks=ch_idx)[0])
 
-        if len(final_selection) < 15:
-            print(f"Erro em {file_name}: Apenas {len(final_selection)} canais encontrados. Pulando.")
+        # 4. Verifica se temos EXATAMENTE os canais necessários
+        if len(selected_data) != len(target_channels):
+            print(f"Erro em {file_name}: Encontrou {len(selected_data)} canais, mas precisava de {len(target_channels)}. Pulando arquivo.")
             return None
             
-        # 4. Seleciona e renomeia canais
-        raw.pick(final_selection)
-        rename_dict = {actual: original for actual, original in zip(raw.ch_names, CHANNELS_TO_KEEP)}
-        raw.rename_channels(rename_dict)
-        
-        # FIX MNE Voltage: Multiplicar por 1e6 converte Volts para microVolts.
-        # Previne underflow (variância 0) na matemática do PCA.
-        data = raw.get_data() * 1e6
+        # 5. Converte a lista em uma matriz NumPy e aplica a escala
+        data = np.array(selected_data) * 1e6 
         
         janela_samples = int(window_sec * sfreq)
         seizures = group[group['label'] == 1]
-        
         is_seizure = np.zeros(data.shape[1], dtype=bool)
         
-        # 5. Extract Seizure Windows (Label 1)
+        # 6. Extract Seizure Windows (Label 1)
         for _, row in seizures.iterrows():
             start_idx = int(row['start_sec'] * sfreq)
             end_idx = int(row['end_sec'] * sfreq)
@@ -191,7 +196,7 @@ def process_single_file(file_name, group, base_path, window_sec, sfreq):
                 X_local.append(extract_all_poincare_features(window))
                 y_local.append(1)
         
-        # 6. Background (Label 0)
+        # 7. Background (Label 0)
         cont_bg = 0
         while cont_bg < 15:
             start = np.random.randint(0, data.shape[1] - janela_samples)
@@ -200,7 +205,7 @@ def process_single_file(file_name, group, base_path, window_sec, sfreq):
                 X_local.append(extract_all_poincare_features(window))
                 y_local.append(0)
                 cont_bg += 1
-                
+        
         return np.array(X_local), np.array(y_local)
     
     except Exception as e:
@@ -211,12 +216,9 @@ if __name__ == "__main__":
     df = pd.read_csv('chb_mit_global_labels.csv')
 
     base_path = './dataset_chbmit'
-    
-    # ATENÇÃO: O paper utiliza janelas de 1 segundo, então ajustamos o window_sec de 4 para 1
     window_sec = 1 
     sfreq = 256
     
-    # Process per patient instead of globally
     for patient_id, group in df.groupby('patient'):
         print(f"Processando características Poincaré para {patient_id}...")
         
@@ -228,8 +230,10 @@ if __name__ == "__main__":
         X_patient, y_patient = [], []
         for res in results:
             if res is not None:
-                X_patient.append(res[0])
-                y_patient.append(res[1])
+                # Ensure the local arrays are not empty before appending
+                if len(res[0]) > 0 and len(res[1]) > 0:
+                    X_patient.append(res[0])
+                    y_patient.append(res[1])
                 
         if X_patient:
             X_stacked = np.vstack(X_patient)
