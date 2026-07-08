@@ -2,7 +2,7 @@ import numpy as np
 import scipy.stats as stats
 from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import SVC  # Imported Support Vector Classifier
 import warnings
 
 # Suppress warnings for clean output during demonstration
@@ -154,10 +154,13 @@ def run_pipeline():
         # Get predictions to feed into the 2nd layer
         layer_1_predictions[:, ch] = lda.predict(X_ch)
 
-    # Layer 2: Train Naive Bayes on the binary outputs of the LDAs
-    print("Training Layer 2 (Naive Bayes)...")
-    nb_classifier = MultinomialNB()
-    nb_classifier.fit(layer_1_predictions, y_train)
+    # Layer 2: Train SVM on the binary outputs of the LDAs
+    print("Training Layer 2 (SVM)...")
+    
+    # Initializing SVC instead of MultinomialNB
+    # Future test: change kernel to 'rbf' or 'poly' if needed, but 'linear' is a good start for binary classification
+    svm_classifier = SVC(kernel='linear', C=1.0, random_state=42) 
+    svm_classifier.fit(layer_1_predictions, y_train)
     
     print("Pipeline trained successfully!")
     
@@ -175,8 +178,8 @@ def run_pipeline():
         # LDA Prediction for this channel
         test_layer1_preds[ch] = lda_models[ch].predict(features)[0]
         
-    # Final Naive Bayes Prediction
-    final_prediction = nb_classifier.predict(test_layer1_preds.reshape(1, -1))
+    # Final Prediction using SVM
+    final_prediction = svm_classifier.predict(test_layer1_preds.reshape(1, -1))
     
     result = "Seizure Detected!" if final_prediction[0] == 1 else "Normal (Non-seizure)"
     print(f"Final System Output: {result}")
