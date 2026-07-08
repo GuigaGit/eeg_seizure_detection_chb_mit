@@ -139,7 +139,7 @@ def extract_all_poincare_features(window_data):
 # 5. Processamento do Dataset
 # ==========================================
 def process_single_file(file_name, group, base_path, window_sec, sfreq):
-    # Force joblib worker threads to suppress warnings locally
+    # [NEW FIX]: Force joblib worker threads to suppress warnings locally
     import warnings
     warnings.filterwarnings('ignore')
     mne.set_log_level('ERROR')
@@ -157,38 +157,38 @@ def process_single_file(file_name, group, base_path, window_sec, sfreq):
         # 2. Limpeza de nomes
         raw.rename_channels(lambda x: x.strip().upper())
         
-        # 3. Mapeamento de sinônimos e Extração Direta
+        # 3. Mapeamento de sinonimos comuns no CHB-MIT
         existing_channels = raw.ch_names
+        final_selection = []
         target_channels = [c.upper() for c in CHANNELS_TO_KEEP]
-        
-        selected_data = []
         
         for target in target_channels:
             if target in existing_channels:
-                # Extrai o array 1D deste canal específico
-                ch_idx = existing_channels.index(target)
-                selected_data.append(raw.get_data(picks=ch_idx)[0])
+                final_selection.append(target)
             else:
-                # Tenta buscar variações comuns (ex: T8-P8-1)
                 found_alt = [ch for ch in existing_channels if ch.startswith(target)]
                 if found_alt:
-                    ch_idx = existing_channels.index(found_alt[0])
-                    selected_data.append(raw.get_data(picks=ch_idx)[0])
+                    final_selection.append(found_alt[0])
 
-        # 4. Verifica se temos canais suficientes
-        if len(selected_data) < 15:
-            print(f"Erro em {file_name}: Apenas {len(selected_data)} canais encontrados. Pulando.")
+        if len(final_selection) < 15:
+            print(f"Erro em {file_name}: Apenas {len(final_selection)} canais encontrados. Pulando.")
             return None
             
-        # 5. Converte a lista em uma matriz NumPy e aplica a escala
-        data = np.array(selected_data) * 1e6 
+        # 4. Seleciona e renomeia canais
+        raw.pick(final_selection)
+        rename_dict = {actual: original for actual, original in zip(raw.ch_names, CHANNELS_TO_KEEP)}
+        raw.rename_channels(rename_dict)
+        
+        # FIX MNE Voltage: Multiplicar por 1e6 converte Volts para microVolts.
+        # Previne underflow (variância 0) na matemática do PCA.
+        data = raw.get_data() * 1e6
         
         janela_samples = int(window_sec * sfreq)
         seizures = group[group['label'] == 1]
         
         is_seizure = np.zeros(data.shape[1], dtype=bool)
         
-        # 6. Extract Seizure Windows (Label 1)
+        # 5. Extract Seizure Windows (Label 1)
         for _, row in seizures.iterrows():
             start_idx = int(row['start_sec'] * sfreq)
             end_idx = int(row['end_sec'] * sfreq)
@@ -200,7 +200,7 @@ def process_single_file(file_name, group, base_path, window_sec, sfreq):
                 X_local.append(extract_all_poincare_features(window))
                 y_local.append(1)
         
-        # 7. Background (Label 0)
+        # 6. Background (Label 0)
         cont_bg = 0
         while cont_bg < 15:
             start = np.random.randint(0, data.shape[1] - janela_samples)
@@ -209,7 +209,7 @@ def process_single_file(file_name, group, base_path, window_sec, sfreq):
                 X_local.append(extract_all_poincare_features(window))
                 y_local.append(0)
                 cont_bg += 1
-        
+                
         return np.array(X_local), np.array(y_local)
     
     except Exception as e:
@@ -237,10 +237,8 @@ if __name__ == "__main__":
         X_patient, y_patient = [], []
         for res in results:
             if res is not None:
-                # Ensure the local arrays are not empty before appending
-                if len(res[0]) > 0 and len(res[1]) > 0:
-                    X_patient.append(res[0])
-                    y_patient.append(res[1])
+                X_patient.append(res[0])
+                y_patient.append(res[1])
                 
         if X_patient:
             X_stacked = np.vstack(X_patient)

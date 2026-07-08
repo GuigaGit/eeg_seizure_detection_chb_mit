@@ -34,7 +34,6 @@ def train_patient_specific_models(training_rate=0.50):
         
         X = np.load(x_path)
         y = np.load(y_path)
-        print(f"[{patient_id}] Shape of X: {X.shape} (Features = {X.shape[1]})")
         
         # 1. Divisão Cronológica (Sem embaralhamento)
         split_idx = int(len(X) * training_rate)
