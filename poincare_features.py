@@ -1,15 +1,22 @@
+import mne
 import numpy as np
+import pandas as pd
+import os
 import scipy.stats as stats
 from sklearn.decomposition import PCA
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-from sklearn.svm import SVC
-from joblib import Parallel, delayed, cpu_count
+from joblib import Parallel, delayed
 import warnings
-import mne  # <-- ADDED: MNE library for EEG processing
 
-# Suppress warnings for clean output
+# This forces MNE to only print fatal errors, hiding the warnings
+mne.set_log_level('ERROR') 
 warnings.filterwarnings('ignore')
-mne.set_log_level('ERROR') # Keeps MNE from printing excessive loading logs
+
+# Canais padrão do sistema 10-20 (Montagem comum no CHB-MIT)
+CHANNELS_TO_KEEP = [
+    'FP1-F7', 'F7-T7', 'T7-P7', 'P7-O1', 'FP1-F3', 'F3-C3', 'C3-P3', 'P3-O1',
+    'FP2-F4', 'F4-C4', 'C4-P4', 'P4-O2', 'FP2-F8', 'F8-T8', 'T8-P8', 'P8-O2',
+    'FZ-CZ', 'CZ-PZ'
+]
 
 # ==========================================
 # 1. Phase Space Reconstruction (PSR)
@@ -76,19 +83,30 @@ def extract_features(intersections):
     """
     if len(intersections) < 2:
         return np.zeros(7)
-        
+    
+    # 1. Range
     rng = np.max(intersections) - np.min(intersections)
+
+    # 2. 0.13 Quantile
     q_013 = np.quantile(intersections, 0.13)
+
+    # 3. Interquartile Range (IQR)
     iqr = np.percentile(intersections, 75) - np.percentile(intersections, 25)
     
+    # 4. Shannon Entropy
+    # We estimate the PDF using a histogram
     hist, _ = np.histogram(intersections, density=True, bins='auto')
     hist = hist[hist > 0] 
     entropy = -np.sum(hist * np.log2(hist))
     
+    # 5. Root Mean Squared Amplitude
     rms = np.sqrt(np.mean(intersections**2))
     
+    # 6. Coefficient of Variation
     mean_val = np.mean(intersections)
     cov = np.std(intersections) / mean_val if mean_val != 0 else 0
+    
+    # 7. Energy
     energy = np.sum(intersections**2)
     
     return np.array([rng, q_013, iqr, entropy, rms, cov, energy])
@@ -96,87 +114,123 @@ def extract_features(intersections):
 # ==========================================
 # 4. Multiprocessing Helper
 # ==========================================
-def compute_epoch_channel_features(epoch, ch, raw_signal_slice):
+def extract_all_poincare_features(window_data):
     """
-    Receives an exact 1D NumPy array representing a specific epoch and channel.
-    This prevents memory overhead from passing the entire dataset to every core.
+    Substitui a antiga extract_all_features. 
+    Aplica a matemática do Poincaré em todos os canais e achata (flatten) 
+    em um array 1D para compatibilidade com o SVM.
     """
-    embedded = time_delay_embedding(raw_signal_slice, d=5, tau=6)
-    intersections = get_poincare_intersections(embedded)
-    features = extract_features(intersections)
-    
-    return epoch, ch, features
+    all_features = []
+    for channel_signal in window_data:
+        embedded = time_delay_embedding(channel_signal, d=5, tau=6)
+        intersections = get_poincare_intersections(embedded)
+        features = extract_features(intersections)
+        all_features.extend(features)
+    return np.array(all_features)
 
 # ==========================================
-# 5. Main Pipeline
+# 5. Processamento do Dataset
 # ==========================================
-def process_eeg_file(edf_file_path):
-    print(f"Loading EEG data from: {edf_file_path}")
+def process_single_file(file_name, group, base_path, window_sec, sfreq):
+    X_local, y_local = [], []
+    patient = group['patient'].iloc[0]
+    path_edf = os.path.join(base_path, patient, file_name)
     
-    # 1. Load the data using MNE
-    raw = mne.io.read_raw_edf(edf_file_path, preload=True)
-    
-    # Optional: Filter the data or pick specific channels here
-    # raw.filter(l_freq=0.5, h_freq=45.0)
-    # raw.pick_channels(['FP1-F7', 'F7-T7', ...])
-    
-    sfreq = int(raw.info['sfreq'])
-    n_channels = len(raw.ch_names)
-    
-    # Extract the underlying NumPy array and scale it 
-    # (multiplying by 1e6 converts Volts to microVolts, preventing PCA float underflow)
-    data = raw.get_data() * 1e6 
-    
-    # 2. Windowing Parameters
-    epoch_length = 1 # 1 second windows
-    n_samples = sfreq * epoch_length
-    
-    # Calculate how many full 1-second epochs we can extract
-    n_epochs = data.shape[1] // n_samples
-    
-    # Create an empty matrix to hold our new features
-    # Shape: (epochs, channels, features)
-    X_features = np.zeros((n_epochs, n_channels, 7))
-    
-    print(f"Data loaded: {n_channels} channels, {n_epochs} epochs. Sampling Rate: {sfreq}Hz")
-    
-    cores_to_use = cpu_count()
-    print(f"Extracting features using {cores_to_use} cores...")
-    
-    # 3. Multiprocessing the feature extraction
-    # We slice the data array BEFORE sending it to the helper function
-    parallel_results = Parallel(n_jobs=-1)(
-        delayed(compute_epoch_channel_features)(
-            epoch, 
-            ch, 
-            data[ch, (epoch * n_samples) : ((epoch + 1) * n_samples)] # The specific signal slice
-        )
-        for epoch in range(n_epochs)
-        for ch in range(n_channels)
-    )
-    
-    # Reassemble the results into our 3D matrix
-    for epoch, ch, features in parallel_results:
-        X_features[epoch, ch, :] = features
-        
-    print("Feature extraction complete!")
-    return X_features, raw.ch_names
-
-if __name__ == "__main__":
-    # Note: Replace 'your_eeg_record.edf' with an actual file path on your system
-    edf_path = 'your_eeg_record.edf' 
+    if not os.path.exists(path_edf): return None
     
     try:
-        X_features, channel_names = process_eeg_file(edf_path)
+        # 1. Carrega o arquivo permitindo nomes duplicados
+        raw = mne.io.read_raw_edf(path_edf, preload=True, verbose=False)
         
-        print("\n--- Summary ---")
-        print(f"Final Feature Matrix Shape: {X_features.shape}")
+        # 2. Limpeza de nomes
+        raw.rename_channels(lambda x: x.strip().upper())
         
-        # Example of how to flatten this data for standard SVM training 
-        # (Converting from 3D to 2D matrix)
-        n_epochs, n_channels, n_feat = X_features.shape
-        X_flattened = X_features.reshape(n_epochs, n_channels * n_feat)
-        print(f"Flattened Matrix Shape for SVM: {X_flattened.shape}")
+        # 3. Mapeamento de sinonimos comuns no CHB-MIT
+        existing_channels = raw.ch_names
+        final_selection = []
+        target_channels = [c.upper() for c in CHANNELS_TO_KEEP]
         
-    except FileNotFoundError:
-        print(f"ERROR: Could not find the file '{edf_path}'. Please provide a valid MNE-compatible EEG file.")
+        for target in target_channels:
+            if target in existing_channels:
+                final_selection.append(target)
+            else:
+                found_alt = [ch for ch in existing_channels if ch.startswith(target)]
+                if found_alt:
+                    final_selection.append(found_alt[0])
+
+        if len(final_selection) < 15:
+            print(f"Erro em {file_name}: Apenas {len(final_selection)} canais encontrados. Pulando.")
+            return None
+            
+        # 4. Seleciona e renomeia canais
+        raw.pick(final_selection)
+        rename_dict = {actual: original for actual, original in zip(raw.ch_names, CHANNELS_TO_KEEP)}
+        raw.rename_channels(rename_dict)
+        
+        # FIX MNE Voltage: Multiplicar por 1e6 converte Volts para microVolts.
+        # Previne underflow (variância 0) na matemática do PCA.
+        data = raw.get_data() * 1e6
+        
+        janela_samples = int(window_sec * sfreq)
+        seizures = group[group['label'] == 1]
+        
+        is_seizure = np.zeros(data.shape[1], dtype=bool)
+        
+        # 5. Extract Seizure Windows (Label 1)
+        for _, row in seizures.iterrows():
+            start_idx = int(row['start_sec'] * sfreq)
+            end_idx = int(row['end_sec'] * sfreq)
+            
+            is_seizure[start_idx:end_idx] = True
+            
+            for start in range(start_idx, end_idx - janela_samples, janela_samples):
+                window = data[:, start:start+janela_samples]
+                X_local.append(extract_all_poincare_features(window))
+                y_local.append(1)
+        
+        # 6. Background (Label 0)
+        cont_bg = 0
+        while cont_bg < 15:
+            start = np.random.randint(0, data.shape[1] - janela_samples)
+            if not np.any(is_seizure[start : start + janela_samples]):
+                window = data[:, start:start+janela_samples]
+                X_local.append(extract_all_poincare_features(window))
+                y_local.append(0)
+                cont_bg += 1
+                
+        return np.array(X_local), np.array(y_local)
+    
+    except Exception as e:
+        print(f"Erro em {file_name}: {e}")
+        return None
+
+if __name__ == "__main__":
+    df = pd.read_csv('chb_mit_global_labels.csv')
+
+    base_path = './dataset_chbmit'
+    
+    # ATENÇÃO: O paper utiliza janelas de 1 segundo, então ajustamos o window_sec de 4 para 1
+    window_sec = 1 
+    sfreq = 256
+    
+    # Process per patient instead of globally
+    for patient_id, group in df.groupby('patient'):
+        print(f"Processando características Poincaré para {patient_id}...")
+        
+        results = Parallel(n_jobs=-1)(
+            delayed(process_single_file)(f, file_group, base_path, window_sec, sfreq) 
+            for f, file_group in group.groupby('file_name')
+        )
+        
+        X_patient, y_patient = [], []
+        for res in results:
+            if res is not None:
+                X_patient.append(res[0])
+                y_patient.append(res[1])
+                
+        if X_patient:
+            X_stacked = np.vstack(X_patient)
+            y_stacked = np.concatenate(y_patient)
+            np.save(f'X_{patient_id}.npy', X_stacked)
+            np.save(f'y_{patient_id}.npy', y_stacked)
+            print(f"Salvo {patient_id}: X={X_stacked.shape}")
