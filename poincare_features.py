@@ -157,48 +157,34 @@ def process_single_file(file_name, group, base_path, window_sec, sfreq):
         # 2. Limpeza de nomes
         raw.rename_channels(lambda x: x.strip().upper())
         
-        # 3. Mapeamento de sinonimos comuns no CHB-MIT
+        # 3. Mapeamento de sinônimos e Extração Direta (Resolve o erro "sel is not unique")
         existing_channels = raw.ch_names
-        final_selection = []
         target_channels = [c.upper() for c in CHANNELS_TO_KEEP]
+        
+        selected_data = []
         
         for target in target_channels:
             if target in existing_channels:
-                final_selection.append(target)
+                # Extrai o array 1D deste canal específico
+                ch_idx = existing_channels.index(target)
+                selected_data.append(raw.get_data(picks=ch_idx)[0])
             else:
+                # Tenta buscar variações comuns (ex: T8-P8-1)
                 found_alt = [ch for ch in existing_channels if ch.startswith(target)]
                 if found_alt:
-                    final_selection.append(found_alt[0])
+                    ch_idx = existing_channels.index(found_alt[0])
+                    selected_data.append(raw.get_data(picks=ch_idx)[0])
 
-        if len(final_selection) < 15:
-            print(f"Erro em {file_name}: Apenas {len(final_selection)} canais encontrados. Pulando.")
+        # 4. Verifica se temos EXATAMENTE os canais necessários (Resolve o erro de dimensão no vstack)
+        if len(selected_data) != len(target_channels):
+            print(f"Erro em {file_name}: Encontrou {len(selected_data)} canais, mas precisava de {len(target_channels)}. Pulando arquivo.")
             return None
             
-        # 4. Seleciona e renomeia canais
-        raw.pick(final_selection)
-        rename_dict = {actual: original for actual, original in zip(raw.ch_names, CHANNELS_TO_KEEP)}
-        raw.rename_channels(rename_dict)
-        
-        # FIX MNE Voltage: Multiplicar por 1e6 converte Volts para microVolts.
-        # Previne underflow (variância 0) na matemática do PCA.
-        data = raw.get_data() * 1e6
+        # 5. Converte a lista em uma matriz NumPy e aplica a escala
+        data = np.array(selected_data) * 1e6 
         
         janela_samples = int(window_sec * sfreq)
         seizures = group[group['label'] == 1]
-        
-        is_seizure = np.zeros(data.shape[1], dtype=bool)
-        
-        # 5. Extract Seizure Windows (Label 1)
-        for _, row in seizures.iterrows():
-            start_idx = int(row['start_sec'] * sfreq)
-            end_idx = int(row['end_sec'] * sfreq)
-            
-            is_seizure[start_idx:end_idx] = True
-            
-            for start in range(start_idx, end_idx - janela_samples, janela_samples):
-                window = data[:, start:start+janela_samples]
-                X_local.append(extract_all_poincare_features(window))
-                y_local.append(1)
         
         # 6. Background (Label 0)
         cont_bg = 0
