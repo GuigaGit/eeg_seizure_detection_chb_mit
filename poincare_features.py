@@ -64,6 +64,8 @@ def get_poincare_intersections(embedded_space):
     if np.var(pc1) == 0:
         return np.array([])
     
+    # Usa uma solucao least-squares ao inves do Bezier Clipping para encontrar a linha de melhor ajuste
+    # So pq eu ainda nao entendi como fazer o Bezier Clipping direito. Mas a ideia é a mesma: encontrar a linha que melhor separa os pontos
     m, c = np.polyfit(pc1, pc2, 1)
     intersection_pc1_values = []
     
@@ -71,12 +73,17 @@ def get_poincare_intersections(embedded_space):
         x1, y1 = pc1[i], pc2[i]
         x2, y2 = pc1[i+1], pc2[i+1]
         
+        # Calculates the vertical distance from the Poincaré line to Point 1 (f1) and Point 2 (f2). 
+        # If a point is above the line, f is positive. If it is below, f is negative.
         f1 = y1 - (m * x1 + c)
         f2 = y2 - (m * x2 + c)
         
+        # If multiply f1 and f2 and the result is negative, it guarantees one point was positive (above) and one was negative (below). 
+        # This proves the trajectory just pierced the Poincaré section
         if f1 * f2 < 0:
-            fraction = abs(f1) / (abs(f1) + abs(f2) + 1e-9) # 1e-9 prevents division by zero
-            intersect_x = x1 + fraction * (x2 - x1)
+            m2 = (y2 - y1) / (x2 - x1) if (x2 - x1) != 0 else np.inf
+            c2 = y1 - m2 * x1
+            intersect_x = (c2 - c) / (m - m2) if (m - m2) != 0 else np.nan
             intersection_pc1_values.append(intersect_x)
             
     return np.array(intersection_pc1_values)
