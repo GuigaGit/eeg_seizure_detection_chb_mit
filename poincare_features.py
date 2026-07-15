@@ -67,6 +67,9 @@ def get_poincare_intersections(embedded_space):
     # Usa uma solucao least-squares ao inves do Bezier Clipping para encontrar a linha de melhor ajuste
     # So pq eu ainda nao entendi como fazer o Bezier Clipping direito. Mas a ideia é a mesma: encontrar a linha que melhor separa os pontos
     m, c = np.polyfit(pc1, pc2, 1)
+
+    print(f"Fitted line: y = {m:.4f}x + {c:.4f}")
+    
     intersection_pc1_values = []
     
     for i in range(len(pc1) - 1):
