@@ -2,9 +2,18 @@ import mne
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import os
+
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Pasta com os arquivos .edf do CHB-MIT. Cada máquina pode ter o dataset em
+# um lugar diferente, então isso é configurável via variável de ambiente:
+#   export CHB_MIT_DATASET_DIR=/caminho/para/dataset_chbmit
+# Se não for definida, usa a pasta de exemplo dentro do próprio repositório.
+DATASET_DIR = os.environ.get('CHB_MIT_DATASET_DIR', os.path.join(REPO_ROOT, 'dataset_chbmit'))
 
 # 1. Load the EDF file
-file_path = 'chb21_21.edf'
+file_path = os.path.join(DATASET_DIR, 'chb21', 'chb21_21.edf')
 raw = mne.io.read_raw_edf(file_path, preload=True)
 
 # Optional: Apply a notch filter to remove power line noise (e.g., 60 Hz)

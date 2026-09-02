@@ -4,18 +4,19 @@ import pandas as pd
 import mne
 import torch
 import matplotlib.pyplot as plt
-from poincare_features import time_delay_embedding, get_poincare_intersections, pca_transform, fit_line
+from poincare_features import time_delay_embedding, get_poincare_intersections, pca_transform, fit_line, SCRIPT_DIR, REPO_ROOT, DATASET_DIR
 
 # Desativar logs excessivos do MNE
 mne.set_log_level('ERROR')
 
 
-def load_real_segments(base_path='./dataset_chbmit'):
+def load_real_segments(base_path=None):
     """
     Busca no chb01 um arquivo com crise e extrai uma janela de 1s de background
     e uma janela de 1s de crise para fins de comparação visual.
     """
-    df = pd.read_csv('chb_mit_global_labels.csv')
+    base_path = base_path or DATASET_DIR
+    df = pd.read_csv(os.path.join(REPO_ROOT, 'chb_mit_global_labels.csv'))
     df_patient = df[df['patient'] == 'chb01']
 
     seizure_file_info = df_patient[df_patient['label'] == 1].iloc[0]
@@ -115,8 +116,9 @@ def plot_pipeline_validation(signal, title_prefix="Segmento"):
     axs[1, 1].legend()
 
     plt.tight_layout()
-    os.makedirs('results/pipeline_validation_torch', exist_ok=True)
-    save_path = f"results/pipeline_validation_torch/{title_prefix.lower().replace(' ', '_')}_validation.png"
+    out_dir = os.path.join(SCRIPT_DIR, 'results', 'pipeline_validation_torch')
+    os.makedirs(out_dir, exist_ok=True)
+    save_path = os.path.join(out_dir, f"{title_prefix.lower().replace(' ', '_')}_validation.png")
     plt.savefig(save_path, dpi=300)
     print(f"Gráfico completo salvo com sucesso em: {save_path}")
     plt.show()
