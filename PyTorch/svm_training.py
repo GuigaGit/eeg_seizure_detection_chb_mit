@@ -12,18 +12,62 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+# https://en.wikipedia.org/wiki/Support_vector_machine
+#     Hinge loss is defined as: max(0, 1 - y * (w^T x + b)), where y in {-1, 1}.
+#     The primal objective is: 0.5 * ||w||^2 + C * mean(hinge_loss), where C is the regularization parameter.
 class LinearSVM(nn.Module):
-    """Linear SVM implemented as a single linear layer trained with hinge loss."""
+    """
+    A linear Support Vector Machine, implemented as a single linear layer
+    (this is literally all a linear SVM is: a weight vector w, a bias b, and
+    a decision score w.x + b). What makes it an "SVM" rather than plain
+    linear regression is how it's trained - see `train_linear_svm`, which
+    optimizes the hinge-loss objective instead of e.g. mean squared error.
+    """
 
     def __init__(self, n_features):
+        """
+        Args:
+            n_features: number of input features per sample (must match the
+                width of the X tensors this model will be called on).
+        """
         super().__init__()
         self.linear = nn.Linear(n_features, 1, bias=True)
 
     def forward(self, x):
+        """
+        Computes the raw decision score for a batch of samples (not a
+        probability - just the signed distance-like score w.x + b; positive
+        means "seizure" side of the boundary, negative means "background").
+
+        Args:
+            x: torch.Tensor of shape (batch_size, n_features).
+
+        Returns:
+            torch.Tensor of shape (batch_size,) with one decision score per
+            sample.
+        """
         return self.linear(x).squeeze(-1)
 
 
 def fit_scaler(X):
+    """
+    Computes the per-feature mean and standard deviation of a training set,
+    to later standardize (z-score) both train and test data the same way
+    (torch replacement for sklearn.preprocessing.StandardScaler().fit()).
+    Standardizing matters a lot for an SVM: since the objective penalizes
+    ||w||^2, features on a much larger numeric scale would dominate the
+    decision boundary regardless of how informative they actually are.
+
+    Args:
+        X: torch.Tensor of shape (n_samples, n_features) - the TRAINING
+            data only (never fit this on test data, or information from the
+            test set leaks into training).
+
+    Returns:
+        Tuple (mean, std): both are 1D torch.Tensors of shape (n_features,).
+        Any feature with zero variance (constant value) gets std=1 instead
+        of 0, so dividing by it later doesn't produce NaN/Inf.
+    """
     mean = X.mean(dim=0)
     std = X.std(dim=0, unbiased=False)
     std = torch.where(std == 0, torch.ones_like(std), std)
@@ -31,11 +75,49 @@ def fit_scaler(X):
 
 
 def apply_scaler(X, mean, std):
+    """
+    Standardizes data using a previously fitted (mean, std) pair: (X - mean)
+    / std. Apply the SAME mean/std (fitted on the training set via
+    `fit_scaler`) to both training and test/validation data, so all splits
+    live on the same numeric scale.
+
+    Args:
+        X: torch.Tensor of shape (n_samples, n_features) to standardize.
+        mean: 1D torch.Tensor of shape (n_features,), from `fit_scaler`.
+        std: 1D torch.Tensor of shape (n_features,), from `fit_scaler`.
+
+    Returns:
+        torch.Tensor of the same shape as X, standardized feature-wise.
+    """
     return (X - mean) / std
 
 
 def stratified_kfold_indices(y, n_splits=3, seed=42):
-    """Manual stratified K-Fold (replaces sklearn.model_selection.StratifiedKFold)."""
+    """
+    Splits a dataset into `n_splits` folds for cross-validation, keeping the
+    proportion of positive (seizure) vs. negative (background) samples
+    roughly the same in every fold (torch/numpy replacement for
+    sklearn.model_selection.StratifiedKFold). "Stratified" matters here
+    specifically because seizure windows are rare: a plain random split
+    could easily produce a fold with zero seizure samples, which would make
+    sensitivity undefined for that fold.
+
+    How: shuffles the positive-label indices and negative-label indices
+    separately (each with the same `seed`, for reproducibility), splits each
+    group into `n_splits` roughly-equal chunks with `np.array_split`, then
+    for fold k, uses chunk k of both groups as the validation set and all
+    the other chunks (of both groups) as the training set.
+
+    Args:
+        y: torch.Tensor of shape (n_samples,) with binary labels (0/1).
+        n_splits: number of folds to create.
+        seed: random seed controlling the shuffle, for reproducibility.
+
+    Returns:
+        List of `n_splits` tuples (train_idx, val_idx), where each is a 1D
+        numpy array of integer indices into `y` (and the matching X) for
+        that fold's training and validation subsets.
+    """
     y_np = y.cpu().numpy()
     rng = np.random.RandomState(seed)
     idx_pos = rng.permutation(np.where(y_np == 1)[0])
@@ -56,9 +138,47 @@ def stratified_kfold_indices(y, n_splits=3, seed=42):
 
 def train_linear_svm(X, y, C, epochs=300, lr=0.05, seed=42, class_weight_balanced=True):
     """
-    Trains a linear SVM via gradient descent on the standard soft-margin
-    primal objective: 0.5*||w||^2 + C * mean(hinge_loss), with optional
-    class-balanced sample weights (mirrors sklearn's class_weight='balanced').
+    Trains a `LinearSVM` from scratch via gradient descent on the standard
+    soft-margin primal SVM objective:
+        loss = 0.5 * ||w||^2 + C * mean(sample_weight * hinge_loss)
+    where hinge_loss = max(0, 1 - y_signed * decision_score) and
+    y_signed in {-1, +1}. This is the same objective sklearn's
+    SVC(kernel='linear') solves via quadratic programming - here it's solved
+    instead with an ordinary PyTorch optimizer (Adam), which is what makes
+    every piece of it (epochs, learning rate, optimizer choice, class
+    weighting) directly tunable, unlike a black-box QP solver.
+
+    Intuition for the two loss terms:
+      - 0.5*||w||^2 is the regularizer: it pushes the weights toward zero,
+        i.e. toward a wider/simpler margin. This is what `C` trades off
+        against.
+      - hinge_loss is 0 for a point already correctly classified with
+        enough margin (y_signed * score >= 1), and grows linearly with how
+        far a point is on the wrong side of the margin otherwise - so only
+        "hard" points near/past the boundary contribute gradient.
+      - C controls the trade-off: large C = fit the training data harder
+        (less regularization, higher risk of overfitting); small C = prefer
+        a simpler/wider-margin boundary (more regularization, higher risk of
+        underfitting).
+
+    Args:
+        X: torch.Tensor of shape (n_samples, n_features), already
+            standardized (see `apply_scaler`).
+        y: torch.Tensor of shape (n_samples,) with binary labels (0/1).
+        C: regularization strength (inverse of how much the margin term is
+            allowed to dominate) - see the trade-off explanation above.
+        epochs: number of full-batch gradient descent steps to run.
+        lr: learning rate for the Adam optimizer.
+        seed: random seed for weight initialization, for reproducibility.
+        class_weight_balanced: if True, re-weights the hinge loss so
+            positive (seizure) and negative (background) samples contribute
+            equally in total, regardless of how imbalanced the class counts
+            are (mirrors sklearn's class_weight='balanced'). If False, every
+            sample counts equally, which usually biases the model toward
+            always predicting the majority class when seizures are rare.
+
+    Returns:
+        A trained `LinearSVM` instance (already in `.eval()` mode).
     """
     torch.manual_seed(seed)
     n_features = X.shape[1]
@@ -97,12 +217,54 @@ def train_linear_svm(X, y, C, epochs=300, lr=0.05, seed=42, class_weight_balance
 
 
 def predict_svm(model, X):
+    """
+    Predicts binary labels for a batch of (already standardized) samples,
+    by thresholding the model's raw decision score at zero: score > 0 is
+    predicted as the positive/seizure class, score <= 0 as the negative/
+    background class. Uses `torch.no_grad()` since this is inference-only
+    and doesn't need gradients.
+
+    Args:
+        model: a trained `LinearSVM` (or anything with the same `.forward`
+            signature).
+        X: torch.Tensor of shape (n_samples, n_features), standardized the
+            same way the model was trained (via `apply_scaler`).
+
+    Returns:
+        torch.Tensor of shape (n_samples,), dtype long, with 0/1 predictions.
+    """
     with torch.no_grad():
         out = model(X)
     return (out > 0).long()
 
 
 def compute_metrics(y_true, y_pred):
+    """
+    Computes accuracy, sensitivity, and specificity from true vs. predicted
+    binary labels (torch replacement for sklearn's accuracy_score/
+    recall_score, computed here directly from the confusion matrix counts).
+
+    Definitions (with 1 = seizure/positive, 0 = background/negative):
+      - accuracy: fraction of all predictions that were correct.
+      - sensitivity (a.k.a. recall on the positive class): of all the
+        actual seizures, what fraction did the model catch? This is
+        usually the metric that matters most for seizure detection, since
+        missing a seizure (false negative) is worse than a false alarm.
+      - specificity (recall on the negative class): of all the actual
+        background windows, what fraction did the model correctly leave
+        alone? Low specificity means lots of false alarms.
+
+    Args:
+        y_true: torch.Tensor of shape (n_samples,) with the ground-truth 0/1
+            labels.
+        y_pred: torch.Tensor of shape (n_samples,) with the predicted 0/1
+            labels (e.g. from `predict_svm`).
+
+    Returns:
+        Tuple (acc, sen, spe) of plain Python floats. `sen` is NaN if there
+        are no positive samples in y_true (sensitivity undefined), and `spe`
+        is NaN if there are no negative samples (specificity undefined).
+    """
     y_true = y_true.long()
     y_pred = y_pred.long()
     tp = ((y_pred == 1) & (y_true == 1)).sum().item()
@@ -118,6 +280,56 @@ def compute_metrics(y_true, y_pred):
 
 def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 1, 10, 100),
                                    epochs=300, lr=0.05, n_splits=3, seed=42):
+    """
+    End-to-end training pipeline: for every patient with a saved feature
+    dataset (X_chbXX.pt / y_chbXX.pt, produced by poincare_features.py or
+    label_dataset_v2.py), trains one linear SVM per patient, picks its best
+    regularization strength C via cross-validation, evaluates it on held-out
+    data, and saves the model, scaler, and diagnostic plots.
+
+    How, per patient:
+      1. Split the patient's windows chronologically (first `training_rate`
+         fraction = train, rest = test) - NOT shuffled, so the test set is
+         always in the "future" relative to training, which is the
+         realistic scenario for a system meant to detect new seizures.
+      2. Fit a scaler (`fit_scaler`) on the training split only, and apply
+         it to both splits (`apply_scaler`).
+      3. For every candidate C in `C_grid`, run `n_splits`-fold
+         cross-validation on the training split (`stratified_kfold_indices`
+         + `train_linear_svm` + `compute_metrics`), scoring each fold by
+         validation sensitivity, and average across folds. This produces
+         one (train_score, val_score) pair per C, which is exactly what
+         gets plotted in the "validation curve" - see module docstring
+         guidance on reading over/underfitting from it.
+      4. Pick the C with the best mean validation sensitivity, then retrain
+         a fresh model on the FULL training split with that C (the
+         cross-validation models themselves are discarded - they only exist
+         to pick C).
+      5. Evaluate that final model on the untouched test split
+         (`compute_metrics`), and save the model + scaler to
+         `models_torch/`, plus the validation-curve plot.
+      6. After all patients are processed, saves an aggregate bar chart +
+         boxplot comparing sensitivity/specificity/accuracy across every
+         patient.
+
+    Args:
+        training_rate: fraction of each patient's windows (in chronological
+            order) used for training; the rest is held out as the test set.
+        C_grid: iterable of candidate regularization strengths to try per
+            patient - see `train_linear_svm` for what C controls.
+        epochs: number of gradient-descent steps used to train every model
+            (both the cross-validation models and the final refit).
+        lr: learning rate passed to `train_linear_svm`.
+        n_splits: number of cross-validation folds used to score each C.
+        seed: random seed for the fold splits and model initialization.
+
+    Returns:
+        None. Side effects: prints per-patient and aggregate metrics to
+        stdout; writes `models_torch/svm_linear_<patient>.pt` and
+        `models_torch/scaler_<patient>.pt` per patient; writes
+        `results/curves_torch/validation_curve_<patient>.png` per patient;
+        writes `results/svm_linear_performance_torch.png` once at the end.
+    """
     print(f"Iniciando Treinamento Específico por Paciente (Taxa de Treino: {training_rate*100}%)")
     print("Modelo: SVM Linear via PyTorch (hinge loss, gradiente descendente) - controle total dos hiperparâmetros")
     print(f"Hiperparâmetros: epochs={epochs}, lr={lr}, C_grid={C_grid}, n_splits={n_splits}, device={DEVICE}")

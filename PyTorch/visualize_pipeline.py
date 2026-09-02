@@ -12,8 +12,29 @@ mne.set_log_level('ERROR')
 
 def load_real_segments(base_path=None):
     """
-    Busca no chb01 um arquivo com crise e extrai uma janela de 1s de background
-    e uma janela de 1s de crise para fins de comparação visual.
+    Loads two real 1-second EEG segments from patient chb01 - one from
+    quiet background activity and one from the very start of an annotated
+    seizure - purely for visual sanity-checking of the Poincaré feature
+    pipeline (see `plot_pipeline_validation`), not for training.
+
+    How: reads `chb_mit_global_labels.csv` to find chb01's first file with
+    an annotated seizure, loads that .edf with MNE, picks a single
+    representative channel ('P7-T7'), and slices out:
+      - a "background" window starting 5s into the recording (early enough
+        to be unaffected by any startup artifacts, and - by construction of
+        this specific file - well before the seizure);
+      - a "seizure" window starting at t=3026s, a timestamp hardcoded for
+        this specific chb01 recording's known seizure onset.
+
+    Args:
+        base_path: root folder containing one subfolder per patient;
+            defaults to `DATASET_DIR` (the configured CHB-MIT dataset
+            location) if not given.
+
+    Returns:
+        Tuple (bg_signal, sz_signal, sfreq): `bg_signal` and `sz_signal` are
+        1D numpy arrays of raw voltage samples (1 second each), `sfreq` is
+        the recording's sampling frequency in Hz.
     """
     base_path = base_path or DATASET_DIR
     df = pd.read_csv(os.path.join(REPO_ROOT, 'chb_mit_global_labels.csv'))
@@ -44,10 +65,37 @@ def load_real_segments(base_path=None):
 
 def plot_pipeline_validation(signal, title_prefix="Segmento"):
     """
-    Gera o plot de 4 etapas para validação matemática do bloco geométrico,
-    incluindo a sequência temporal discreta de interseções. PCA e o ajuste
-    de reta agora rodam via PyTorch (poincare_features.pca_transform / fit_line)
-    em vez de sklearn.decomposition.PCA + np.polyfit.
+    Draws a 4-panel diagnostic figure that visually walks through every
+    stage of the Poincaré feature pipeline for one 1-second signal, so you
+    can sanity-check the math step by step instead of trusting it blindly:
+        raw signal -> phase-space embedding -> Poincaré section -> discrete
+        intersection sequence.
+
+    The 4 panels:
+      1. The raw EEG signal in the time domain.
+      2. The reconstructed phase-space trajectory (`time_delay_embedding`),
+         projected to its top 3 principal components (`pca_transform`) and
+         shown as a 3D curve - this is what "reconstructing the dynamics"
+         actually looks like geometrically.
+      3. The 2D projection (PC1 vs PC2) of that same trajectory, with the
+         fitted Poincaré section line (`fit_line`) and the points where the
+         trajectory crosses it highlighted - the geometric core of
+         `get_poincare_intersections`.
+      4. The same crossing points, but plotted as a discrete sequence in the
+         order they occur - this is literally the `intersections` array that
+         `extract_features` later summarizes into 7 numbers.
+
+    Args:
+        signal: 1D array-like with one channel's raw samples for a single
+            window (e.g. one second at 256Hz).
+        title_prefix: label used in the figure's title and in the saved
+            file's name (e.g. "Segmento Normal (Background)"), to tell
+            multiple calls' outputs apart.
+
+    Returns:
+        None. Side effects: saves the figure to
+        `results/pipeline_validation_torch/<title_prefix>_validation.png`
+        and displays it interactively via `plt.show()`.
     """
     # 1. Reconstrução do Espaço de Fase 5D
     embedded = time_delay_embedding(signal, d=5, tau=6)

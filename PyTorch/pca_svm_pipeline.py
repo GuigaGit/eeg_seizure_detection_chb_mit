@@ -21,16 +21,54 @@ LAYER2_C = 1.0           # inverse regularization strength, like sklearn's SVC(C
 
 
 class LinearClassifier(nn.Module):
+    """
+    A plain linear layer used as a general-purpose binary classifier in this
+    demo pipeline - the exact same module architecture is reused for both
+    Layer 1 (trained as logistic regression, replacing LDA) and Layer 2
+    (trained as a hinge-loss SVM). What makes each one behave differently is
+    the loss function used to train it (`train_logistic` vs.
+    `train_linear_svm`), not the model itself.
+    """
+
     def __init__(self, in_features):
+        """
+        Args:
+            in_features: number of input features per sample.
+        """
         super().__init__()
         self.linear = nn.Linear(in_features, 1)
 
     def forward(self, x):
+        """
+        Args:
+            x: torch.Tensor of shape (batch_size, in_features).
+
+        Returns:
+            torch.Tensor of shape (batch_size,) with one raw decision score
+            per sample.
+        """
         return self.linear(x).squeeze(-1)
 
 
 def train_logistic(model, X, y, epochs, lr):
-    """Replaces sklearn's LDA with a logistic-regression linear classifier."""
+    """
+    Trains a `LinearClassifier` as a logistic-regression model - this is the
+    PyTorch replacement for sklearn's LDA in Layer 1. Logistic regression,
+    like LDA, learns a single linear decision boundary between two classes;
+    unlike LDA (which has a closed-form solution from class means/
+    covariances), here it's fit by directly minimizing binary cross-entropy
+    with gradient descent, which is what exposes `epochs`/`lr` as tunable.
+
+    Args:
+        model: a `LinearClassifier` instance to train in place.
+        X: torch.Tensor of shape (n_samples, in_features).
+        y: torch.Tensor of shape (n_samples,) with binary labels (0/1).
+        epochs: number of full-batch gradient descent steps.
+        lr: learning rate for the Adam optimizer.
+
+    Returns:
+        The same `model` instance, now trained (in `.eval()` mode).
+    """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     y_float = y.float()
     model.train()
@@ -44,7 +82,26 @@ def train_logistic(model, X, y, epochs, lr):
 
 
 def train_linear_svm(model, X, y, C, epochs, lr):
-    """Replaces sklearn's SVC(kernel='linear') with a hinge-loss linear layer."""
+    """
+    Trains a `LinearClassifier` as a linear SVM via the soft-margin hinge
+    loss objective (see `svm_training.train_linear_svm` for the same idea
+    with fuller commentary) - the PyTorch replacement for Layer 2's
+    sklearn SVC(kernel='linear'). Used here to combine Layer 1's 23
+    per-channel binary predictions into one final decision.
+
+    Args:
+        model: a `LinearClassifier` instance to train in place.
+        X: torch.Tensor of shape (n_samples, in_features) - here, Layer 1's
+            per-channel predictions (n_samples, n_channels).
+        y: torch.Tensor of shape (n_samples,) with binary labels (0/1).
+        C: regularization strength - large C fits the training data harder
+            (weaker regularization), small C prefers a simpler boundary.
+        epochs: number of full-batch gradient descent steps.
+        lr: learning rate for the Adam optimizer.
+
+    Returns:
+        The same `model` instance, now trained (in `.eval()` mode).
+    """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     y_signed = y.float() * 2 - 1
     model.train()
@@ -61,6 +118,19 @@ def train_linear_svm(model, X, y, C, epochs, lr):
 
 
 def predict_labels(model, X):
+    """
+    Predicts binary labels from a trained `LinearClassifier` by thresholding
+    its raw decision score at zero (works the same regardless of whether
+    the model was trained with `train_logistic` or `train_linear_svm`,
+    since both output the same kind of raw score).
+
+    Args:
+        model: a trained `LinearClassifier`.
+        X: torch.Tensor of shape (n_samples, in_features).
+
+    Returns:
+        torch.Tensor of shape (n_samples,), dtype long, with 0/1 predictions.
+    """
     with torch.no_grad():
         return (model(X) > 0).long()
 
@@ -69,6 +139,29 @@ def predict_labels(model, X):
 # Main Pipeline & Classification
 # ==========================================
 def run_pipeline():
+    """
+    Demonstrates the full 2-layer classification architecture end to end on
+    SYNTHETIC (random noise) data, to show how the pieces fit together
+    without needing real EEG data loaded. Replace the
+    `np.random.randn(n_samples)` lines with real per-channel epoch data to
+    turn this into a real pipeline.
+
+    Architecture:
+      - Layer 1: one `LinearClassifier` per EEG channel (23 total), each
+        trained independently (via `train_logistic`) on that channel's own
+        7 Poincaré features to predict seizure/background for that channel
+        alone. This mirrors the reference paper's idea of first getting a
+        per-channel "opinion" before combining channels.
+      - Layer 2: a single `LinearClassifier` trained (via `train_linear_svm`)
+        on the 23 per-channel binary predictions from Layer 1, learning how
+        to weigh/combine those per-channel opinions into one final
+        seizure/background decision.
+
+    Takes no arguments and returns nothing (prints training progress and a
+    final example prediction to stdout); all of Layer 1/Layer 2's
+    hyperparameters are the module-level constants at the top of this file
+    (LAYER1_EPOCHS, LAYER1_LR, LAYER2_EPOCHS, LAYER2_LR, LAYER2_C).
+    """
     n_channels = 23
     fs = 256  # Hz
     epoch_length = 1  # second

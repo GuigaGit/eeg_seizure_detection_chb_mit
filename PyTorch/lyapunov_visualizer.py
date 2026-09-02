@@ -29,19 +29,61 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def largest_lyapunov_exponent(signal, sfreq, d=5, tau=6, theiler_window=None,
                                trajectory_len=20, fit_range=None):
     """
-    Estima o maior expoente de Lyapunov de `signal` pelo método de Rosenstein.
+    Estimates the Largest Lyapunov Exponent (LLE, lambda_1) of a signal
+    using Rosenstein's (1993) method. The LLE measures how fast nearby
+    trajectories in the reconstructed phase space diverge over time: a
+    larger (more positive) LLE means more chaotic/divergent dynamics
+    (typically background EEG), while a drop toward zero or negative values
+    tends to coincide with more regular/synchronized dynamics (often seen
+    at seizure onset) - which is why tracking it over a recording can help
+    spot seizures.
 
-    1. Reconstrói o espaço de fase por time-delay embedding.
-    2. Para cada ponto, busca o vizinho mais próximo fora da janela de Theiler
-       (evita pares que são apenas vizinhos temporais, não dinâmicos) usando
-       uma matriz de distâncias par-a-par (torch.cdist).
-    3. Acompanha a divergência log(distância) entre cada par pelos próximos
-       `trajectory_len` passos (uma contagem FIXA de amostras, o horizonte de
-       curto prazo em que a divergência ainda cresce exponencialmente).
-    4. O expoente é a inclinação (ajuste linear) dessa curva de divergência média.
+    How, step by step:
+      1. Reconstruct the phase space with `time_delay_embedding` - each
+         point in `embedded` is one moment in the reconstructed dynamics.
+      2. For every point i, find its nearest neighbor j in phase space,
+         EXCLUDING points within `theiler_window` samples of i in time
+         (the "Theiler window"). This exclusion matters: without it, the
+         "nearest neighbor" of a point is almost always just the next
+         sample in time (which is trivially close because the signal is
+         continuous), not a genuinely different visit to a similar state -
+         which would tell us nothing about chaotic divergence.
+      3. For each valid pair (i, nearest neighbor j), track how their
+         distance in phase space evolves over the next `trajectory_len`
+         samples: d_k = ||embedded[i+k] - embedded[j+k]||. If the dynamics
+         are chaotic, initially-close points should separate exponentially,
+         i.e. log(d_k) should grow roughly linearly in k (for small k,
+         before it saturates due to the attractor's finite size).
+      4. Average log(d_k) over all valid pairs at each horizon k, then fit
+         a straight line (`torch.linalg.lstsq`) to this average log-
+         divergence curve vs. k (converted to seconds via `dt = 1/sfreq`).
+         The slope of that line IS the estimated Lyapunov exponent.
 
-    Retorna o expoente em nats/segundo (log natural). NaN se o segmento
-    for curto/plano demais para uma estimativa confiável.
+    Args:
+        signal: 1D array-like (numpy array or torch tensor) with one
+            channel's raw samples for the segment to analyze.
+        sfreq: sampling frequency of `signal`, in Hz (used to convert the
+            trajectory-length horizon into seconds).
+        d: embedding dimension for `time_delay_embedding`.
+        tau: time lag (in samples) for `time_delay_embedding`.
+        theiler_window: minimum time separation (in samples) required
+            between a point and its "nearest neighbor" candidate. If None,
+            defaults to max(tau * d, 5% of sfreq) - large enough to exclude
+            temporally-adjacent (not dynamically meaningful) neighbors.
+        trajectory_len: how many samples ahead to track the divergence
+            between each pair - a fixed short horizon, since divergence
+            only grows exponentially (and thus gives a meaningful slope)
+            for a limited time before saturating.
+        fit_range: optional (lo, hi) tuple restricting which horizons (as
+            indices into the 0..trajectory_len range) are used for the
+            final linear fit, in case the very earliest or latest horizons
+            are noisy/saturated. If None, uses the full range.
+
+    Returns:
+        A Python float: the estimated Lyapunov exponent, in nats per second
+        (natural log). Returns NaN if the segment is too short, has ~zero
+        variance (flat signal), or doesn't have enough valid
+        neighbor pairs / data points for a reliable estimate.
     """
     embedded = time_delay_embedding(signal, d=d, tau=tau)
     n = embedded.shape[0]
@@ -110,8 +152,28 @@ def largest_lyapunov_exponent(signal, sfreq, d=5, tau=6, theiler_window=None,
 # ==========================================
 def sliding_lle(signal, sfreq, window_sec=2.0, step_sec=0.5, d=5, tau=6):
     """
-    Aplica `largest_lyapunov_exponent` em janelas deslizantes ao longo do sinal.
-    Retorna (centros_em_segundos, valores_do_lle).
+    Turns a single global LLE estimate into a time-varying curve, by
+    computing `largest_lyapunov_exponent` independently on many short,
+    overlapping windows slid across the full signal - so you can see how
+    the LLE evolves over the course of a recording (e.g. dropping around a
+    seizure) instead of getting just one number for the whole thing.
+
+    Args:
+        signal: 1D array-like with the full segment to analyze.
+        sfreq: sampling frequency of `signal`, in Hz.
+        window_sec: length of each LLE-estimation window, in seconds.
+        step_sec: time step between consecutive window starts, in seconds
+            (smaller than window_sec means overlapping windows, giving a
+            smoother curve at the cost of more computation).
+        d: embedding dimension, forwarded to `largest_lyapunov_exponent`.
+        tau: time lag, forwarded to `largest_lyapunov_exponent`.
+
+    Returns:
+        Tuple (centers, values): both 1D numpy arrays of the same length.
+        `centers` holds the time (in seconds, relative to the start of
+        `signal`) of the midpoint of each window; `values` holds the
+        estimated LLE for that window (NaN where the estimate was
+        unreliable - see `largest_lyapunov_exponent`).
     """
     window_samples = int(window_sec * sfreq)
     step_samples = max(1, int(step_sec * sfreq))
@@ -130,6 +192,23 @@ def sliding_lle(signal, sfreq, window_sec=2.0, step_sec=0.5, d=5, tau=6):
 # 3. Carregamento de dados (formato CHB-MIT)
 # ==========================================
 def get_seizure_intervals(edf_path, labels_csv=None):
+    """
+    Looks up the annotated seizure intervals for one specific .edf recording
+    from the global labels CSV, so plots can shade "this is when a seizure
+    actually happened" for visual comparison against the LLE curve.
+
+    Args:
+        edf_path: path to the .edf file (only its basename is used to match
+            against the CSV's 'file_name' column).
+        labels_csv: path to the global labels CSV; defaults to
+            `chb_mit_global_labels.csv` at the repo root if not given.
+
+    Returns:
+        List of (start_sec, end_sec) tuples, one per seizure interval
+        annotated for this file. Empty list if the file has no seizures, or
+        if `labels_csv` doesn't exist (so this function degrades gracefully
+        rather than crashing when run without the labels CSV generated).
+    """
     labels_csv = labels_csv or os.path.join(REPO_ROOT, 'chb_mit_global_labels.csv')
     if not labels_csv or not os.path.exists(labels_csv):
         return []
@@ -140,6 +219,31 @@ def get_seizure_intervals(edf_path, labels_csv=None):
 
 
 def load_channel(edf_path, channel_name, labels_csv=None):
+    """
+    Loads a single channel's full signal from an .edf recording, along with
+    its sampling frequency and annotated seizure intervals - the main entry
+    point for getting real data into the rest of this script.
+
+    Args:
+        edf_path: path to the .edf file to load.
+        channel_name: name of the channel to extract (e.g. 'P7-T7'). If not
+            found exactly, falls back to the first channel whose name
+            starts with `channel_name` (case-insensitively), to tolerate
+            naming variants like "P7-T7-1".
+        labels_csv: forwarded to `get_seizure_intervals`.
+
+    Returns:
+        Tuple (signal, sfreq, channel_name, seizure_intervals): `signal` is
+        a 1D numpy array in microvolts (converted from the .edf's native
+        Volts), `sfreq` is the sampling frequency in Hz, `channel_name` is
+        the actual channel name used (may differ from the requested one if
+        a fallback match was used), and `seizure_intervals` is the list
+        from `get_seizure_intervals`.
+
+    Raises:
+        ValueError: if no channel matching `channel_name` (exactly or by
+            prefix) exists in the recording.
+    """
     raw = mne.io.read_raw_edf(edf_path, preload=True, verbose=False)
     raw.rename_channels(lambda x: x.strip())
 
@@ -162,10 +266,31 @@ def load_channel(edf_path, channel_name, labels_csv=None):
 
 def resolve_analysis_window(full_len_samples, sfreq, seizure_intervals, start_sec, duration_sec):
     """
-    Decide o trecho [start_idx, end_idx) da gravação a analisar (padrão: 60s
-    antes da primeira crise anotada, ou o início da gravação se não houver
-    crise) e re-referencia os intervalos de crise para começarem em t=0
-    dentro desse trecho.
+    Decides which [start_idx, end_idx) slice of a (possibly very long)
+    recording to actually analyze/plot, and re-expresses the seizure
+    intervals relative to that slice's own start (so seizure shading lines
+    up correctly on a plot whose x-axis starts at 0, not at the original
+    recording's timestamp).
+
+    Args:
+        full_len_samples: total length of the full recording, in samples.
+        sfreq: sampling frequency, in Hz.
+        seizure_intervals: list of (start_sec, end_sec) tuples in the full
+            recording's original time reference (e.g. from
+            `get_seizure_intervals`).
+        start_sec: where to start the analysis window, in seconds (in the
+            recording's original time reference). If None, defaults to 60
+            seconds before the first annotated seizure, or 0 if there are no
+            seizures.
+        duration_sec: length of the analysis window, in seconds (clipped to
+            the end of the recording if it would run past it).
+
+    Returns:
+        Tuple (start_idx, end_idx, local_seizures): `start_idx`/`end_idx`
+        are sample indices into the full recording bounding the chosen
+        window; `local_seizures` is a list of (start_sec, end_sec) tuples
+        re-referenced so that 0 corresponds to `start_idx`, containing only
+        the seizure intervals that actually overlap the chosen window.
     """
     if start_sec is None:
         start_sec = max(0.0, seizure_intervals[0][0] - 60) if seizure_intervals else 0.0
@@ -185,8 +310,28 @@ def resolve_analysis_window(full_len_samples, sfreq, seizure_intervals, start_se
 # ==========================================
 def _build_two_panel_figure(signal, sfreq, seizure_intervals, channel_name, title):
     """
-    Monta a figura de dois painéis compartilhando o eixo X (tempo, em segundos):
-    o EEG completo em cima e o espaço para a curva de LLE embaixo.
+    Builds the shared 2-panel figure layout (raw EEG on top, LLE curve on
+    the bottom, sharing the same time x-axis) used by both the live
+    animation (`animate_lyapunov`) and the static summary plot
+    (`plot_final_summary`), so the two look consistent and the LLE panel
+    always lines up in time with the EEG panel above it. Both panels get
+    red shaded spans (`axvspan`) over any annotated seizure interval.
+
+    Args:
+        signal: 1D array-like with the full EEG segment being shown.
+        sfreq: sampling frequency of `signal`, in Hz.
+        seizure_intervals: list of (start_sec, end_sec) tuples, already
+            re-referenced to this segment's own time axis (e.g. from
+            `resolve_analysis_window`).
+        channel_name: name of the channel being plotted, used in panel
+            titles.
+        title: overall figure title (`fig.suptitle`).
+
+    Returns:
+        Tuple (fig, ax_eeg, ax_lle, total_dur): the matplotlib Figure, the
+        two Axes (EEG on top, LLE below, ready to have data plotted into
+        them by the caller), and `total_dur` (the segment's duration in
+        seconds, used to set the x-axis limits).
     """
     total_dur = len(signal) / sfreq
     time_axis = np.arange(len(signal)) / sfreq
@@ -215,8 +360,35 @@ def _build_two_panel_figure(signal, sfreq, seizure_intervals, channel_name, titl
 def animate_lyapunov(signal, sfreq, centers, lle_values, seizure_intervals,
                       channel_name, save_path=None):
     """
-    Anima a evolução do LLE lado a lado com o EEG completo, ambos na mesma
-    escala de tempo (eixo X compartilhado).
+    Animates the LLE curve being "drawn" over time next to the full EEG
+    trace, with a vertical cursor sweeping across both panels in sync - a
+    way to see, moment by moment, how the estimated Lyapunov exponent
+    behaves as the recording plays out (and whether it visibly dips around
+    the shaded seizure interval).
+
+    How: builds the shared 2-panel layout (`_build_two_panel_figure`), then
+    uses `matplotlib.animation.FuncAnimation` to redraw, frame by frame: the
+    LLE curve up to the current frame (`lle_line`), a vertical cursor at the
+    current time on both panels, and a text readout of the current LLE
+    value (turning red with a "CRISE" warning if the cursor is currently
+    inside an annotated seizure interval).
+
+    Args:
+        signal: 1D array-like with the full EEG segment being animated.
+        sfreq: sampling frequency of `signal`, in Hz.
+        centers: 1D array of window-center timestamps, in seconds (from
+            `sliding_lle`) - one animation frame per entry.
+        lle_values: 1D array of LLE values matching `centers` (from
+            `sliding_lle`).
+        seizure_intervals: list of (start_sec, end_sec) tuples, re-
+            referenced to this segment's own time axis.
+        channel_name: name of the channel being animated, used in titles.
+        save_path: if given, saves the animation as a .gif to this path
+            (via `PillowWriter`) instead of displaying it interactively.
+
+    Returns:
+        None. Side effect: either shows the animation window
+        (`plt.show()`) or writes a .gif file to `save_path`.
     """
     fig, ax_eeg, ax_lle, total_dur = _build_two_panel_figure(
         signal, sfreq, seizure_intervals, channel_name,
@@ -277,8 +449,27 @@ def animate_lyapunov(signal, sfreq, centers, lle_values, seizure_intervals,
 def plot_final_summary(signal, sfreq, centers, lle_values, seizure_intervals,
                         channel_name, save_path=None):
     """
-    Plot estático (sem animação) do sinal completo vs. a evolução completa do
-    LLE, na mesma escala de tempo.
+    Draws the same 2-panel layout as `animate_lyapunov` (EEG + LLE curve,
+    shared time axis) but as a single static image with the FULL curve
+    already drawn - much cheaper than animating, so this is what
+    `process_all_channels` uses to produce one summary image per channel
+    without the cost of rendering dozens of animations.
+
+    Args:
+        signal: 1D array-like with the full EEG segment being summarized.
+        sfreq: sampling frequency of `signal`, in Hz.
+        centers: 1D array of window-center timestamps, in seconds (from
+            `sliding_lle`).
+        lle_values: 1D array of LLE values matching `centers`.
+        seizure_intervals: list of (start_sec, end_sec) tuples, re-
+            referenced to this segment's own time axis.
+        channel_name: name of the channel being plotted, used in titles.
+        save_path: if given, saves the figure to this path (creating parent
+            directories as needed) instead of displaying it interactively.
+
+    Returns:
+        None. Side effect: either shows the plot (`plt.show()`) or writes a
+        PNG file to `save_path`.
     """
     fig, ax_eeg, ax_lle, _ = _build_two_panel_figure(
         signal, sfreq, seizure_intervals, channel_name,
@@ -305,9 +496,27 @@ def process_all_channels(edf_path, out_dir=None,
                           start_sec=None, duration_sec=180.0,
                           window_sec=2.0, step_sec=0.5):
     """
-    Roda a estimativa de LLE em janela deslizante para TODOS os canais do
-    arquivo .edf (não apenas um) e salva, para cada canal, o plot final
-    estático em `out_dir`.
+    Batch-runs the sliding-window LLE analysis over EVERY channel in one
+    .edf recording (rather than a single hand-picked channel), saving one
+    static summary plot per channel - useful for scanning a whole recording
+    to see which channels show the clearest LLE drop around a seizure,
+    without manually re-running `main()` once per channel.
+
+    Args:
+        edf_path: path to the .edf file to process.
+        out_dir: folder to save the per-channel PNGs into; defaults to
+            `results/lyapunov_torch/` inside this script's folder.
+        labels_csv: forwarded to `get_seizure_intervals`.
+        start_sec: forwarded to `resolve_analysis_window` (same default:
+            60s before the first seizure, or 0).
+        duration_sec: forwarded to `resolve_analysis_window` - length of
+            the analyzed segment, in seconds, same for every channel.
+        window_sec: forwarded to `sliding_lle`.
+        step_sec: forwarded to `sliding_lle`.
+
+    Returns:
+        List of the file paths (str) written, one PNG per channel, in the
+        same order as the recording's channels.
     """
     out_dir = out_dir or os.path.join(SCRIPT_DIR, 'results', 'lyapunov_torch')
 
@@ -346,6 +555,18 @@ def process_all_channels(edf_path, out_dir=None,
 # 6. CLI
 # ==========================================
 def main():
+    """
+    Command-line entry point: parses CLI flags and either (a) runs
+    `process_all_channels` over every channel of the given .edf file if
+    `--all-channels` was passed, or (b) loads a single channel
+    (`load_channel`), computes its sliding-window LLE (`sliding_lle`), and
+    animates it (`animate_lyapunov`). See the `--help` output (printed from
+    the argparse definitions below) for every flag's meaning and default.
+
+    Takes no arguments (reads `sys.argv` via argparse) and returns nothing;
+    all output is either printed to stdout, shown in a matplotlib window, or
+    saved to disk depending on the flags passed.
+    """
     parser = argparse.ArgumentParser(
         description="Estima e anima o Expoente de Lyapunov de um sinal de EEG (PyTorch).")
     parser.add_argument('--edf', default=os.path.join(DATASET_DIR, 'chb01', 'chb01_03.edf'),

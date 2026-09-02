@@ -9,6 +9,33 @@ from svm_training import LinearSVM, apply_scaler, compute_metrics, predict_svm, 
 
 
 def run_inter_patient_validation():
+    """
+    Measures how well each patient's individually-trained SVM (from
+    `svm_training.py`) generalizes to every OTHER patient's data - a
+    "leave-one-patient-out"-style cross-check, useful for answering "is this
+    model learning something patient-specific about EEG in general, or did
+    it just memorize this one patient's quirks?".
+
+    How: for every trained patient A (a model + scaler exist in
+    `models_torch/`), loads A's model and scaler, then for every patient B
+    with a saved dataset (including A itself), standardizes B's features
+    using A's scaler and evaluates A's model on B's full dataset
+    (`compute_metrics`). This produces three N x N matrices (accuracy,
+    sensitivity, specificity; N = number of trained patients), where entry
+    (i, j) = "model trained on patient i, tested on patient j's data". The
+    diagonal (i == j, i.e. a patient tested on their own data) is excluded
+    from the summary statistics, since that's the "easy" same-patient case
+    already reported by `svm_training.py` - what matters here is the
+    off-diagonal, cross-patient performance.
+
+    Takes no arguments and returns nothing; instead it prints a per-patient
+    and overall cross-patient report to stdout, and saves two heatmaps
+    (mean cross-patient sensitivity and specificity) to
+    `results/cross_patient_torch/inter_patient_heatmaps.png`. Requires
+    `svm_training.train_patient_specific_models` to have been run first, so
+    that `models_torch/` and the per-patient `X_*.pt`/`y_*.pt` files exist;
+    prints an error and returns early otherwise.
+    """
     print(f"\n{'='*50}")
     print("Iniciando Validação Inter-Pacientes (Cross-Patient) - PyTorch")
     print(f"{'='*50}")

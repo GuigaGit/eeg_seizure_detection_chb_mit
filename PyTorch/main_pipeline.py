@@ -3,6 +3,23 @@ import os
 import sys
 
 def run_script(script_name):
+    """
+    Runs one pipeline script as a separate Python subprocess (rather than
+    importing and calling it directly), so that a crash in one stage
+    doesn't take down this orchestrator process, and each stage's own
+    `if __name__ == "__main__":` block runs exactly as if invoked by hand.
+
+    Args:
+        script_name: filename of the script to run (e.g.
+            "global_parse_dataset.py"), resolved relative to whatever the
+            current working directory is when main_pipeline.py itself is
+            run (see the __main__ block below for the exact list/order).
+
+    Returns:
+        None. Exits the whole process (`sys.exit(1)`) if the subprocess
+        returns a non-zero exit code, so the pipeline stops at the first
+        failing stage instead of running later stages on incomplete data.
+    """
     print(f"\n{'='*50}")
     print(f"Iniciando: {script_name}")
     print(f"{'='*50}")

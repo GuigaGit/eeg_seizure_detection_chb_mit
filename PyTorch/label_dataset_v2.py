@@ -32,6 +32,24 @@ BANDS = [(0.5, 4), (4, 8), (8, 13), (13, 30), (30, 45)]
 
 
 def torch_skew(x):
+    """
+    Computes the (biased/population) skewness of a signal - a measure of how
+    asymmetric its amplitude distribution is around the mean. Positive means
+    a longer tail toward high values, negative toward low values, ~0 means
+    roughly symmetric (torch equivalent of scipy.stats.skew with its default
+    bias=True, i.e. no small-sample correction).
+
+    How: standardizes the signal (subtracts the mean) and computes the
+    third standardized moment: mean(x^3) / mean(x^2)^1.5. A tiny epsilon is
+    added to the denominator to avoid a divide-by-zero on a perfectly flat
+    signal.
+
+    Args:
+        x: 1D torch.Tensor with one channel's samples (already float).
+
+    Returns:
+        0-dimensional torch.Tensor with the skewness value.
+    """
     x = x - x.mean()
     m2 = (x ** 2).mean()
     m3 = (x ** 3).mean()
@@ -39,6 +57,25 @@ def torch_skew(x):
 
 
 def torch_kurtosis(x):
+    """
+    Computes the (biased, excess) kurtosis of a signal - how heavy-tailed /
+    peaked its amplitude distribution is compared to a Gaussian. 0 means
+    "as Gaussian as it gets", positive means more extreme outliers than a
+    Gaussian, negative means a flatter/more uniform-looking distribution
+    (torch equivalent of scipy.stats.kurtosis with its defaults: bias=True,
+    fisher=True i.e. "excess" kurtosis with the Gaussian's 3.0 subtracted
+    off).
+
+    How: standardizes the signal and computes the fourth standardized
+    moment, mean(x^4) / mean(x^2)^2, then subtracts 3 (the kurtosis of a
+    Gaussian) so that 0 is the "no excess" baseline.
+
+    Args:
+        x: 1D torch.Tensor with one channel's samples (already float).
+
+    Returns:
+        0-dimensional torch.Tensor with the excess kurtosis value.
+    """
     x = x - x.mean()
     m2 = (x ** 2).mean()
     m4 = (x ** 4).mean()
@@ -47,10 +84,44 @@ def torch_kurtosis(x):
 
 def welch_psd_torch(signal, sfreq, nperseg):
     """
-    Densidade espectral de potência via método de Welch, reimplementada com
-    torch.stft (substitui scipy.signal.welch): janela Hann, 50% de overlap,
-    remoção de média por segmento ('constant' detrend) e escala 'density',
-    igual aos defaults do scipy.
+    Estimates the Power Spectral Density (PSD) of a signal using Welch's
+    method (torch replacement for scipy.signal.welch, matching its default
+    settings: Hann window, 50% overlap, per-segment mean removal
+    ('constant' detrend), and 'density' scaling).
+
+    Why Welch's method: a single FFT of a noisy signal gives a very noisy
+    spectrum estimate. Welch's method instead splits the signal into
+    overlapping segments, computes a periodogram (squared FFT magnitude) for
+    each, and averages them - trading frequency resolution for a much more
+    stable (lower-variance) power estimate.
+
+    How, step by step:
+      1. Split `signal` into overlapping windows of length `nperseg`
+         (50% overlap, i.e. step = nperseg // 2) using `Tensor.unfold`.
+      2. Remove each segment's own mean (detrend='constant' in scipy) so a
+         DC offset doesn't leak spectral power into low frequencies.
+      3. Multiply each segment by a Hann window to reduce spectral leakage
+         from the sharp edges of a finite segment.
+      4. Take the real FFT of every windowed segment and square its
+         magnitude to get one periodogram per segment.
+      5. Apply the 'density' scaling factor (1 / (fs * sum(window^2))) and
+         double all frequencies except DC and Nyquist, since the real FFT
+         only keeps the non-negative half of the spectrum but the power of
+         a real signal is split between positive and negative frequencies.
+      6. Average the periodograms across segments to get the final PSD.
+
+    Args:
+        signal: 1D torch.Tensor with one channel's samples for the window
+            being analyzed.
+        sfreq: sampling frequency of `signal`, in Hz.
+        nperseg: length of each Welch segment, in samples (the reference
+            pipeline uses nperseg == sfreq, i.e. 1-second segments).
+
+    Returns:
+        Tuple (freqs, psd_mean): `freqs` is a 1D torch.Tensor of the
+        frequency bins (Hz), and `psd_mean` is a 1D torch.Tensor of the same
+        length with the estimated power at each frequency (units: signal^2
+        / Hz, matching scipy's 'density' scaling).
     """
     n = signal.shape[0]
     if n < nperseg:
@@ -80,6 +151,36 @@ def welch_psd_torch(signal, sfreq, nperseg):
 
 
 def extract_all_features(window_data, sfreq):
+    """
+    Extracts classic time- and frequency-domain features from every channel
+    of an EEG window, and concatenates them into one flat feature vector
+    (the "classic features" alternative to the Poincaré-based features in
+    poincare_features.py).
+
+    Per channel, computes 6 time-domain features:
+      - mean: DC level of the window.
+      - variance: overall signal power/spread.
+      - skewness (`torch_skew`): amplitude-distribution asymmetry.
+      - kurtosis (`torch_kurtosis`): amplitude-distribution peakedness.
+      - RMS (root-mean-square): overall amplitude scale.
+      - sum(|diff|): total absolute sample-to-sample change - despite the
+        variable naming in earlier drafts suggesting "zero-crossings", this
+        is actually a total-variation measure, not a zero-crossing count.
+    ...followed by 5 frequency-domain features: the power in each classic
+    EEG band (delta 0.5-4Hz, theta 4-8Hz, alpha 8-13Hz, beta 13-30Hz,
+    gamma 30-45Hz), computed by integrating the Welch PSD (`welch_psd_torch`)
+    over each band's frequency range with the trapezoidal rule.
+
+    Args:
+        window_data: array-like of shape (n_channels, n_samples) - one
+            short EEG window with all channels for that window.
+        sfreq: sampling frequency of the window, in Hz.
+
+    Returns:
+        1D torch.Tensor of length 11 * n_channels (6 time-domain + 5
+        frequency-domain features per channel), channels concatenated in
+        their input order.
+    """
     all_features = []
     nperseg = sfreq
     for channel_signal in window_data:
@@ -103,6 +204,32 @@ def extract_all_features(window_data, sfreq):
 
 
 def process_single_file(file_name, group, base_path, window_sec, sfreq):
+    """
+    Builds the labeled classic-feature dataset for a single .edf recording:
+    loads it, extracts seizure windows and a matching sample of background
+    windows, and turns each window into a feature vector via
+    `extract_all_features`. (Same overall structure as
+    `poincare_features.process_single_file`, but requires only 15 of the 18
+    target channels to be present instead of all of them, and uses
+    `extract_all_features` instead of the Poincaré features.)
+
+    Args:
+        file_name: name of the .edf file to process (e.g. "chb01_03.edf").
+        group: pandas DataFrame slice (rows of the global labels CSV for
+            this file) with columns 'patient', 'label', 'start_sec',
+            'end_sec' describing the seizure intervals annotated in it.
+        base_path: root folder containing one subfolder per patient
+            (typically `DATASET_DIR`), used to locate the .edf file.
+        window_sec: length of each feature-extraction window, in seconds.
+        sfreq: sampling frequency of the recording, in Hz.
+
+    Returns:
+        Tuple (X_local, y_local): X_local is a torch.Tensor of shape
+        (n_windows, 11 * n_channels) with one feature vector per window,
+        y_local is a torch.Tensor of shape (n_windows,) with the matching
+        0/1 labels. Returns None if the file is missing, has fewer than 15
+        of the required channels, or fails to load/process.
+    """
     X_local, y_local = [], []
     patient = group['patient'].iloc[0]
     path_edf = os.path.join(base_path, patient, file_name)
@@ -180,6 +307,27 @@ def process_single_file(file_name, group, base_path, window_sec, sfreq):
 
 
 def build_complete_dataset(base_path, global_labels_csv, window_sec=4):
+    """
+    Builds one combined dataset (all patients, all files together) of
+    classic features, by running `process_single_file` in parallel over
+    every file listed in the global labels CSV and concatenating the
+    results. Unlike the `__main__` block below (which saves one .pt pair
+    per patient), this returns everything as a single pair of tensors -
+    useful for training a single global (not per-patient) model.
+
+    Args:
+        base_path: root folder containing one subfolder per patient.
+        global_labels_csv: path to the CSV with columns 'file_name',
+            'patient', 'label', 'start_sec', 'end_sec' (as produced by
+            global_parse_dataset.py).
+        window_sec: length of each feature-extraction window, in seconds.
+
+    Returns:
+        Tuple (X, y): X is a torch.Tensor of shape
+        (total_n_windows, 11 * n_channels) stacking every window from every
+        file, y is a torch.Tensor of shape (total_n_windows,) with the
+        matching 0/1 labels.
+    """
     df = pd.read_csv(global_labels_csv)
     sfreq = 256
 

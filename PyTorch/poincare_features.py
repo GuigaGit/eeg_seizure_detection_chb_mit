@@ -39,7 +39,33 @@ CHANNELS_TO_KEEP = [
 # ==========================================
 def time_delay_embedding(signal, d=5, tau=6):
     """
-    Reconstructs the phase space using time-delay embedding (PyTorch version).
+    Reconstructs the phase space of a 1D signal using time-delay embedding.
+
+    The idea: instead of looking at the signal as a single scalar over time,
+    we build a d-dimensional point for every time index t by taking the
+    signal's value at t, t+tau, t+2*tau, ..., t+(d-1)*tau. Plotting these
+    points traces out the trajectory of the underlying dynamical system in a
+    reconstructed "phase space" (Takens' embedding theorem).
+
+    How: for each of the d "delay" offsets (0, tau, 2*tau, ...), we take a
+    shifted slice of the signal of length `valid_length` and stack the d
+    slices as columns, so row i of the output is
+    [signal[i], signal[i+tau], ..., signal[i+(d-1)*tau]].
+
+    Args:
+        signal: 1D array-like (numpy array, list, or torch tensor) with the
+            raw time-domain samples of one EEG channel/window.
+        d: embedding dimension - how many delayed copies of the signal are
+            stacked together (5 in the reference paper).
+        tau: time lag between consecutive copies, in samples (6 samples,
+            i.e. ~23ms at 256Hz, in the reference paper).
+
+    Returns:
+        A torch.Tensor of shape (valid_length, d), where
+        valid_length = len(signal) - (d - 1) * tau. Each row is one point of
+        the reconstructed trajectory. If the signal is too short for the
+        chosen d/tau, returns a single zero row of shape (1, d) instead of
+        raising, so batch processing pipelines don't crash on edge windows.
     """
     signal = torch.as_tensor(signal, dtype=torch.float32, device=DEVICE)
     n_samples = signal.shape[0]
@@ -59,8 +85,29 @@ def time_delay_embedding(signal, d=5, tau=6):
 # ==========================================
 def pca_transform(embedded, n_components=None):
     """
-    PCA via SVD (replaces sklearn.decomposition.PCA), sorted by descending
-    explained variance, same convention as sklearn's fit_transform.
+    Projects points onto their principal components (PyTorch replacement for
+    sklearn.decomposition.PCA().fit_transform()).
+
+    How: PCA is computed via SVD of the mean-centered data instead of via an
+    eigendecomposition of the covariance matrix - numerically this is the
+    same result (the right singular vectors Vh are the principal directions),
+    but avoids ever forming the (d x d) covariance matrix explicitly. The
+    directions are already sorted by descending explained variance (largest
+    singular value first), matching sklearn's convention: column 0 of the
+    output is "PC1", column 1 is "PC2", etc.
+
+    Args:
+        embedded: torch.Tensor of shape (n_points, d) - e.g. the output of
+            `time_delay_embedding`. Each row is one observation, each column
+            one original dimension.
+        n_components: how many leading principal components to keep. If
+            None, all d components are returned (used by
+            visualize_pipeline.py to inspect PC1/PC2/PC3 together).
+
+    Returns:
+        torch.Tensor of shape (n_points, n_components) (or (n_points, d) if
+        n_components is None) with the data expressed in principal-component
+        coordinates.
     """
     mean = embedded.mean(dim=0, keepdim=True)
     centered = embedded - mean
@@ -71,7 +118,24 @@ def pca_transform(embedded, n_components=None):
 
 
 def fit_line(x, y):
-    """Least-squares fit of y = m*x + c (torch equivalent of np.polyfit(x, y, 1))."""
+    """
+    Fits the best-fit straight line y = m*x + c through a set of 2D points,
+    in the least-squares sense (torch equivalent of np.polyfit(x, y, 1)).
+
+    How: builds the design matrix A = [x, 1] (one row per point) and solves
+    the linear system A @ [m, c]^T ≈ y for the [m, c] that minimizes the sum
+    of squared residuals, using `torch.linalg.lstsq` (QR-based least squares,
+    same idea as normal equations but numerically more stable).
+
+    Args:
+        x: 1D torch.Tensor of x-coordinates (e.g. PC1 values).
+        y: 1D torch.Tensor of y-coordinates (e.g. PC2 values), same length
+            as x.
+
+    Returns:
+        Tuple (m, c) of 0-dimensional torch.Tensors: m is the slope, c is
+        the intercept of the fitted line.
+    """
     A = torch.stack([x, torch.ones_like(x)], dim=1)
     solution = torch.linalg.lstsq(A, y.unsqueeze(1)).solution
     return solution[0, 0], solution[1, 0]
@@ -79,8 +143,37 @@ def fit_line(x, y):
 
 def get_poincare_intersections(embedded_space):
     """
-    Applies PCA, fits a 1st-degree polynomial (line), and finds intersections.
-    Returns the PC1 values of the intersection points.
+    Computes the Poincaré section of a reconstructed trajectory: the points
+    where the trajectory crosses a fixed reference line, which is a standard
+    way to turn a continuous chaotic trajectory into a discrete sequence of
+    numbers that's easier to summarize statistically.
+
+    How, step by step:
+      1. Reduce the d-dimensional embedded trajectory to 2D via PCA (using
+         `pca_transform`), giving coordinates (pc1, pc2) per point.
+      2. Fit a straight line through the 2D trajectory with `fit_line` - this
+         line is the "Poincaré section" (the cutting plane, projected to 2D).
+      3. For each consecutive pair of trajectory points, compute the signed
+         vertical distance to the line, f = pc2 - (m*pc1 + c). If f changes
+         sign between one point and the next, the trajectory crossed the
+         line between them.
+      4. For each such crossing, linearly interpolate between the two points
+         (weighted by how close each one's f is to zero) to estimate the
+         exact PC1 value where the crossing happened.
+      This sign-crossing search is fully vectorized with tensor ops instead
+      of a Python for-loop (unlike the original SciPy version), which is
+      both faster and GPU-friendly.
+
+    Args:
+        embedded_space: torch.Tensor of shape (n_points, d), typically the
+            output of `time_delay_embedding` for one signal window.
+
+    Returns:
+        1D torch.Tensor of the PC1 coordinate at every point where the
+        trajectory crosses the fitted line, in the order the crossings occur
+        (i.e. a discrete time series of "Poincaré return values"). Returns
+        an empty tensor if there aren't enough points, the input is flat
+        (zero variance - nothing to embed), or there are no crossings at all.
     """
     if embedded_space.shape[0] < 2:
         return torch.empty(0, device=DEVICE)
@@ -116,7 +209,38 @@ def get_poincare_intersections(embedded_space):
 # ==========================================
 def extract_features(intersections):
     """
-    Extracts the 7 statistical features from the intersection points.
+    Summarizes a (potentially long) sequence of Poincaré intersection values
+    into a fixed-length vector of 7 statistics, so that windows of any
+    duration produce the same number of features and can be fed to a
+    classifier.
+
+    The 7 features, in order, and what each one captures about the spread /
+    shape of the intersection values' distribution:
+      1. Range: max - min (overall spread).
+      2. 0.13 quantile: an asymmetric, robust "low" percentile (chosen in
+         the reference paper; not the median, so it's sensitive to skew).
+      3. Interquartile range (IQR = 75th - 25th percentile): spread that
+         ignores outliers, unlike Range.
+      4. Shannon entropy: how "spread out"/unpredictable the distribution of
+         values is, estimated from a histogram (density estimate) of the
+         intersections; bin count follows Sturges' rule since torch has no
+         'auto' bin-width heuristic like numpy.
+      5. RMS (root-mean-square): overall amplitude/energy scale, but as an
+         average rather than a sum, so it doesn't grow with more crossings.
+      6. Coefficient of variation: std / mean, a scale-free measure of
+         relative variability (0 if the mean is 0, to avoid a divide-by-zero).
+      7. Energy: sum of squares - grows with the number of crossings, unlike
+         RMS, so it also implicitly encodes "how many crossings happened".
+
+    Args:
+        intersections: 1D torch.Tensor of Poincaré intersection values, as
+            returned by `get_poincare_intersections` for one channel/window.
+
+    Returns:
+        1D torch.Tensor of length 7 with the features above, in the order
+        listed. If there are fewer than 2 intersections (not enough data to
+        compute spread statistics meaningfully), returns a zero vector
+        instead of NaNs, so downstream stacking/training never breaks.
     """
     if intersections.numel() < 2:
         return torch.zeros(7, device=DEVICE)
@@ -162,8 +286,26 @@ def extract_features(intersections):
 # ==========================================
 def extract_all_poincare_features(window_data):
     """
-    Aplica a matemática do Poincaré em todos os canais e achata (flatten)
-    em um tensor 1D para compatibilidade com o classificador PyTorch.
+    Runs the full per-channel Poincaré feature pipeline (embed -> intersect
+    -> summarize) on every channel of a multi-channel EEG window, and
+    concatenates the results into one flat feature vector.
+
+    How: for each channel's 1D signal, it chains
+    `time_delay_embedding` -> `get_poincare_intersections` -> `extract_features`
+    to get 7 numbers per channel, then concatenates all channels' 7-number
+    blocks end to end (so the feature at index [7*ch : 7*(ch+1)] belongs to
+    channel `ch`). This flat 1D shape is what the linear classifiers in
+    `svm_training.py` and `pca_svm_pipeline.py` expect as input.
+
+    Args:
+        window_data: array-like of shape (n_channels, n_samples) - one short
+            EEG window (e.g. 1 second) with all channels for that window.
+            Each row is one channel's raw signal.
+
+    Returns:
+        1D torch.Tensor of length 7 * n_channels: the concatenation of the
+        7-feature vector for every channel, in the same channel order as the
+        input.
     """
     all_features = []
     for channel_signal in window_data:
@@ -177,6 +319,51 @@ def extract_all_poincare_features(window_data):
 # 5. Processamento do Dataset
 # ==========================================
 def process_single_file(file_name, group, base_path, window_sec, sfreq):
+    """
+    Builds the labeled Poincaré-feature dataset for a single .edf recording:
+    loads it, extracts short seizure windows and an equal-ish sample of
+    background windows, and turns each window into a feature vector.
+
+    How, step by step:
+      1. Load the raw .edf file with MNE and standardize channel names
+         (strip whitespace, uppercase) so they can be matched against the
+         fixed `CHANNELS_TO_KEEP` montage regardless of how this particular
+         recording's channels happen to be named/ordered.
+      2. Select exactly the channels in `CHANNELS_TO_KEEP` (falling back to
+         a channel whose name starts with the target, to tolerate suffixes
+         like "T8-P8-1"); if any target channel is simply missing from this
+         file, the whole file is skipped (returns None) rather than
+         producing a dataset with an inconsistent number of channels.
+      3. Convert from Volts to microvolts (the paper's feature scale).
+      4. For every annotated seizure interval in `group`, slice it into
+         non-overlapping `window_sec`-long windows, extract Poincaré
+         features per window (`extract_all_poincare_features`), and label
+         them 1.
+      5. Sample 15 background windows at random positions that don't
+         overlap any seizure interval, and label them 0 - a fixed count per
+         file so background doesn't overwhelm the (rarer) seizure windows.
+
+    Args:
+        file_name: name of the .edf file to process (e.g. "chb01_03.edf").
+        group: pandas DataFrame slice (rows of `chb_mit_global_labels.csv`
+            for this file) with columns 'patient', 'label', 'start_sec',
+            'end_sec' describing the seizure intervals annotated in it.
+        base_path: root folder containing one subfolder per patient
+            (typically `DATASET_DIR`), used to locate the .edf file.
+        window_sec: length of each feature-extraction window, in seconds.
+        sfreq: sampling frequency of the recording, in Hz (used to convert
+            seconds to sample indices).
+
+    Returns:
+        Tuple (X_local, y_local) where X_local is a torch.Tensor of shape
+        (n_windows, 7 * n_channels) stacking one feature vector per window,
+        and y_local is a torch.Tensor of shape (n_windows,) with the
+        matching 0/1 labels. Returns None if the .edf file doesn't exist,
+        doesn't contain all required channels, or fails to load/process for
+        any other reason (the error is printed, not raised, so a single bad
+        file doesn't kill the whole parallel batch in the __main__ block
+        below).
+    """
     # Force joblib worker threads to suppress warnings locally
     import warnings
     warnings.filterwarnings('ignore')

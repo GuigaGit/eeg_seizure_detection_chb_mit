@@ -1,3 +1,25 @@
+"""
+Plots a spectrogram (power at each frequency, over time) for every channel
+of one .edf recording, one channel at a time. This script has no functions -
+it's a flat, top-to-bottom script meant to be read/tweaked directly - so
+here's what each numbered step below does:
+
+  1. Load the .edf file with MNE (see `DATASET_DIR` for where it looks).
+  2. Loop over every channel in the recording.
+  3. For the current channel: normalize its amplitude to [-1, 1] (so the dB
+     scale below is comparable across channels regardless of their raw
+     voltage scale), then compute its spectrogram via `torch.stft` - a
+     Short-Time Fourier Transform, i.e. many small windowed FFTs computed
+     over overlapping time slices, whose squared magnitude (converted to
+     decibels here) gives power-per-frequency-per-time-slice. This replaces
+     matplotlib's `plt.specgram`, which does the same computation
+     internally but wasn't using torch.
+  4. Plot the resulting time-frequency power map with `plt.pcolormesh`,
+     capped to 0-128 Hz (covers all clinically relevant EEG bands).
+
+Each channel opens its own plot window (`plt.show()` blocks until closed),
+so this is meant for interactive/manual inspection, not batch processing.
+"""
 import mne
 import matplotlib.pyplot as plt
 import numpy as np

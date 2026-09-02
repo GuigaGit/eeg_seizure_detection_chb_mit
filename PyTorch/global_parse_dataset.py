@@ -20,6 +20,34 @@ REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 DATASET_DIR = os.environ.get('CHB_MIT_DATASET_DIR', os.path.join(REPO_ROOT, 'dataset_chbmit'))
 
 def extrair_dados_sumario(caminho_arquivo):
+    """
+    Parses one CHB-MIT "-summary.txt" file into a list of seizure/background
+    label records, one per .edf recording described in it. This is pure
+    text parsing (no signal processing, no model) - it just turns the
+    dataset's free-text summary format into structured rows that the rest
+    of the pipeline (poincare_features.py, label_dataset_v2.py) can join
+    against actual recordings by file name.
+
+    How: splits the summary file's text on "File Name: " (each chunk after
+    the first is one recording's block of text), then for each block:
+      - reads the file name off the first line;
+      - regex-searches for "Number of Seizures in File: N";
+      - if N > 0, regex-finds every "Seizure ... Start/End Time: X seconds"
+        pair in the block and emits one label=1 record per seizure, with
+        its start/end in seconds;
+      - if N == 0, emits a single label=0 record with start_sec=end_sec=0
+        (a placeholder, since there's no seizure interval to report - the
+        downstream code only cares that label 0 means "no seizure in this
+        file").
+
+    Args:
+        caminho_arquivo: path to one patient's "-summary.txt" file.
+
+    Returns:
+        List of dicts, each with keys 'file_name', 'start_sec', 'end_sec',
+        'label' (1 for a seizure interval, 0 for a seizure-free file) - one
+        dict per seizure interval, or one dict per seizure-free file.
+    """
     with open(caminho_arquivo, 'r') as f:
         conteudo = f.read()
 
