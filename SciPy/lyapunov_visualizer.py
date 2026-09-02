@@ -132,6 +132,15 @@ def sliding_lle(signal, sfreq, window_sec=2.0, step_sec=0.5, d=5, tau=6):
 # ==========================================
 # 3. Carregamento de dados (formato CHB-MIT)
 # ==========================================
+def get_seizure_intervals(edf_path, labels_csv='chb_mit_global_labels.csv'):
+    if not labels_csv or not os.path.exists(labels_csv):
+        return []
+    df = pd.read_csv(labels_csv)
+    file_name = os.path.basename(edf_path)
+    rows = df[(df['file_name'] == file_name) & (df['label'] == 1)]
+    return list(zip(rows['start_sec'], rows['end_sec']))
+
+
 def load_channel(edf_path, channel_name, labels_csv='chb_mit_global_labels.csv'):
     raw = mne.io.read_raw_edf(edf_path, preload=True, verbose=False)
     raw.rename_channels(lambda x: x.strip())
@@ -150,51 +159,83 @@ def load_channel(edf_path, channel_name, labels_csv='chb_mit_global_labels.csv')
     signal = data[0] * 1e6  # V -> uV
     sfreq = raw.info['sfreq']
 
-    seizure_intervals = []
-    if labels_csv and os.path.exists(labels_csv):
-        df = pd.read_csv(labels_csv)
-        file_name = os.path.basename(edf_path)
-        rows = df[(df['file_name'] == file_name) & (df['label'] == 1)]
-        seizure_intervals = list(zip(rows['start_sec'], rows['end_sec']))
+    return signal, sfreq, channel_name, get_seizure_intervals(edf_path, labels_csv)
 
-    return signal, sfreq, channel_name, seizure_intervals
+
+def resolve_analysis_window(full_len_samples, sfreq, seizure_intervals, start_sec, duration_sec):
+    """
+    Decide o trecho [start_idx, end_idx) da gravação a analisar (padrão: 60s
+    antes da primeira crise anotada, ou o início da gravação se não houver
+    crise) e re-referencia os intervalos de crise para começarem em t=0
+    dentro desse trecho.
+    """
+    if start_sec is None:
+        start_sec = max(0.0, seizure_intervals[0][0] - 60) if seizure_intervals else 0.0
+    start_idx = int(start_sec * sfreq)
+    end_idx = min(full_len_samples, start_idx + int(duration_sec * sfreq))
+
+    local_seizures = [
+        (max(0.0, s0 - start_sec), s1 - start_sec)
+        for s0, s1 in seizure_intervals
+        if s1 > start_sec and s0 < start_sec + duration_sec
+    ]
+    return start_idx, end_idx, local_seizures
 
 
 # ==========================================
-# 4. Animação: EEG + LLE evoluindo juntos
+# 4. Figura de dois painéis (EEG + LLE), mesmo eixo X
 # ==========================================
-def animate_lyapunov(signal, sfreq, centers, lle_values, seizure_intervals,
-                      channel_name, eeg_window_sec=10.0, save_path=None):
+def _build_two_panel_figure(signal, sfreq, seizure_intervals, channel_name, title):
+    """
+    Monta a figura de dois painéis compartilhando o eixo X (tempo, em segundos):
+    o EEG completo em cima e o espaço para a curva de LLE embaixo. Usada tanto
+    pela animação ao vivo quanto pelo plot estático final, para que as duas
+    visualizações fiquem sempre na mesma escala de tempo.
+    """
     total_dur = len(signal) / sfreq
-
-    fig, (ax_eeg, ax_lle) = plt.subplots(2, 1, figsize=(12, 7), sharex=False)
-    fig.suptitle(f"Expoente de Lyapunov ao vivo — canal {channel_name}",
-                 fontsize=14, fontweight='bold')
-
-    # --- Painel superior: EEG bruto, janela deslizante ---
     time_axis = np.arange(len(signal)) / sfreq
-    eeg_line, = ax_eeg.plot([], [], color='darkblue', lw=1)
-    cursor_eeg = ax_eeg.axvline(0, color='red', lw=1.5, alpha=0.8)
+
+    fig, (ax_eeg, ax_lle) = plt.subplots(2, 1, figsize=(12, 7), sharex=True)
+    fig.suptitle(title, fontsize=14, fontweight='bold')
+
+    ax_eeg.plot(time_axis, signal, color='darkblue', lw=0.5)
     ax_eeg.set_ylabel("Amplitude (uV)")
-    ax_eeg.set_title("Sinal de EEG")
+    ax_eeg.set_title(f"Sinal de EEG completo — canal {channel_name}")
     ax_eeg.grid(True, alpha=0.3)
     for s0, s1 in seizure_intervals:
         ax_eeg.axvspan(s0, s1, color='red', alpha=0.15, label='Crise (anotada)')
 
-    # --- Painel inferior: LLE crescendo ao longo do tempo ---
-    lle_line, = ax_lle.plot([], [], color='teal', lw=1.8)
-    cursor_lle = ax_lle.axvline(0, color='red', lw=1.5, alpha=0.8)
     ax_lle.set_xlim(0, total_dur)
-    finite_vals = lle_values[np.isfinite(lle_values)]
-    if finite_vals.size:
-        pad = 0.1 * (finite_vals.max() - finite_vals.min() + 1e-6)
-        ax_lle.set_ylim(finite_vals.min() - pad, finite_vals.max() + pad)
     ax_lle.set_xlabel("Tempo (s)")
     ax_lle.set_ylabel(r"$\lambda_1$ (nats/s)")
     ax_lle.set_title("Maior Expoente de Lyapunov (janela deslizante)")
     ax_lle.grid(True, alpha=0.3)
     for s0, s1 in seizure_intervals:
         ax_lle.axvspan(s0, s1, color='red', alpha=0.15)
+
+    return fig, ax_eeg, ax_lle, total_dur
+
+
+def animate_lyapunov(signal, sfreq, centers, lle_values, seizure_intervals,
+                      channel_name, save_path=None):
+    """
+    Anima a evolução do LLE lado a lado com o EEG completo, ambos na mesma
+    escala de tempo (eixo X compartilhado) — um cursor vertical percorre os
+    dois painéis simultaneamente. Ao final, o quadro exibido já é o resumo
+    completo: sinal inteiro vs. evolução inteira do LLE.
+    """
+    fig, ax_eeg, ax_lle, total_dur = _build_two_panel_figure(
+        signal, sfreq, seizure_intervals, channel_name,
+        f"Expoente de Lyapunov ao vivo — canal {channel_name}")
+
+    cursor_eeg = ax_eeg.axvline(0, color='red', lw=1.5, alpha=0.8)
+    cursor_lle = ax_lle.axvline(0, color='red', lw=1.5, alpha=0.8)
+
+    lle_line, = ax_lle.plot([], [], color='teal', lw=1.8)
+    finite_vals = lle_values[np.isfinite(lle_values)]
+    if finite_vals.size:
+        pad = 0.1 * (finite_vals.max() - finite_vals.min() + 1e-6)
+        ax_lle.set_ylim(finite_vals.min() - pad, finite_vals.max() + pad)
 
     value_text = ax_lle.text(
         0.02, 0.92, "", transform=ax_lle.transAxes, fontsize=13,
@@ -203,25 +244,12 @@ def animate_lyapunov(signal, sfreq, centers, lle_values, seizure_intervals,
     )
 
     def init():
-        eeg_line.set_data([], [])
         lle_line.set_data([], [])
         value_text.set_text("")
-        return eeg_line, lle_line, cursor_eeg, cursor_lle, value_text
+        return lle_line, cursor_eeg, cursor_lle, value_text
 
     def update(frame_idx):
         t_now = centers[frame_idx]
-
-        # Janela deslizante do EEG centrada no tempo atual
-        lo_t = max(0.0, t_now - eeg_window_sec / 2.0)
-        hi_t = lo_t + eeg_window_sec
-        lo_i = int(lo_t * sfreq)
-        hi_i = int(hi_t * sfreq)
-        eeg_line.set_data(time_axis[lo_i:hi_i], signal[lo_i:hi_i])
-        ax_eeg.set_xlim(lo_t, hi_t)
-        finite_seg = signal[lo_i:hi_i]
-        if finite_seg.size:
-            margin = 0.1 * (np.ptp(finite_seg) + 1e-6)
-            ax_eeg.set_ylim(finite_seg.min() - margin, finite_seg.max() + margin)
 
         # Curva de LLE crescendo até o frame atual
         lle_line.set_data(centers[:frame_idx + 1], lle_values[:frame_idx + 1])
@@ -236,7 +264,7 @@ def animate_lyapunov(signal, sfreq, centers, lle_values, seizure_intervals,
         value_text.set_text(("⚠ CRISE — " if in_seizure else "") + label)
         value_text.set_color('red' if in_seizure else 'black')
 
-        return eeg_line, lle_line, cursor_eeg, cursor_lle, value_text
+        return lle_line, cursor_eeg, cursor_lle, value_text
 
     ani = animation.FuncAnimation(
         fig, update, frames=len(centers), init_func=init,
@@ -253,15 +281,88 @@ def animate_lyapunov(signal, sfreq, centers, lle_values, seizure_intervals,
         plt.show()
 
 
+def plot_final_summary(signal, sfreq, centers, lle_values, seizure_intervals,
+                        channel_name, save_path=None):
+    """
+    Plot estático (sem animação) do sinal completo vs. a evolução completa do
+    LLE, na mesma escala de tempo. Usado para salvar rapidamente um resumo por
+    canal (animar dezenas de canais seria lento e desnecessário).
+    """
+    fig, ax_eeg, ax_lle, _ = _build_two_panel_figure(
+        signal, sfreq, seizure_intervals, channel_name,
+        f"Sinal completo vs. Expoente de Lyapunov — canal {channel_name}")
+
+    ax_lle.plot(centers, lle_values, color='teal', lw=1.5)
+
+    plt.tight_layout()
+
+    if save_path:
+        os.makedirs(os.path.dirname(save_path) or '.', exist_ok=True)
+        plt.savefig(save_path, dpi=150)
+        plt.close(fig)
+        print(f"Plot salvo em: {save_path}")
+    else:
+        plt.show()
+
+
 # ==========================================
-# 5. CLI
+# 5. Processa TODOS os canais do arquivo
+# ==========================================
+def process_all_channels(edf_path, out_dir='results/lyapunov',
+                          labels_csv='chb_mit_global_labels.csv',
+                          start_sec=None, duration_sec=180.0,
+                          window_sec=2.0, step_sec=0.5):
+    """
+    Roda a estimativa de LLE em janela deslizante para TODOS os canais do
+    arquivo .edf (não apenas um) e salva, para cada canal, o plot final
+    estático (sinal completo vs. evolução completa do LLE) em `out_dir`.
+    """
+    raw = mne.io.read_raw_edf(edf_path, preload=True, verbose=False)
+    raw.rename_channels(lambda x: x.strip())
+    sfreq = raw.info['sfreq']
+    seizure_intervals = get_seizure_intervals(edf_path, labels_csv)
+
+    base_name = os.path.splitext(os.path.basename(edf_path))[0]
+    os.makedirs(out_dir, exist_ok=True)
+    saved_paths = []
+
+    for i, ch_name in enumerate(raw.ch_names):
+        print(f"[{i + 1}/{len(raw.ch_names)}] Canal {ch_name}...")
+        signal = raw.get_data(picks=ch_name)[0] * 1e6
+
+        start_idx, end_idx, local_seizures = resolve_analysis_window(
+            len(signal), sfreq, seizure_intervals, start_sec, duration_sec)
+        segment = signal[start_idx:end_idx]
+
+        centers, lle_values = sliding_lle(
+            segment, sfreq, window_sec=window_sec, step_sec=step_sec)
+        print(f"    {len(centers)} janelas, "
+              f"λ₁ médio = {np.nanmean(lle_values):+.3f} nats/s")
+
+        safe_name = ch_name.replace('/', '-')
+        save_path = os.path.join(out_dir, f"{base_name}_{safe_name}.png")
+        plot_final_summary(segment, sfreq, centers, lle_values, local_seizures,
+                            ch_name, save_path=save_path)
+        saved_paths.append(save_path)
+
+    return saved_paths
+
+
+# ==========================================
+# 6. CLI
 # ==========================================
 def main():
     parser = argparse.ArgumentParser(
         description="Estima e anima o Expoente de Lyapunov de um sinal de EEG.")
     parser.add_argument('--edf', default='dataset_chbmit/chb01/chb01_03.edf',
                          help="Caminho do arquivo .edf")
-    parser.add_argument('--channel', default='P7-T7', help="Nome do canal a analisar")
+    parser.add_argument('--channel', default='P7-T7',
+                         help="Nome do canal a analisar (ignorado com --all-channels).")
+    parser.add_argument('--all-channels', action='store_true',
+                         help="Processa TODOS os canais do arquivo e salva um plot final "
+                              "por canal, em vez de animar um único canal.")
+    parser.add_argument('--out-dir', default='results/lyapunov',
+                         help="Pasta onde salvar os plots quando --all-channels for usado.")
     parser.add_argument('--start-sec', type=float, default=None,
                          help="Início do trecho analisado (s). Padrão: 60s antes da crise, ou 0.")
     parser.add_argument('--duration-sec', type=float, default=180.0,
@@ -270,32 +371,30 @@ def main():
                          help="Tamanho da janela usada em cada estimativa de LLE.")
     parser.add_argument('--step-sec', type=float, default=0.5,
                          help="Passo entre janelas consecutivas.")
-    parser.add_argument('--eeg-window-sec', type=float, default=10.0,
-                         help="Largura da janela de EEG mostrada na animação.")
-    parser.add_argument('--save', default=None,
-                         help="Se definido, salva a animação como .gif neste caminho em vez de exibi-la.")
+    parser.add_argument('--save', default=True,
+                         help="Se definido, salva a animação como .gif neste caminho em vez "
+                              "de exibi-la (ignorado com --all-channels).")
     args = parser.parse_args()
+
+    if args.all_channels:
+        print(f"Processando todos os canais de {args.edf}...")
+        saved_paths = process_all_channels(
+            args.edf, out_dir=args.out_dir, start_sec=args.start_sec,
+            duration_sec=args.duration_sec, window_sec=args.window_sec,
+            step_sec=args.step_sec)
+        print(f"\n{len(saved_paths)} plots salvos em {args.out_dir}/")
+        return
 
     print(f"Carregando {args.edf} (canal {args.channel})...")
     signal, sfreq, channel_name, seizure_intervals = load_channel(args.edf, args.channel)
     print(f"sfreq={sfreq}Hz, duração total={len(signal)/sfreq:.1f}s, "
           f"crises anotadas={seizure_intervals}")
 
-    start_sec = args.start_sec
-    if start_sec is None:
-        start_sec = max(0.0, seizure_intervals[0][0] - 60) if seizure_intervals else 0.0
-    start_idx = int(start_sec * sfreq)
-    end_idx = min(len(signal), start_idx + int(args.duration_sec * sfreq))
+    start_idx, end_idx, local_seizures = resolve_analysis_window(
+        len(signal), sfreq, seizure_intervals, args.start_sec, args.duration_sec)
     segment = signal[start_idx:end_idx]
 
-    # Re-referencia os intervalos de crise para o começo do trecho analisado
-    local_seizures = [
-        (max(0.0, s0 - start_sec), s1 - start_sec)
-        for s0, s1 in seizure_intervals
-        if s1 > start_sec and s0 < start_sec + args.duration_sec
-    ]
-
-    print(f"Analisando {args.duration_sec:.0f}s a partir de t={start_sec:.0f}s "
+    print(f"Analisando {args.duration_sec:.0f}s a partir de t={start_idx/sfreq:.0f}s "
           f"com janelas de {args.window_sec}s (passo {args.step_sec}s)...")
     centers, lle_values = sliding_lle(
         segment, sfreq, window_sec=args.window_sec, step_sec=args.step_sec)
@@ -303,8 +402,7 @@ def main():
           f"λ₁ médio = {np.nanmean(lle_values):+.3f} nats/s")
 
     animate_lyapunov(segment, sfreq, centers, lle_values, local_seizures,
-                      channel_name, eeg_window_sec=args.eeg_window_sec,
-                      save_path=args.save)
+                      channel_name, save_path=args.save)
 
 
 if __name__ == "__main__":
