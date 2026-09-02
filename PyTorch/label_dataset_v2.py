@@ -9,6 +9,12 @@ mne.set_log_level('ERROR')  # This forces MNE to only print fatal errors, hiding
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+# Caminhos resolvidos a partir da localização do script (não do cwd), para
+# que main_pipeline.py funcione tanto rodando de dentro de PyTorch/ quanto
+# da raiz do repositório.
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+
 # Canais padrão do sistema 10-20 (Montagem comum no CHB-MIT)
 CHANNELS_TO_KEEP = [
     'FP1-F7', 'F7-T7', 'T7-P7', 'P7-O1', 'FP1-F3', 'F3-C3', 'C3-P3', 'P3-O1',
@@ -186,9 +192,9 @@ def build_complete_dataset(base_path, global_labels_csv, window_sec=4):
 
 
 if __name__ == "__main__":
-    df = pd.read_csv('chb_mit_global_labels.csv')
+    df = pd.read_csv(os.path.join(REPO_ROOT, 'chb_mit_global_labels.csv'))
 
-    base_path = './dataset_chbmit'
+    base_path = os.path.join(REPO_ROOT, 'dataset_chbmit')
     window_sec = 4
     sfreq = 256
 
@@ -210,6 +216,6 @@ if __name__ == "__main__":
         if X_patient:
             X_stacked = torch.cat(X_patient, dim=0)
             y_stacked = torch.cat(y_patient, dim=0)
-            torch.save(X_stacked, f'X_{patient_id}.pt')
-            torch.save(y_stacked, f'y_{patient_id}.pt')
+            torch.save(X_stacked, os.path.join(SCRIPT_DIR, f'X_{patient_id}.pt'))
+            torch.save(y_stacked, os.path.join(SCRIPT_DIR, f'y_{patient_id}.pt'))
             print(f"Salvo {patient_id}: X={tuple(X_stacked.shape)}")

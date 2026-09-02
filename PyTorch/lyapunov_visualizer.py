@@ -17,7 +17,7 @@ import torch
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from poincare_features import time_delay_embedding
+from poincare_features import time_delay_embedding, SCRIPT_DIR, REPO_ROOT
 
 mne.set_log_level('ERROR')
 
@@ -129,7 +129,8 @@ def sliding_lle(signal, sfreq, window_sec=2.0, step_sec=0.5, d=5, tau=6):
 # ==========================================
 # 3. Carregamento de dados (formato CHB-MIT)
 # ==========================================
-def get_seizure_intervals(edf_path, labels_csv='chb_mit_global_labels.csv'):
+def get_seizure_intervals(edf_path, labels_csv=None):
+    labels_csv = labels_csv or os.path.join(REPO_ROOT, 'chb_mit_global_labels.csv')
     if not labels_csv or not os.path.exists(labels_csv):
         return []
     df = pd.read_csv(labels_csv)
@@ -138,7 +139,7 @@ def get_seizure_intervals(edf_path, labels_csv='chb_mit_global_labels.csv'):
     return list(zip(rows['start_sec'], rows['end_sec']))
 
 
-def load_channel(edf_path, channel_name, labels_csv='chb_mit_global_labels.csv'):
+def load_channel(edf_path, channel_name, labels_csv=None):
     raw = mne.io.read_raw_edf(edf_path, preload=True, verbose=False)
     raw.rename_channels(lambda x: x.strip())
 
@@ -299,8 +300,8 @@ def plot_final_summary(signal, sfreq, centers, lle_values, seizure_intervals,
 # ==========================================
 # 5. Processa TODOS os canais do arquivo
 # ==========================================
-def process_all_channels(edf_path, out_dir='results/lyapunov_torch',
-                          labels_csv='chb_mit_global_labels.csv',
+def process_all_channels(edf_path, out_dir=None,
+                          labels_csv=None,
                           start_sec=None, duration_sec=180.0,
                           window_sec=2.0, step_sec=0.5):
     """
@@ -308,6 +309,8 @@ def process_all_channels(edf_path, out_dir='results/lyapunov_torch',
     arquivo .edf (não apenas um) e salva, para cada canal, o plot final
     estático em `out_dir`.
     """
+    out_dir = out_dir or os.path.join(SCRIPT_DIR, 'results', 'lyapunov_torch')
+
     raw = mne.io.read_raw_edf(edf_path, preload=True, verbose=False)
     raw.rename_channels(lambda x: x.strip())
     sfreq = raw.info['sfreq']
@@ -345,14 +348,14 @@ def process_all_channels(edf_path, out_dir='results/lyapunov_torch',
 def main():
     parser = argparse.ArgumentParser(
         description="Estima e anima o Expoente de Lyapunov de um sinal de EEG (PyTorch).")
-    parser.add_argument('--edf', default='dataset_chbmit/chb01/chb01_03.edf',
+    parser.add_argument('--edf', default=os.path.join(REPO_ROOT, 'dataset_chbmit', 'chb01', 'chb01_03.edf'),
                          help="Caminho do arquivo .edf")
     parser.add_argument('--channel', default='P7-T7',
                          help="Nome do canal a analisar (ignorado com --all-channels).")
     parser.add_argument('--all-channels', action='store_true',
                          help="Processa TODOS os canais do arquivo e salva um plot final "
                               "por canal, em vez de animar um único canal.")
-    parser.add_argument('--out-dir', default='results/lyapunov_torch',
+    parser.add_argument('--out-dir', default=os.path.join(SCRIPT_DIR, 'results', 'lyapunov_torch'),
                          help="Pasta onde salvar os plots quando --all-channels for usado.")
     parser.add_argument('--start-sec', type=float, default=None,
                          help="Início do trecho analisado (s). Padrão: 60s antes da crise, ou 0.")

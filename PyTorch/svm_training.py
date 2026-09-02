@@ -6,6 +6,11 @@ import matplotlib.pyplot as plt
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+# Caminhos resolvidos a partir da localização do script (não do cwd), para
+# que main_pipeline.py funcione tanto rodando de dentro de PyTorch/ quanto
+# da raiz do repositório.
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 class LinearSVM(nn.Module):
     """Linear SVM implemented as a single linear layer trained with hinge loss."""
@@ -122,13 +127,15 @@ def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 
     all_specificities = []
     trained_patients = []
 
-    os.makedirs('results/curves_torch', exist_ok=True)
-    os.makedirs('models_torch', exist_ok=True)
+    curves_dir = os.path.join(SCRIPT_DIR, 'results', 'curves_torch')
+    models_dir = os.path.join(SCRIPT_DIR, 'models_torch')
+    os.makedirs(curves_dir, exist_ok=True)
+    os.makedirs(models_dir, exist_ok=True)
 
     for i in range(1, 25):
         patient_id = f"chb{i:02d}"
-        x_path = f"X_{patient_id}.pt"
-        y_path = f"y_{patient_id}.pt"
+        x_path = os.path.join(SCRIPT_DIR, f"X_{patient_id}.pt")
+        y_path = os.path.join(SCRIPT_DIR, f"y_{patient_id}.pt")
 
         if not os.path.exists(x_path) or not os.path.exists(y_path):
             continue
@@ -200,9 +207,9 @@ def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 
         # Salva os modelos
         torch.save(
             {'state_dict': model.state_dict(), 'n_features': X_train.shape[1], 'best_C': best_C},
-            f'models_torch/svm_linear_{patient_id}.pt'
+            os.path.join(models_dir, f'svm_linear_{patient_id}.pt')
         )
-        torch.save({'mean': mean.cpu(), 'std': std.cpu()}, f'models_torch/scaler_{patient_id}.pt')
+        torch.save({'mean': mean.cpu(), 'std': std.cpu()}, os.path.join(models_dir, f'scaler_{patient_id}.pt'))
 
         # 6. PLOT DA CURVA DE VALIDAÇÃO DO PARÂMETRO 'C'
         plt.figure(figsize=(10, 6))
@@ -217,7 +224,7 @@ def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 
         plt.legend(loc='best')
         plt.tight_layout()
 
-        plt.savefig(f'results/curves_torch/validation_curve_{patient_id}.png', dpi=300)
+        plt.savefig(os.path.join(curves_dir, f'validation_curve_{patient_id}.png'), dpi=300)
         plt.close()
 
     # 7. Relatório Final e Gráfico Geral
@@ -259,8 +266,8 @@ def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 
 
         plt.tight_layout()
 
-        plt.savefig('results/svm_linear_performance_torch.png', dpi=300)
-        print("Gráficos salvos na pasta 'results/'")
+        plt.savefig(os.path.join(SCRIPT_DIR, 'results', 'svm_linear_performance_torch.png'), dpi=300)
+        print(f"Gráficos salvos na pasta '{os.path.join(SCRIPT_DIR, 'results')}'")
 
 
 if __name__ == "__main__":

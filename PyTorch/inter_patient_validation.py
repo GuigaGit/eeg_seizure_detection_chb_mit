@@ -5,7 +5,7 @@ import torch
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from svm_training import LinearSVM, apply_scaler, compute_metrics, predict_svm, DEVICE
+from svm_training import LinearSVM, apply_scaler, compute_metrics, predict_svm, DEVICE, SCRIPT_DIR
 
 
 def run_inter_patient_validation():
@@ -14,10 +14,11 @@ def run_inter_patient_validation():
     print(f"{'='*50}")
 
     # 1. Identificar quais pacientes possuem modelos treinados
+    models_dir = os.path.join(SCRIPT_DIR, 'models_torch')
     trained_patients = []
     for i in range(1, 25):
         patient_id = f"chb{i:02d}"
-        model_path = f"models_torch/svm_linear_{patient_id}.pt"
+        model_path = os.path.join(models_dir, f"svm_linear_{patient_id}.pt")
         if os.path.exists(model_path):
             trained_patients.append(patient_id)
 
@@ -36,17 +37,17 @@ def run_inter_patient_validation():
     for i, train_id in enumerate(trained_patients):
         print(f"Avaliando o modelo do paciente: {train_id} contra os demais...")
 
-        checkpoint = torch.load(f"models_torch/svm_linear_{train_id}.pt", map_location=DEVICE)
+        checkpoint = torch.load(os.path.join(models_dir, f"svm_linear_{train_id}.pt"), map_location=DEVICE)
         model = LinearSVM(checkpoint['n_features']).to(DEVICE)
         model.load_state_dict(checkpoint['state_dict'])
         model.eval()
 
-        scaler = torch.load(f"models_torch/scaler_{train_id}.pt", map_location=DEVICE)
+        scaler = torch.load(os.path.join(models_dir, f"scaler_{train_id}.pt"), map_location=DEVICE)
         mean, std = scaler['mean'].to(DEVICE), scaler['std'].to(DEVICE)
 
         for j, test_id in enumerate(trained_patients):
-            x_path = f"X_{test_id}.pt"
-            y_path = f"y_{test_id}.pt"
+            x_path = os.path.join(SCRIPT_DIR, f"X_{test_id}.pt")
+            y_path = os.path.join(SCRIPT_DIR, f"y_{test_id}.pt")
 
             if not os.path.exists(x_path) or not os.path.exists(y_path):
                 continue
@@ -99,8 +100,9 @@ def run_inter_patient_validation():
     print(f"{'='*50}\n")
 
     # 4. Geração dos Mapas de Calor (Heatmaps)
-    print("Salvando Heatmaps em 'results/cross_patient_torch/inter_patient_heatmaps.png'...")
-    os.makedirs('results/cross_patient_torch', exist_ok=True)
+    cross_patient_dir = os.path.join(SCRIPT_DIR, 'results', 'cross_patient_torch')
+    print(f"Salvando Heatmaps em '{os.path.join(cross_patient_dir, 'inter_patient_heatmaps.png')}'...")
+    os.makedirs(cross_patient_dir, exist_ok=True)
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 8))
 
@@ -117,7 +119,7 @@ def run_inter_patient_validation():
     ax2.set_ylabel("Treinado no Paciente (Modelo)")
 
     plt.tight_layout()
-    plt.savefig('results/cross_patient_torch/inter_patient_heatmaps.png', dpi=300)
+    plt.savefig(os.path.join(cross_patient_dir, 'inter_patient_heatmaps.png'), dpi=300)
     plt.close()
 
 

@@ -1,10 +1,17 @@
 import pandas as pd
 import re
 import os
+import sys
 
 # Este script apenas faz parsing de texto (sem PCA/SVM/nenhum modelo), então
 # não há nada "PyTorch" para trocar aqui - mantido idêntico ao original para
 # que o pipeline em PyTorch/ continue autocontido.
+
+# Caminhos resolvidos a partir da localização do script (não do cwd), para
+# que main_pipeline.py funcione tanto rodando de dentro de PyTorch/ quanto
+# da raiz do repositório.
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 
 def extrair_dados_sumario(caminho_arquivo):
     with open(caminho_arquivo, 'r') as f:
@@ -41,7 +48,7 @@ def extrair_dados_sumario(caminho_arquivo):
     return lista_dados
 
 # --- Loop Principal para iterar de chb01 a chb24 ---
-diretorio_base = './dataset_chbmit'  # Ajuste para o seu caminho
+diretorio_base = os.path.join(REPO_ROOT, 'dataset_chbmit')
 todos_os_labels = []
 
 for i in range(1, 25):
@@ -60,7 +67,13 @@ for i in range(1, 25):
             item['patient'] = pasta_nome
             todos_os_labels.append(item)
 
+if not todos_os_labels:
+    print(f"[ERRO] Nenhum '-summary.txt' encontrado em {diretorio_base}. "
+          f"Verifique se o dataset CHB-MIT está nesse caminho.")
+    sys.exit(1)
+
 # Salvar CSV Global (Muito útil para treinar o classificador com todos os dados)
 df_global = pd.DataFrame(todos_os_labels)
-df_global.to_csv('chb_mit_global_labels.csv', index=False)
-print("\nProcessamento concluído! CSV Global gerado.")
+global_labels_path = os.path.join(REPO_ROOT, 'chb_mit_global_labels.csv')
+df_global.to_csv(global_labels_path, index=False)
+print(f"\nProcessamento concluído! CSV Global gerado em: {global_labels_path}")
