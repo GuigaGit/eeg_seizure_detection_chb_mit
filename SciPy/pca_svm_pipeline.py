@@ -2,7 +2,10 @@ import numpy as np
 import scipy.stats as stats
 from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-from sklearn.svm import SVC  # Imported Support Vector Classifier
+from sklearn.svm import SVC, OneClassSVM
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.metrics import confusion_matrix
 import warnings
 
 # Suppress warnings for clean output during demonstration
@@ -109,80 +112,113 @@ def extract_features(intersections):
 # ==========================================
 # 4. Main Pipeline & Classification
 # ==========================================
-def run_pipeline():
+# Layer 2 modes:
+#   'svc'   -> supervised "seizure vs non-seizure" classifier (original paper setup)
+#   'ocsvm' -> "anomaly vs normal" detector: OneClassSVM trained only on non-seizure epochs
+MODES = ['svc', 'ocsvm']
+
+def simulate_epoch_features(n_epochs, n_channels, n_samples):
+    """
+    Runs PSR -> Poincare -> features for every epoch/channel.
+    Returns shape (epochs, channels, 7).
+    """
+    X = np.zeros((n_epochs, n_channels, 7))
+    for epoch in range(n_epochs):
+        for ch in range(n_channels):
+            # Replace this with your actual MNE epoch data
+            raw_signal = np.random.randn(n_samples)
+            embedded = time_delay_embedding(raw_signal, d=5, tau=6)
+            intersections = get_poincare_intersections(embedded)
+            X[epoch, ch, :] = extract_features(intersections)
+    return X
+
+def layer1_outputs(lda_models, X_all_channels, mode):
+    """
+    Builds the Layer 2 input from the 23 LDA classifiers.
+    'svc'  : binary LDA votes (as in the paper).
+    'ocsvm': continuous LDA scores (signed distance to the LDA boundary).
+             The OneClassSVM only sees non-seizure epochs, whose binary votes are
+             almost all 0 -> a near-degenerate training set. The scores keep the
+             "how confident" information the anomaly detector needs.
+    """
+    n_epochs, n_channels, _ = X_all_channels.shape
+    out = np.zeros((n_epochs, n_channels))
+    for ch, lda in enumerate(lda_models):
+        X_ch = X_all_channels[:, ch, :]
+        out[:, ch] = lda.predict(X_ch) if mode == 'svc' else lda.decision_function(X_ch)
+    return out
+
+def train_layer2(layer_1_outputs, y_train, mode):
+    if mode == 'svc':
+        # Future test: change kernel to 'rbf' or 'poly' if needed, but 'linear' is a good start for binary classification
+        clf = SVC(kernel='linear', C=1.0, random_state=42)
+        clf.fit(layer_1_outputs, y_train)
+    else:
+        # nu: upper bound on the fraction of normal training epochs treated as outliers,
+        # i.e. roughly the false-alarm rate you accept on normal EEG.
+        clf = make_pipeline(StandardScaler(), OneClassSVM(kernel='rbf', gamma='scale', nu=0.05))
+        clf.fit(layer_1_outputs[y_train == 0])  # Normal (non-seizure) epochs only
+    return clf
+
+def predict_layer2(clf, layer_1_outputs, mode):
+    """Returns 1 = Seizure, 0 = Non-seizure for both modes."""
+    pred = clf.predict(layer_1_outputs)
+    if mode == 'ocsvm':
+        # OneClassSVM: +1 = inlier (normal), -1 = outlier (anomaly -> seizure)
+        pred = (pred == -1).astype(int)
+    return pred
+
+def run_pipeline(mode='svc', seed=42):
+    # Same seed for every mode so they are compared on identical data
+    np.random.seed(seed)
+
     # Simulation Parameters
     n_channels = 23
     fs = 256 # Hz
     epoch_length = 1 # second
     n_samples = fs * epoch_length
-    
-    # Generate synthetic training data (e.g., 50 epochs of seizure, 50 of non-seizure)
-    n_epochs = 100
-    y_train = np.array([1]*50 + [0]*50) # 1 = Seizure, 0 = Non-seizure
-    
-    print("Extracting features for Layer 1...")
-    # Shape: (epochs, channels, features)
-    X_train_all_channels = np.zeros((n_epochs, n_channels, 7))
-    
-    for epoch in range(n_epochs):
-        for ch in range(n_channels):
-            # Replace this with your actual MNE epoch data
-            raw_signal = np.random.randn(n_samples) 
-            
-            # 1. PSR
-            embedded = time_delay_embedding(raw_signal, d=5, tau=6)
-            
-            # 2. Poincare
-            intersections = get_poincare_intersections(embedded)
-            
-            # 3. Features
-            features = extract_features(intersections)
-            X_train_all_channels[epoch, ch, :] = features
 
-    # Layer 1: Train 23 separate LDA classifiers
+    # Generate synthetic data (e.g., 50 epochs of seizure, 50 of non-seizure)
+    y_train = np.array([1]*50 + [0]*50) # 1 = Seizure, 0 = Non-seizure
+    y_test = np.array([1]*20 + [0]*20)
+
+    print(f"\n===== Mode: {mode} =====")
+    print("Extracting features for Layer 1...")
+    X_train_all_channels = simulate_epoch_features(len(y_train), n_channels, n_samples)
+    X_test_all_channels = simulate_epoch_features(len(y_test), n_channels, n_samples)
+
+    # Layer 1: Train 23 separate LDA classifiers (supervised in both modes)
     print("Training Layer 1 (23 LDA classifiers)...")
     lda_models = []
-    layer_1_predictions = np.zeros((n_epochs, n_channels))
-    
     for ch in range(n_channels):
         lda = LDA()
-        # Train LDA for this specific channel
-        X_ch = X_train_all_channels[:, ch, :]
-        lda.fit(X_ch, y_train)
+        lda.fit(X_train_all_channels[:, ch, :], y_train)
         lda_models.append(lda)
-        
-        # Get predictions to feed into the 2nd layer
-        layer_1_predictions[:, ch] = lda.predict(X_ch)
 
-    # Layer 2: Train SVM on the binary outputs of the LDAs
-    print("Training Layer 2 (SVM)...")
-    
-    # Initializing SVC instead of MultinomialNB
-    # Future test: change kernel to 'rbf' or 'poly' if needed, but 'linear' is a good start for binary classification
-    svm_classifier = SVC(kernel='linear', C=1.0, random_state=42) 
-    svm_classifier.fit(layer_1_predictions, y_train)
-    
+    # Layer 2
+    print(f"Training Layer 2 ({'SVC' if mode == 'svc' else 'OneClassSVM'})...")
+    train_l1 = layer1_outputs(lda_models, X_train_all_channels, mode)
+    layer2 = train_layer2(train_l1, y_train, mode)
     print("Pipeline trained successfully!")
-    
-    # Example Inference (Test on a new epoch)
-    print("\n--- Running Inference on a new 1-second epoch ---")
-    test_layer1_preds = np.zeros(n_channels)
-    
-    for ch in range(n_channels):
-        # Simulate new data
-        new_signal = np.random.randn(n_samples)
-        embedded = time_delay_embedding(new_signal, d=5, tau=6)
-        intersections = get_poincare_intersections(embedded)
-        features = extract_features(intersections).reshape(1, -1)
-        
-        # LDA Prediction for this channel
-        test_layer1_preds[ch] = lda_models[ch].predict(features)[0]
-        
-    # Final Prediction using SVM
-    final_prediction = svm_classifier.predict(test_layer1_preds.reshape(1, -1))
-    
-    result = "Seizure Detected!" if final_prediction[0] == 1 else "Normal (Non-seizure)"
-    print(f"Final System Output: {result}")
+
+    # Evaluation on held-out epochs
+    test_l1 = layer1_outputs(lda_models, X_test_all_channels, mode)
+    y_pred = predict_layer2(layer2, test_l1, mode)
+
+    tn, fp, fn, tp = confusion_matrix(y_test, y_pred, labels=[0, 1]).ravel()
+    metrics = {
+        'sensitivity': tp / (tp + fn) if (tp + fn) else 0.0,  # seizures caught
+        'specificity': tn / (tn + fp) if (tn + fp) else 0.0,  # normal correctly ignored
+        'accuracy': (tp + tn) / len(y_test),
+    }
+    print(f"TP={tp} FN={fn} TN={tn} FP={fp}")
+    print("  ".join(f"{k}={v:.2f}" for k, v in metrics.items()))
+    return metrics
 
 if __name__ == "__main__":
-    run_pipeline()
+    results = {mode: run_pipeline(mode) for mode in MODES}
+
+    print("\n===== Comparison =====")
+    print(f"{'mode':<8}{'sensitivity':>13}{'specificity':>13}{'accuracy':>10}")
+    for mode, m in results.items():
+        print(f"{mode:<8}{m['sensitivity']:>13.2f}{m['specificity']:>13.2f}{m['accuracy']:>10.2f}")
