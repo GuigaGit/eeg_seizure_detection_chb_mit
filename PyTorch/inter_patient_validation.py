@@ -2,6 +2,8 @@ import os
 import gc
 import numpy as np
 import torch
+import matplotlib
+matplotlib.use('Agg')  # Save-only script; avoids X11/ICE crashes at exit on headless servers
 import matplotlib.pyplot as plt
 import seaborn as sns
 

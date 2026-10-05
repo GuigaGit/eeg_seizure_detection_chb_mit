@@ -2,6 +2,11 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
+import matplotlib
+# Non-interactive backend: this script only saves figures to disk. A GUI
+# backend (Qt/Tk over X11) can crash at exit on headless/SSH servers with
+# "ICE default IO error handler doing an exit() ... errno = 32".
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -470,7 +475,9 @@ def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 
         ax1.set_ylim([0, 1.05])
 
         data = [all_sensitivities, all_specificities, all_accuracies]
-        ax2.boxplot(data, labels=['Sensibilidade', 'Especificidade', 'Acurácia'], patch_artist=True)
+        ax2.boxplot(data, patch_artist=True)
+        # Set via set_xticklabels: boxplot's `labels` was renamed `tick_labels` in Matplotlib 3.9
+        ax2.set_xticklabels(['Sensibilidade', 'Especificidade', 'Acurácia'])
         ax2.set_title('Distribuição Geral de Performance')
         ax2.set_ylabel('Score')
         ax2.grid(axis='y', linestyle='--', alpha=0.7)
@@ -479,6 +486,7 @@ def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 
         plt.tight_layout()
 
         plt.savefig(os.path.join(SCRIPT_DIR, 'results', 'svm_linear_performance_torch.png'), dpi=300)
+        plt.close(fig)
         print(f"Gráficos salvos na pasta '{os.path.join(SCRIPT_DIR, 'results')}'")
 
 
