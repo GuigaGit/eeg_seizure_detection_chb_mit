@@ -10,13 +10,14 @@ a coincidir com o início de crises epilépticas (dinâmica mais sincronizada
 e regular).
 """
 import os
+import time
 import argparse
 import numpy as np
+import nolds
 import pandas as pd
 import mne
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from scipy.spatial import cKDTree
 
 from poincare_features import time_delay_embedding
 
@@ -25,20 +26,41 @@ mne.set_log_level('ERROR')
 # ==========================================
 # 1. Maior Expoente de Lyapunov (Rosenstein)
 # ==========================================
-def largest_lyapunov_exponent(signal, sfreq, d=5, tau=6, theiler_window=None,
-                               trajectory_len=20, fit_range=None):
+def mean_period(signal):
+    """
+    Período médio do sinal, em amostras, estimado pela FFT (Rosenstein, 1993).
+
+    A frequência média é a média das frequências do espectro ponderada pela
+    potência de cada uma (o componente DC, frequência 0, é ignorado). O
+    período médio é o inverso dela: quantas amostras dura, em média, um
+    "ciclo" do sinal.
+    """
+    spectrum = np.fft.rfft(signal)
+    freqs = np.fft.rfftfreq(len(signal))    # em ciclos por amostra
+    power = np.abs(spectrum) ** 2
+    mean_freq = np.sum(freqs[1:] * power[1:]) / np.sum(power[1:])
+    period = int(np.ceil(1.0 / mean_freq))
+    
+    return period
+
+
+def largest_lyapunov_exponent(signal, sfreq, d=5, tau=6,
+                               trajectory_len=20):
     """
     Estima o maior expoente de Lyapunov de `signal` pelo método de Rosenstein.
 
-    1. Reconstrói o espaço de fase por time-delay embedding.
-    2. Para cada ponto, busca o vizinho mais próximo fora da janela de Theiler
-       (evita pares que são apenas vizinhos temporais, não dinâmicos).
-    3. Acompanha a divergência log(distância) entre cada par pelos próximos
+    1. Estima o período médio do sinal pela FFT (`mean_period`).
+    2. Reconstrói o espaço de fase por time-delay embedding.
+    3. Para cada ponto, busca o vizinho mais próximo (distância euclidiana)
+       entre os pontos separados dele no tempo por MAIS que o período médio
+       — assim o vizinho vem de outro trecho do sinal, e não é só a amostra
+       seguinte da mesma trajetória.
+    4. Acompanha a divergência log(distância) entre cada par pelos próximos
        `trajectory_len` passos (uma contagem FIXA de amostras — não uma fração
        da janela — pois é o horizonte de curto prazo em que a divergência ainda
        cresce exponencialmente, antes de saturar por causa do tamanho finito
        do atrator).
-    4. O expoente é a inclinação (ajuste linear) dessa curva de divergência média.
+    5. O expoente é a inclinação (ajuste linear) dessa curva de divergência média.
 
     Retorna o expoente em nats/segundo (log natural). np.nan se o segmento
     for curto/plano demais para uma estimativa confiável.
@@ -48,25 +70,17 @@ def largest_lyapunov_exponent(signal, sfreq, d=5, tau=6, theiler_window=None,
     if n < 20 or np.var(signal) <= 1e-12:
         return np.nan
 
-    if theiler_window is None:
-        theiler_window = max(tau * d, int(0.05 * sfreq))
+    # Matriz de distâncias euclidianas entre todos os pares de pontos (n x n)
+    diffs_all = embedded[:, None, :] - embedded[None, :, :]
+    dist_matrix = np.sqrt(np.sum(diffs_all ** 2, axis=-1))
 
-    k_neighbors = min(n, theiler_window * 2 + 10)
-    tree = cKDTree(embedded)
-    _, idxs = tree.query(embedded, k=k_neighbors)
-
-    # Para cada ponto i, primeiro vizinho fora da janela de Theiler
-    nearest_idx = np.full(n, -1, dtype=int)
-    offsets = np.abs(idxs - np.arange(n)[:, None])
-    outside = offsets > theiler_window
-    for i in range(n):
-        candidates = np.where(outside[i])[0]
-        if candidates.size:
-            nearest_idx[i] = idxs[i, candidates[0]]
-
-    valid = nearest_idx >= 0
-    if valid.sum() < 10:
-        return np.nan
+    # Restrição de separação temporal: pontos a até `period` amostras de
+    # distância no tempo não podem ser vizinhos (inclui o próprio ponto, |i-j|=0)
+    period = mean_period(signal)
+    idx = np.arange(n)
+    too_close_in_time = np.abs(idx[:, None] - idx[None, :]) <= period
+    dist_matrix[too_close_in_time] = np.inf
+    nearest_idx = np.argmin(dist_matrix, axis=1)
 
     max_horizon = min(trajectory_len, n - 1)
     if max_horizon < 5:
@@ -75,7 +89,7 @@ def largest_lyapunov_exponent(signal, sfreq, d=5, tau=6, theiler_window=None,
     log_div_sum = np.zeros(max_horizon)
     counts = np.zeros(max_horizon)
 
-    for i in np.where(valid)[0]:
+    for i in range(n):
         j = nearest_idx[i]
         span = min(max_horizon, n - max(i, j))
         if span <= 0:
@@ -86,34 +100,64 @@ def largest_lyapunov_exponent(signal, sfreq, d=5, tau=6, theiler_window=None,
         log_div_sum[:span] += np.log(dist_k)
         counts[:span] += 1
 
+    # Passos k em que pelo menos um par contribuiu (evita divisão 0/0).
+    # Como todo par contribui a partir de k=0, esses passos são sempre
+    # os primeiros: k = 0, 1, 2, ...
     has_data = counts > 0
     if has_data.sum() < 5:
         return np.nan
 
-    mean_log_div = np.full(max_horizon, np.nan)
-    mean_log_div[has_data] = log_div_sum[has_data] / counts[has_data]
+    # Curva de divergência: média de ln(distância) após k passos
+    mean_log_div = log_div_sum[has_data] / counts[has_data]
 
-    dt = 1.0 / sfreq  # o índice k do embedding avança uma amostra por passo
-    lo, hi = fit_range if fit_range is not None else (0, max_horizon)
-    hi = min(hi, max_horizon)
-    fit_mask = has_data.copy()
-    fit_mask[:lo] = False
-    fit_mask[hi:] = False
+    # Eixo X em segundos: o passo k corresponde ao tempo k / sfreq
+    time_axis = np.arange(len(mean_log_div)) / sfreq
 
-    if fit_mask.sum() < 3:
+    # λ = inclinação da reta ajustada por mínimos quadrados
+    slope, _ = np.polyfit(time_axis, mean_log_div, 1)
+    return slope
+
+
+def largest_lyapunov_exponent_nolds(signal, sfreq, d=5, tau=6,
+                                     trajectory_len=20, fit='poly'):
+    """
+    Mesma estimativa de `largest_lyapunov_exponent`, mas usando a implementação
+    de referência `nolds.lyap_r` (também baseada em Rosenstein, 1993), para
+    validar a implementação própria.
+
+    Os parâmetros são mapeados para ficarem equivalentes aos da versão própria:
+      - emb_dim   <- d               (dimensão de embedding)
+      - lag       <- tau             (atraso do embedding, em amostras)
+      - min_tsep  <- None            (o nolds calcula a janela de Theiler
+                                      automaticamente como o período médio do
+                                      sinal = 1 / frequência média do espectro)
+      - tau       <- 1/sfreq         (passo de tempo entre amostras -> resultado em nats/s)
+      - fit='poly' (mínimos quadrados, como o np.polyfit da versão própria;
+        o padrão do nolds é 'RANSAC', que é robusto a outliers mas exige sklearn)
+
+    Retorna o expoente em nats/segundo, ou np.nan se o nolds não conseguir
+    estimar (segmento curto/plano demais, vizinhos insuficientes, etc.).
+    """
+    if len(signal) < 20 or np.var(signal) <= 1e-12:
         return np.nan
 
-    k_axis = np.arange(max_horizon) * dt
-    slope, _ = np.polyfit(k_axis[fit_mask], mean_log_div[fit_mask], 1)
-    return slope
+    try:
+        return nolds.lyap_r(
+            np.asarray(signal, dtype=float), emb_dim=d, lag=tau,
+            min_tsep=None, tau=1.0 / sfreq,
+            trajectory_len=trajectory_len, fit=fit)
+    except (ValueError, np.linalg.LinAlgError):
+        return np.nan
 
 
 # ==========================================
 # 2. LLE em janelas deslizantes sobre a gravação
 # ==========================================
-def sliding_lle(signal, sfreq, window_sec=2.0, step_sec=0.5, d=5, tau=6):
+def sliding_lle(signal, sfreq, window_sec=2.0, step_sec=0.5, d=5, tau=6,
+                estimator=largest_lyapunov_exponent):
     """
-    Aplica `largest_lyapunov_exponent` em janelas deslizantes ao longo do sinal.
+    Aplica `estimator` (por padrão `largest_lyapunov_exponent`; também aceita
+    `largest_lyapunov_exponent_nolds`) em janelas deslizantes ao longo do sinal.
     Retorna (centros_em_segundos, valores_do_lle).
     """
     window_samples = int(window_sec * sfreq)
@@ -122,7 +166,7 @@ def sliding_lle(signal, sfreq, window_sec=2.0, step_sec=0.5, d=5, tau=6):
     centers, values = [], []
     for start in range(0, len(signal) - window_samples + 1, step_samples):
         segment = signal[start:start + window_samples]
-        lle = largest_lyapunov_exponent(segment, sfreq, d=d, tau=tau)
+        lle = estimator(segment, sfreq, d=d, tau=tau)
         centers.append((start + window_samples / 2.0) / sfreq)
         values.append(lle)
 
@@ -274,6 +318,7 @@ def animate_lyapunov(signal, sfreq, centers, lle_values, seizure_intervals,
     plt.tight_layout()
 
     if save_path:
+        os.makedirs(os.path.dirname(save_path) or '.', exist_ok=True)
         writer = animation.PillowWriter(fps=12)
         ani.save(save_path, writer=writer)
         print(f"Animação salva em: {save_path}")
@@ -349,7 +394,70 @@ def process_all_channels(edf_path, out_dir='results/lyapunov',
 
 
 # ==========================================
-# 6. CLI
+# 6. Comparação: implementação própria vs. nolds.lyap_r
+# ==========================================
+def compare_with_nolds(signal, sfreq, seizure_intervals, channel_name,
+                        window_sec=2.0, step_sec=0.5, save_path=None):
+    """
+    Calcula o LLE em janelas deslizantes com as duas implementações
+    (`largest_lyapunov_exponent` e `largest_lyapunov_exponent_nolds`), imprime
+    métricas de concordância (média, correlação de Pearson, erro absoluto médio,
+    tempo de execução) e plota as duas curvas sobrepostas, abaixo do EEG.
+    """
+    results = {}
+    for name, estimator in [('Própria', largest_lyapunov_exponent),
+                            ('nolds.lyap_r', largest_lyapunov_exponent_nolds)]:
+        t0 = time.perf_counter()
+        centers, values = sliding_lle(signal, sfreq, window_sec=window_sec,
+                                      step_sec=step_sec, estimator=estimator)
+        results[name] = (centers, values, time.perf_counter() - t0)
+
+    centers, own_vals, own_time = results['Própria']
+    _, nolds_vals, nolds_time = results['nolds.lyap_r']
+
+    both = np.isfinite(own_vals) & np.isfinite(nolds_vals)
+    if both.sum() >= 2:
+        pearson_r = np.corrcoef(own_vals[both], nolds_vals[both])[0, 1]
+        mae = np.mean(np.abs(own_vals[both] - nolds_vals[both]))
+    else:
+        pearson_r, mae = np.nan, np.nan
+
+    print("\n=== Comparação: implementação própria vs. nolds.lyap_r ===")
+    print(f"Janelas válidas em ambas: {both.sum()}/{len(centers)}")
+    print(f"λ₁ médio (própria) = {np.nanmean(own_vals):+.3f} nats/s  "
+          f"[{own_time:.1f}s de execução]")
+    print(f"λ₁ médio (nolds)   = {np.nanmean(nolds_vals):+.3f} nats/s  "
+          f"[{nolds_time:.1f}s de execução]")
+    print(f"Correlação de Pearson = {pearson_r:.3f}")
+    print(f"Erro absoluto médio   = {mae:.3f} nats/s")
+
+    fig, ax_eeg, ax_lle, _ = _build_two_panel_figure(
+        signal, sfreq, seizure_intervals, channel_name,
+        f"LLE: implementação própria vs. nolds.lyap_r — canal {channel_name}")
+    ax_lle.plot(centers, own_vals, color='teal', lw=1.5, label='Própria (Rosenstein)')
+    ax_lle.plot(centers, nolds_vals, color='darkorange', lw=1.5, ls='--',
+                label='nolds.lyap_r')
+    ax_lle.legend(loc='upper right')
+    ax_lle.text(
+        0.02, 0.92, f"Pearson r = {pearson_r:.3f}   MAE = {mae:.3f} nats/s",
+        transform=ax_lle.transAxes, fontsize=11, va='top',
+        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+    plt.tight_layout()
+
+    if save_path:
+        os.makedirs(os.path.dirname(save_path) or '.', exist_ok=True)
+        plt.savefig(save_path, dpi=150)
+        plt.close(fig)
+        print(f"Plot salvo em: {save_path}")
+    else:
+        plt.show()
+
+    return centers, own_vals, nolds_vals
+
+
+# ==========================================
+# 7. CLI
 # ==========================================
 def main():
     parser = argparse.ArgumentParser(
@@ -371,9 +479,15 @@ def main():
                          help="Tamanho da janela usada em cada estimativa de LLE.")
     parser.add_argument('--step-sec', type=float, default=0.5,
                          help="Passo entre janelas consecutivas.")
-    parser.add_argument('--save', default=True,
-                         help="Se definido, salva a animação como .gif neste caminho em vez "
-                              "de exibi-la (ignorado com --all-channels).")
+    parser.add_argument('--save', nargs='?', const='lyapunov_animation.gif', default=None,
+                    help="Salva a animação como .gif no caminho dado. "
+                         "Sem valor, usa 'lyapunov_animation.gif'. "
+                         "Omitido, exibe a animação na tela.")
+    parser.add_argument('--compare-nolds', nargs='?', const='', default=None,
+                         metavar='PNG',
+                         help="Compara a implementação própria com nolds.lyap_r no canal "
+                              "escolhido. Com um caminho, salva o plot como .png; sem "
+                              "valor, exibe na tela.")
     args = parser.parse_args()
 
     if args.all_channels:
@@ -393,6 +507,12 @@ def main():
     start_idx, end_idx, local_seizures = resolve_analysis_window(
         len(signal), sfreq, seizure_intervals, args.start_sec, args.duration_sec)
     segment = signal[start_idx:end_idx]
+
+    if args.compare_nolds is not None:
+        compare_with_nolds(segment, sfreq, local_seizures, channel_name,
+                           window_sec=args.window_sec, step_sec=args.step_sec,
+                           save_path=args.compare_nolds or None)
+        return
 
     print(f"Analisando {args.duration_sec:.0f}s a partir de t={start_idx/sfreq:.0f}s "
           f"com janelas de {args.window_sec}s (passo {args.step_sec}s)...")

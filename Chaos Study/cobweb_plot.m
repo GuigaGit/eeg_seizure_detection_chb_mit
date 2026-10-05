@@ -1,8 +1,12 @@
 pkg load signal
 
-start_point = .99999;
+r = 0.5; # origem é sorvedouro
+##r = 2.8; # origem é fonte
 
-g = @(x) (3.3*x.*(1 - x));
+start_point = 0.64;
+
+# Mapa logistico
+g = @(x) (r*x.*(1 - x));
 
 bissetriz = @(x) x;
 
