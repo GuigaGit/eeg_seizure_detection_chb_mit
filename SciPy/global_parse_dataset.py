@@ -1,6 +1,14 @@
 import pandas as pd
 import re
 import os
+import sys
+
+# Pasta com os arquivos .edf do CHB-MIT. Cada máquina pode ter o dataset em
+# um lugar diferente, então isso é configurável via variável de ambiente:
+#   export CHB_MIT_DATASET_DIR=/caminho/para/dataset_chbmit
+# Se não for definida, usa a pasta de exemplo na raiz do repositório.
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATASET_DIR = os.environ.get('CHB_MIT_DATASET_DIR', os.path.join(REPO_ROOT, 'dataset_chbmit'))
 
 def extrair_dados_sumario(caminho_arquivo):
     with open(caminho_arquivo, 'r') as f:
@@ -39,7 +47,7 @@ def extrair_dados_sumario(caminho_arquivo):
     return lista_dados
 
 # --- Loop Principal para iterar de chb01 a chb24 ---
-diretorio_base = './dataset_chbmit' # Ajuste para o seu caminho
+diretorio_base = DATASET_DIR
 todos_os_labels = []
 
 for i in range(1, 25):
@@ -59,6 +67,12 @@ for i in range(1, 25):
         for item in dados_paciente:
             item['patient'] = pasta_nome
             todos_os_labels.append(item)
+
+if not todos_os_labels:
+    print(f"[ERRO] Nenhum '-summary.txt' encontrado em {diretorio_base}. "
+          f"Verifique se o dataset CHB-MIT está nesse caminho "
+          f"(export CHB_MIT_DATASET_DIR=/caminho/para/dataset_chbmit).")
+    sys.exit(1)
 
 # Salvar CSV Global (Muito útil para treinar o SVM com todos os dados)
 df_global = pd.DataFrame(todos_os_labels)

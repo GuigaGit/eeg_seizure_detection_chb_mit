@@ -7,6 +7,12 @@ from sklearn.decomposition import PCA
 from joblib import Parallel, delayed
 import warnings
 
+# Pasta com os arquivos .edf do CHB-MIT (mesma configuração de global_parse_dataset.py):
+#   export CHB_MIT_DATASET_DIR=/caminho/para/dataset_chbmit
+# Se não for definida, usa a pasta de exemplo na raiz do repositório.
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATASET_DIR = os.environ.get('CHB_MIT_DATASET_DIR', os.path.join(REPO_ROOT, 'dataset_chbmit'))
+
 # This forces MNE to only print fatal errors, hiding the warnings
 mne.set_log_level('ERROR') 
 warnings.filterwarnings('ignore')
@@ -225,7 +231,7 @@ def process_single_file(file_name, group, base_path, window_sec, sfreq):
 if __name__ == "__main__":
     df = pd.read_csv('chb_mit_global_labels.csv')
 
-    base_path = './dataset_chbmit'
+    base_path = DATASET_DIR
     window_sec = 1 
     sfreq = 256
     
