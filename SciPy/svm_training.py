@@ -1,6 +1,11 @@
 import numpy as np
 import joblib
 import os
+import matplotlib
+# Non-interactive backend: this script only saves figures to disk. A GUI
+# backend (Qt/Tk over X11) can crash at exit on headless/SSH servers with
+# "ICE default IO error handler doing an exit() ... errno = 32".
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
@@ -20,7 +25,6 @@ def train_patient_specific_models(training_rate=0.50):
     os.makedirs('results/curves', exist_ok=True)
     os.makedirs('models', exist_ok=True)
 
-    # Iterando apenas o chb01 para teste rápido (mude para range(1, 25) quando quiser rodar todos)
     for i in range(1, 25):
         patient_id = f"chb{i:02d}"
         x_path = f"X_{patient_id}.npy"
@@ -42,6 +46,10 @@ def train_patient_specific_models(training_rate=0.50):
         
         if sum(y_train) == 0 or sum(y_test) == 0:
             print(f"[AVISO] {patient_id} sem crises no treino ou teste. Pulando paciente.")
+            continue
+        if sum(y_train) < 3:
+            # StratifiedKFold(n_splits=3) raises if a class has fewer than 3 samples
+            print(f"[AVISO] {patient_id} tem menos de 3 janelas de crise no treino. Pulando paciente.")
             continue
 
         # 2. Padronização
@@ -147,7 +155,9 @@ def train_patient_specific_models(training_rate=0.50):
 
         # Subplot 2: Boxplot para variância
         data = [all_sensitivities, all_specificities, all_accuracies]
-        ax2.boxplot(data, labels=['Sensibilidade', 'Especificidade', 'Acurácia'], patch_artist=True)
+        ax2.boxplot(data, patch_artist=True)
+        # Set via set_xticklabels: boxplot's `labels` was renamed `tick_labels` in Matplotlib 3.9
+        ax2.set_xticklabels(['Sensibilidade', 'Especificidade', 'Acurácia'])
         ax2.set_title('Distribuição Geral de Performance')
         ax2.set_ylabel('Score')
         ax2.grid(axis='y', linestyle='--', alpha=0.7)
@@ -156,6 +166,7 @@ def train_patient_specific_models(training_rate=0.50):
         plt.tight_layout()
         
         plt.savefig('results/svm_linear_performance.png', dpi=300)
+        plt.close(fig)
         print("Gráficos salvos na pasta 'results/'")
 
 if __name__ == "__main__":

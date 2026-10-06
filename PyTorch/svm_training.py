@@ -360,8 +360,9 @@ def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 
         print(f"\n{'-'*40}")
         print(f"Processando Paciente: {patient_id}")
 
-        X = torch.load(x_path).to(DEVICE).float()
-        y = torch.load(y_path).to(DEVICE).long()
+        # map_location: poincare_features.py saves these on the GPU when available
+        X = torch.load(x_path, map_location=DEVICE).float()
+        y = torch.load(y_path, map_location=DEVICE).long()
 
         # 1. Divisão Cronológica (Sem embaralhamento)
         split_idx = int(len(X) * training_rate)
@@ -370,6 +371,10 @@ def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 
 
         if y_train.sum().item() == 0 or y_test.sum().item() == 0:
             print(f"[AVISO] {patient_id} sem crises no treino ou teste. Pulando paciente.")
+            continue
+        if y_train.sum().item() < n_splits:
+            # Every CV fold would lack seizures in train or validation -> no C can be scored
+            print(f"[AVISO] {patient_id} tem menos de {n_splits} janelas de crise no treino. Pulando paciente.")
             continue
 
         # 2. Padronização
@@ -403,6 +408,9 @@ def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 
             mean_train_scores.append(np.nanmean(fold_train_scores) if fold_train_scores else np.nan)
             mean_test_scores.append(np.nanmean(fold_val_scores) if fold_val_scores else np.nan)
 
+        if np.all(np.isnan(mean_test_scores)):
+            print(f"[AVISO] {patient_id}: nenhum fold de CV válido para escolher C. Pulando paciente.")
+            continue
         best_idx = int(np.nanargmax(mean_test_scores))
         best_C = C_grid[best_idx]
 
