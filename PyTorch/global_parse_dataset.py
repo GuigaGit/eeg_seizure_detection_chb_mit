@@ -81,33 +81,34 @@ def extrair_dados_sumario(caminho_arquivo):
             })
     return lista_dados
 
-# --- Loop Principal para iterar de chb01 a chb24 ---
-diretorio_base = DATASET_DIR
-todos_os_labels = []
+if __name__ == "__main__":
+    # --- Loop Principal para iterar de chb01 a chb24 ---
+    diretorio_base = DATASET_DIR
+    todos_os_labels = []
 
-for i in range(1, 25):
-    pasta_nome = f'chb{i:02d}'
-    caminho_pasta = os.path.join(diretorio_base, pasta_nome)
-    arquivo_sumario = os.path.join(caminho_pasta, f'{pasta_nome}-summary.txt')
+    for i in range(1, 25):
+        pasta_nome = f'chb{i:02d}'
+        caminho_pasta = os.path.join(diretorio_base, pasta_nome)
+        arquivo_sumario = os.path.join(caminho_pasta, f'{pasta_nome}-summary.txt')
 
-    if os.path.exists(arquivo_sumario):
-        print(f"Processando sumário da pasta: {pasta_nome}")
-        dados_paciente = extrair_dados_sumario(arquivo_sumario)
+        if os.path.exists(arquivo_sumario):
+            print(f"Processando sumário da pasta: {pasta_nome}")
+            dados_paciente = extrair_dados_sumario(arquivo_sumario)
 
-        df_paciente = pd.DataFrame(dados_paciente)
-        df_paciente.to_csv(os.path.join(caminho_pasta, f'{pasta_nome}_labels.csv'), index=False)
+            df_paciente = pd.DataFrame(dados_paciente)
+            df_paciente.to_csv(os.path.join(caminho_pasta, f'{pasta_nome}_labels.csv'), index=False)
 
-        for item in dados_paciente:
-            item['patient'] = pasta_nome
-            todos_os_labels.append(item)
+            for item in dados_paciente:
+                item['patient'] = pasta_nome
+                todos_os_labels.append(item)
 
-if not todos_os_labels:
-    print(f"[ERRO] Nenhum '-summary.txt' encontrado em {diretorio_base}. "
-          f"Verifique se o dataset CHB-MIT está nesse caminho.")
-    sys.exit(1)
+    if not todos_os_labels:
+        print(f"[ERRO] Nenhum '-summary.txt' encontrado em {diretorio_base}. "
+              f"Verifique se o dataset CHB-MIT está nesse caminho.")
+        sys.exit(1)
 
-# Salvar CSV Global (Muito útil para treinar o classificador com todos os dados)
-df_global = pd.DataFrame(todos_os_labels)
-global_labels_path = os.path.join(REPO_ROOT, 'chb_mit_global_labels.csv')
-df_global.to_csv(global_labels_path, index=False)
-print(f"\nProcessamento concluído! CSV Global gerado em: {global_labels_path}")
+    # Salvar CSV Global (Muito útil para treinar o classificador com todos os dados)
+    df_global = pd.DataFrame(todos_os_labels)
+    global_labels_path = os.path.join(REPO_ROOT, 'chb_mit_global_labels.csv')
+    df_global.to_csv(global_labels_path, index=False)
+    print(f"\nProcessamento concluído! CSV Global gerado em: {global_labels_path}")
