@@ -1,16 +1,37 @@
 import math
+import os
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import warnings
+from joblib import Parallel, delayed
 
-from poincare_features import time_delay_embedding, get_poincare_intersections, extract_features
+from global_parse_dataset import extrair_dados_sumario
+from poincare_features import process_single_file, CHANNELS_TO_KEEP, SCRIPT_DIR, DATASET_DIR
 from svm_training import fit_scaler, apply_scaler, compute_metrics
 
 warnings.filterwarnings('ignore')
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# ==========================================
+# Real data (CHB-MIT)
+# ==========================================
+# DATASET_DIR is shared with the rest of the pipeline (poincare_features.py):
+# the folder with one subfolder per patient (chb01/, chb02/, ...), set with
+#   export CHB_MIT_DATASET_DIR=/caminho/para/dataset_chbmit
+# Using the same setting guarantees the cached X_chbXX.pt features and this
+# script's labels come from the same dataset.
+WINDOW_SEC = 1           # epoch length, in seconds
+SFREQ = 256              # CHB-MIT sampling frequency, in Hz
+N_CHANNELS = len(CHANNELS_TO_KEEP)
+N_FEATURES = 7           # Poincaré features per channel
+TRAINING_RATE = 0.50     # chronological train/test split per patient (same as svm_training.py)
+# Reuse X_chbXX.pt / y_chbXX.pt saved by poincare_features.py (same features,
+# same format). Set False to always re-extract them from the .edf files.
+USE_FEATURE_CACHE = True
 
 # ==========================================
 # Hyperparameters (full control, vs. sklearn defaults previously)
@@ -269,27 +290,94 @@ def predict_anomalies(model, X):
 
 
 # ==========================================
-# Main Pipeline & Classification
+# Real Data Loading
 # ==========================================
-def simulate_epoch_features(n_epochs, n_channels, n_samples):
+def load_patient_labels(patient_id, base_path=DATASET_DIR):
     """
-    Runs PSR -> Poincaré -> features for every epoch/channel on SYNTHETIC
-    (random noise) signals.
+    Reads the seizure annotations of one patient straight from its
+    `chbXX-summary.txt` in `base_path` (via
+    `global_parse_dataset.extrair_dados_sumario`), so the labels always
+    match the dataset folder being read.
+
+    Args:
+        patient_id: e.g. "chb01".
+        base_path: root folder with one subfolder per patient.
 
     Returns:
-        torch.Tensor of shape (n_epochs, n_channels, 7).
+        pandas DataFrame with columns 'file_name', 'start_sec', 'end_sec',
+        'label', 'patient' (the format `process_single_file` expects), or
+        None if the summary file doesn't exist.
     """
-    X = torch.zeros((n_epochs, n_channels, 7), device=DEVICE)
-    for epoch in range(n_epochs):
-        for ch in range(n_channels):
-            # Replace this with your actual MNE epoch data
-            raw_signal = np.random.randn(n_samples)
+    summary_path = os.path.join(base_path, patient_id, f'{patient_id}-summary.txt')
+    if not os.path.exists(summary_path):
+        return None
+    df = pd.DataFrame(extrair_dados_sumario(summary_path))
+    df['patient'] = patient_id
+    return df
 
-            embedded = time_delay_embedding(raw_signal, d=5, tau=6)
-            intersections = get_poincare_intersections(embedded)
-            X[epoch, ch, :] = extract_features(intersections)
-    return X
 
+def load_patient_features(patient_id, base_path=DATASET_DIR, use_cache=USE_FEATURE_CACHE):
+    """
+    Loads one patient's labeled Poincaré-feature windows from the real
+    CHB-MIT recordings.
+
+    How: if `use_cache` and `X_<patient>.pt` / `y_<patient>.pt` already
+    exist next to this script (saved by poincare_features.py or by a
+    previous run of this script), loads them. Otherwise, runs
+    `poincare_features.process_single_file` on every .edf of the patient in
+    parallel - seizure windows (label 1) plus 15 random background windows
+    per file (label 0) - and saves the result to that same cache.
+
+    Args:
+        patient_id: e.g. "chb01".
+        base_path: root folder with one subfolder per patient.
+        use_cache: whether to reuse previously extracted features.
+
+    Returns:
+        Tuple (X, y): X is a torch.Tensor of shape (n_windows, N_CHANNELS,
+        N_FEATURES), y a torch.Tensor of shape (n_windows,) with 0/1 labels,
+        both in recording order. None if the patient has no data.
+    """
+    x_path = os.path.join(SCRIPT_DIR, f'X_{patient_id}.pt')
+    y_path = os.path.join(SCRIPT_DIR, f'y_{patient_id}.pt')
+
+    if use_cache and os.path.exists(x_path) and os.path.exists(y_path):
+        print(f"Loading cached features: {x_path}")
+        X = torch.load(x_path, map_location=DEVICE)
+        y = torch.load(y_path, map_location=DEVICE)
+    else:
+        labels = load_patient_labels(patient_id, base_path)
+        if labels is None:
+            return None
+        print(f"Extracting features from {os.path.join(base_path, patient_id)} ...")
+        results = Parallel(n_jobs=-1)(
+            delayed(process_single_file)(f, file_group, base_path, WINDOW_SEC, SFREQ)
+            for f, file_group in labels.groupby('file_name')
+        )
+        results = [r for r in results if r is not None and r[0].shape[0] > 0]
+        if not results:
+            return None
+        X = torch.cat([r[0].to(DEVICE) for r in results], dim=0)
+        y = torch.cat([r[1].to(DEVICE) for r in results], dim=0)
+        torch.save(X, x_path)
+        torch.save(y, y_path)
+
+    # label_dataset_v2.py writes different features to the same X_chbXX.pt files
+    if X.shape[1] != N_CHANNELS * N_FEATURES:
+        raise ValueError(
+            f"{x_path} has {X.shape[1]} features per window, expected "
+            f"{N_CHANNELS * N_FEATURES} Poincaré features ({N_CHANNELS} channels x {N_FEATURES}). "
+            f"Re-run poincare_features.py or set USE_FEATURE_CACHE = False."
+        )
+
+    # Flat (n, 7 * channels) -> (n, channels, 7): channel `ch` owns [7*ch : 7*(ch+1)]
+    X = X.float().reshape(-1, N_CHANNELS, N_FEATURES)
+    return X, y.long()
+
+
+# ==========================================
+# Main Pipeline & Classification
+# ==========================================
 
 def layer1_outputs(layer1_models, X_all_channels, mode):
     """
@@ -316,13 +404,10 @@ def layer1_outputs(layer1_models, X_all_channels, mode):
     return out
 
 
-def run_pipeline(mode='svm', seed=42):
+def run_pipeline(X_train_all_channels, y_train, X_test_all_channels, y_test, mode='ocsvm', seed=42):
     """
-    Demonstrates the full 2-layer classification architecture end to end on
-    SYNTHETIC (random noise) data, to show how the pieces fit together
-    without needing real EEG data loaded. Replace the
-    `np.random.randn(n_samples)` line in `simulate_epoch_features` with real
-    per-channel epoch data to turn this into a real pipeline.
+    Trains the full 2-layer classification architecture on one patient's
+    (standardized) training windows and evaluates it on the held-out ones.
 
     Architecture:
       - Layer 1: one `LinearClassifier` per EEG channel (23 total), each
@@ -342,34 +427,23 @@ def run_pipeline(mode='svm', seed=42):
     Hyperparameters are the module-level constants at the top of this file.
 
     Args:
+        X_train_all_channels: torch.Tensor (n_train, n_channels, 7).
+        y_train: torch.Tensor (n_train,) with 0/1 labels.
+        X_test_all_channels: torch.Tensor (n_test, n_channels, 7).
+        y_test: torch.Tensor (n_test,) with 0/1 labels.
         mode: 'svm' or 'ocsvm' (see `MODES`).
-        seed: RNG seed, so every mode is compared on identical data.
+        seed: RNG seed, so every mode starts from the same initialization.
 
     Returns:
-        Dict with 'accuracy', 'sensitivity' and 'specificity' on a held-out
-        synthetic test set.
+        Dict with 'accuracy', 'sensitivity' and 'specificity' on the test set.
     """
-    np.random.seed(seed)
     torch.manual_seed(seed)
-
-    n_channels = 23
-    fs = 256  # Hz
-    epoch_length = 1  # second
-    n_samples = fs * epoch_length
-
-    y_train = torch.tensor([1] * 50 + [0] * 50, dtype=torch.long, device=DEVICE)
-    y_test = torch.tensor([1] * 20 + [0] * 20, dtype=torch.long, device=DEVICE)
-
-    print(f"\n===== Mode: {mode} =====")
-    print("Extracting features for Layer 1...")
-    X_train_all_channels = simulate_epoch_features(len(y_train), n_channels, n_samples)
-    X_test_all_channels = simulate_epoch_features(len(y_test), n_channels, n_samples)
+    n_channels = X_train_all_channels.shape[1]
 
     # Layer 1: Train 23 separate per-channel classifiers (LDA replacement)
-    print("Training Layer 1 (23 logistic classifiers, replacing LDA)...")
     layer1_models = []
     for ch in range(n_channels):
-        model = LinearClassifier(7).to(DEVICE)
+        model = LinearClassifier(N_FEATURES).to(DEVICE)
         X_ch = X_train_all_channels[:, ch, :]
         model = train_logistic(model, X_ch, y_train, epochs=LAYER1_EPOCHS, lr=LAYER1_LR)
         layer1_models.append(model)
@@ -379,7 +453,6 @@ def run_pipeline(mode='svm', seed=42):
 
     if mode == 'svm':
         # Layer 2: Train linear SVM (hinge loss) on the binary outputs of Layer 1
-        print("Training Layer 2 (linear SVM, PyTorch hinge loss)...")
         layer2 = LinearClassifier(n_channels).to(DEVICE)
         layer2 = train_linear_svm(
             layer2, train_l1, y_train, C=LAYER2_C,
@@ -388,27 +461,87 @@ def run_pipeline(mode='svm', seed=42):
         y_pred = predict_labels(layer2, test_l1)
     else:
         # Layer 2: Train One-Class SVM on the normal (non-seizure) epochs only
-        print("Training Layer 2 (One-Class SVM, normal epochs only)...")
         layer2 = OneClassSVM(n_channels).to(DEVICE)
         layer2 = train_one_class_svm(
             layer2, train_l1[y_train == 0], nu=OCSVM_NU,
             epochs=OCSVM_EPOCHS, lr=OCSVM_LR
         )
-        train_outliers = predict_anomalies(layer2, train_l1[y_train == 0]).float().mean().item()
-        print(f"Normal training epochs flagged as anomalies: {train_outliers:.2f} (nu={OCSVM_NU})")
         y_pred = predict_anomalies(layer2, test_l1)
 
-    print("Pipeline trained successfully!")
-
     acc, sen, spe = compute_metrics(y_test, y_pred)
-    print(f"accuracy={acc:.2f}  sensitivity={sen:.2f}  specificity={spe:.2f}")
+    print(f"  [{mode:<5}] accuracy={acc:.2f}  sensitivity={sen:.2f}  specificity={spe:.2f}")
     return {'accuracy': acc, 'sensitivity': sen, 'specificity': spe}
 
 
-if __name__ == "__main__":
-    results = {mode: run_pipeline(mode) for mode in MODES}
+def run_all_patients(base_path=DATASET_DIR, training_rate=TRAINING_RATE, modes=MODES):
+    """
+    Patient-specific evaluation on the real CHB-MIT data (same protocol as
+    `svm_training.train_patient_specific_models`): for each patient chb01..
+    chb24, load its windows (`load_patient_features`), split them
+    chronologically (first `training_rate` = train, rest = test), standardize
+    every channel's features with the training split's mean/std, then train
+    and evaluate every Layer 2 mode on that same split.
 
-    print("\n===== Comparison =====")
-    print(f"{'mode':<8}{'sensitivity':>13}{'specificity':>13}{'accuracy':>10}")
-    for mode, m in results.items():
-        print(f"{mode:<8}{m['sensitivity']:>13.2f}{m['specificity']:>13.2f}{m['accuracy']:>10.2f}")
+    Args:
+        base_path: root folder with one subfolder per patient.
+        training_rate: fraction of each patient's windows used for training.
+        modes: Layer 2 modes to evaluate (see `MODES`).
+
+    Returns:
+        Dict {mode: {patient_id: metrics dict}}.
+    """
+    print(f"Dataset: {base_path}")
+    if not os.path.isdir(base_path):
+        raise FileNotFoundError(
+            f"Dataset folder not found: {base_path}. "
+            f"Set it with: export CHB_MIT_DATASET_DIR=/caminho/para/dataset_chbmit"
+        )
+
+    results = {mode: {} for mode in modes}
+    for i in range(1, 25):
+        patient_id = f"chb{i:02d}"
+        data = load_patient_features(patient_id, base_path)
+        if data is None:
+            continue
+        X, y = data
+
+        # Chronological split (no shuffling): the test set is always "future" data
+        split_idx = int(len(X) * training_rate)
+        X_train, X_test = X[:split_idx], X[split_idx:]
+        y_train, y_test = y[:split_idx], y[split_idx:]
+
+        if y_train.sum().item() == 0 or y_test.sum().item() == 0:
+            print(f"[AVISO] {patient_id} sem crises no treino ou teste. Pulando paciente.")
+            continue
+        if (y_train == 0).sum().item() == 0:
+            # The One-Class SVM is trained on normal epochs only
+            print(f"[AVISO] {patient_id} sem janelas normais no treino. Pulando paciente.")
+            continue
+
+        # Standardize each (channel, feature) pair with the training split only - raw
+        # features are in µV and differ by orders of magnitude (e.g. energy vs. CoV)
+        mean, std = fit_scaler(X_train.reshape(len(X_train), -1))
+        X_train = apply_scaler(X_train.reshape(len(X_train), -1), mean, std).reshape(X_train.shape)
+        X_test = apply_scaler(X_test.reshape(len(X_test), -1), mean, std).reshape(X_test.shape)
+
+        print(f"{patient_id}: train={len(y_train)} ({int(y_train.sum())} seizure)  "
+              f"test={len(y_test)} ({int(y_test.sum())} seizure)")
+        for mode in modes:
+            results[mode][patient_id] = run_pipeline(X_train, y_train, X_test, y_test, mode=mode)
+
+    return results
+
+
+if __name__ == "__main__":
+    results = run_all_patients()
+
+    print("\n===== Comparison (mean over patients) =====")
+    print(f"{'mode':<8}{'patients':>10}{'sensitivity':>13}{'specificity':>13}{'accuracy':>10}")
+    for mode, per_patient in results.items():
+        if not per_patient:
+            print(f"{mode:<8}{0:>10}  (no patient data found)")
+            continue
+        mean = {k: np.nanmean([m[k] for m in per_patient.values()])
+                for k in ('sensitivity', 'specificity', 'accuracy')}
+        print(f"{mode:<8}{len(per_patient):>10}{mean['sensitivity']:>13.2f}"
+              f"{mean['specificity']:>13.2f}{mean['accuracy']:>10.2f}")
