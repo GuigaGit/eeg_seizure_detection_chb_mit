@@ -1,0 +1,182 @@
+\documentclass[]{article}
+
+\usepackage[brazil]{babel}
+
+\usepackage{amsmath}
+\usepackage{float}
+
+\usepackage[margin=2cm]{geometry}
+
+\usepackage{pgfgantt}
+
+\renewcommand{\refname}{Referências}
+
+\usepackage{url}
+\usepackage{hyperref}
+
+% Title Page
+\begin{document}
+	
+	\begin{center}
+		{\large Prévia Dissertação} \\[1.5cm]
+		
+		{\LARGE \textbf{Detecção de Crises Epilépticas com sinais de EEG - Revisão Bibliográfica}} \\[1.5cm]
+	\end{center}
+	
+	\noindent Submetido à Comissão Coordenadora do Programa de Pós-Graduação em Engenharia Elétrica \\[1.5cm]
+	
+	\noindent
+	\textbf{Orientando}: Guilherme Reis da Silva \\
+	\textbf{Orientador}: Daniel Gilio Tiglea \\
+	\textbf{Coorientador}: Magno Teófilo Madeira da Silva \\
+	
+	\vspace{1.5cm} % Espaçamento extra antes de começar o corpo do texto
+	
+	\begin{center}
+		\textbf{\Large Resumo}
+	\end{center}
+	
+	\vspace{0.5cm} % Dá um pequeno espaço entre o título e o texto do resumo
+	
+	\noindent % O \noindent impede que a primeira linha do texto sofra o recuo padrão de parágrafo, deixando-o alinhado à nova margem.
+	
+	Dezenas de milhões de pessoas no mundo sofrem com doenças e distúrbios neurológicos, como por exemplo doença de Alzheimer, Parkinson e Epilepsia. O acompanhamento e tratamento dos pacientes com esses distúrbios muitas vezes utiliza como principal ferramenta os exames de eletroencefalograma (EEG). O EEG é capaz de transcrever as atividades elétricas do cérebro em uma série temporal de dados que virá a ser analisada por profissionais da área em questão.
+	A epilepsia é objeto de estudo de diversos profissionais da área de engenharia biomédica por conta da sua natureza elétrica. Médicos e especialistas conseguem distinguir sinais de EEG de momentos de crises epilépticas de sinais de EEG que não representam crises; além de catalogar o tipo de crise em questão.
+	Partindo da premissa de que a análise visual realizada por especialistas permite a identificação e classificação dessas crises, a literatura propõe que algoritmos de aprendizado de máquina podem ser treinados para extrair padrões semelhantes de forma automatizada.
+	Neste projeto de pesquisa propõe-se uma revisão bibliográfica, com estudo, replica e potencial aprimoramento de alguns algoritmos propostos pela literatura focados em detecção de crises (ou classificação entre um sinal que representa o cérebro no estados com e sem crise epiléptica). 
+	Para atingir tal objetivo foi utilizado o banco de dados público CHB-MIT Scalp Database [colocar na referencia], com sinais já rotulados por profissionais da área neurológica. Os algoritmos de aprendizado de máquina foram implementados com a biblioteca PyTorch [colocar na referencia].
+	Foi necessário estudar teoria do Caos pois parte da literatura utiliza a interpretação do cérebro como um sistema dinâmico caótico para extrair características que são usadas para alimentar os algoritmos de detecção.
+	
+	[No fim do resumo colocar alguns resultados numéricos obtidos das réplicas q eu fiz? Não sei se é pertinente pois eu estou apenas tentando replicar, e não construindo algo novo ainda]
+	
+	
+	\clearpage
+	
+	\section{Introdução}
+	A epilepsia é uma doença neurológica crônica que causa atividades elétricas anormais e inesperadas no cérebro. Essas atividades elétricas recebem o nome de “Crise Epiléptica” e podem variar desde pequenos espasmos até perda de consciência \cite{einstein_epilepsia}.
+	Dados da Organização Mundial da Saúde (OMS) de 2024 estimam que 50 milhões de pessoas no mundo são afetadas por essa doença (7 a cada 1000 pessoas) \cite{who_epilepsy}, e dentre elas, cerca de 30\% dos casos são resistentes à medicação para controlar tais crises \cite{pmc11960332}. A epilepsia resistente à medicamentos está associada a riscos elevados, como acidentes, efeitos colaterais psicológicos, cognitivos e à morte súbita, chamada de \textit{Sudden Unexpected Death in Epilepsy} (SUDEP) \cite{epilepsiabrasil_sudep}.
+	
+	Por conta da natureza elétrica das crises epilépticas, a principal ferramenta utilizada para análise, caracterização e diagnóstico da epilepsia é o Eletroencefalograma (EEG). O EEG é um exame não invasivo que registra a atividade elétrica do cérebro, fornecendo informações sobre o funcionamento desse órgão. O EEG é realizado por meio de eletrodos que são colocados na cabeça e conseguem captar os pulsos elétricos cerebrais \cite{alta_eeg}. Utilizando sinais de EEG, profissionais especializados podem identificar padrões anormais de atividade cerebral, localizar o foco das crises e classificar as síndromes epilépticas. Apesar do EEG de couro cabeludo ser amplamente utilizado por ser não invasivo, ele apresenta limitações de resolução, o que pode exigir o uso de EEG invasivo, especialmente em avaliações pré-cirúrgicas.
+	
+	A digitalização dos registros de EEG impulsionou a criação de bancos de dados, tanto públicos quanto privados. Como exemplo de banco de dados público há o CHB-MIT Scalp EEG Database \cite{physionet_chbmit}, desenvolvido a partir de um estudo conjunto entre o \textit{Children’s Hospital Boston} e o \textit{Massachusetts Institute of Technology} (MIT) \cite{shoeb2009application}. Como exemplo de banco de dados privado há o EPILEPSIAE \cite{ihle2012epilepsiae} desenvolvido pelo \textit{Seizure Prediction Project} da Universidade de Freiburg \cite{freiburg_project}. A disponibilidade desses dados favorece o desenvolvimento de técnicas computacionais voltadas à detecção, classificação e previsão de crises epilépticas. A relevância e atualidade desses temas na literatura ficam evidentes pela presença de trabalhos submetidos a congressos de processamento de sinais, tanto nacionais, como o Congresso Brasileiro de Engenharia Biomédica (CBEB) \cite{paveiestudo}\cite{ufDelRei_premio}, quanto internacionais, como o \textit{European Signal Processing Conference} (EUSIPCO) \cite{mourad2025lightweight}, \textit{International Conference on Acoustics, Speech, and Signal Processing} (ICASSP) \cite{panchavati2023pretrained} e o \textit{Engineering in Medicine and Biology Conference} (EMBC) \cite{wu2024enhancing}. O engajamento da comunidade científica também se mostra na promoção de iniciativas como o ``Una Europa Epilepsy Data Challenge'' \cite{unaeuropa_epilepsy}, um desafio internacional criado em 2025 para fomentar o aprimoramento de algoritmos na detecção de crises utilizando uma base de dados preparado para dispositivos vestíveis (\textit{wearables}) \cite{bhagubai2025seizeit2}.
+	
+	Atualmente diversos modelos de detecção de crises epilépticas têm alcançado resultados considerados satisfatórios para classificar sinais que representam crises e separá-los dos sinais sem crise. Mesmo assim há desafios significativos em aberto. Alguns desafios da detecção de crises epilépticas são:
+	\begin{itemize}
+		\item Variabilidade do Paciente: Algoritmos treinados com dados de um paciente ou conjunto de dados específico costumam apresentar desempenho menos satisfatório condições diferentes às de treino. Isso é devido à significativa variabilidade do sinal de EEG entre pacientes. Generalizar modelos para diferentes tipos de crises, populações demográficas e configurações de gravação é um grande desafio.
+		\item Escassez e Qualidade dos Dados: Dados de EEG anotados de alta qualidade e longo prazo são escassos devido a regulamentações de privacidade, altos custos de rotulagem e inconsistências na anotação de especialistas. A maioria dos conjuntos de dados públicos é pequena ou carece de diversidade de tipos de crises, o que pode levar ao \textit{overfitting} e a métricas de desempenho infladas.
+		\item Restrições computacionais em tempo real: Alguns algoritmos são complexos de tal forma que exigem recursos computacionais que dificultam sua incorporação em \textit{wearables} para monitoramento ambulatorial de longo prazo e em tempo real.
+	\end{itemize}
+	
+	Na literatura há diversas abordagens para a detecção automática de crises de epilepsia utilizando sinais de EEG. Os resultados de cada abordagem variam conforme o domínio de extração de características do sinal e o classificador escolhido. A partir de dados do artigo de revisão ``Automated Epileptic Seizure Detection in Pediatric Subjects of CHB-MIT EEG Database—A Survey'' \cite{prasanna2021automated}, um trabalho que compila informações sobre estudos de detecção de crises epilépticas, foi feito um levantamento que relaciona alguns algoritmos com os resultados em detecção de crises. Os resultados de alguns algoritmos podem ser visto na tabela 1.
+	
+	[mudar essa tabela para colocar explicitamente resultados de algoritmos que usam teoria do caos]
+	\begin{table}[H]
+		\centering
+		\caption{Comparação de Algoritmos para Detecção de Crises Epilépticas}
+		\renewcommand{\arraystretch}{1.5}
+		\makebox[\textwidth][c]{
+			\begin{tabular}{|p{2.5cm}|p{1.8cm}|p{4.5cm}|p{2.2cm}|p{3.0cm}|}
+				\hline
+				\textbf{Domínio de Extração} & \textbf{Método / Estudo} & \textbf{Características Extraídas} & \textbf{Classificador} & \textbf{Desempenho Reportado} \\ \hline
+				
+				\textbf{Domínio do Tempo} & PCA \cite{zabihi2015analysis}& Quantile, Inter Quantile, Range, Shannon entropy, Root-Mean-Square, Coefficient of Variation, Energy & LDA e NB &  Sensitivity: 88,27\% \newline Specificity: 93,21\% \\ \hline
+				
+				\textbf{Domínio da Frequência} & Filter bank \cite{vanesbroeck2016multitask} & Temporal variability information & SVM & Sensitivity: 100\% \\ \hline
+				
+				\textbf{Domínio de Tempo-Frequência} & EMD \cite{alickovic2018performance}& Mean of coefficients, average power of coefficient in every sub-band, std-deviation of coefficients, skewness e kurtosis & SVM, RF, MLP e K-NN & Accuracy: 99,7\% \newline Sensitivity: 99,65\% \newline Specificity: 99,8\% \\ \hline
+				
+				\textbf{Domínio Não-Linear} & RQA \cite{murali2016efficient}& Determinism, Avg-diagonal line length, entropy, laminarity e trapping time & ECOC & Sensitivity: 97,4\% \newline Specificity: 93,5\% \\ \hline
+				
+			\end{tabular}
+		}
+	\end{table}
+	
+	
+	Não há consenso na literatura sobre quais devem ser as métricas de qualidade de um algoritmo de detecção de crises epiléticas. Mas as principais são:
+	
+	\textbf{Acurácia (Accuracy)} \\
+	Representa a proporção de classificações corretas (tanto de crises quanto de não-crises) em relação ao total de amostras.
+	\begin{align}
+		\text{Accuracy} &= \frac{TP + TN}{TP + TN + FP + FN} \times 100
+	\end{align}
+	
+	\vspace{0.5cm}
+	
+	\textbf{Sensibilidade (Sensitivity)} \\
+	Mede a capacidade do sistema de detectar corretamente os eventos de crise epiléptica (verdadeiros positivos).
+	\begin{align}
+		\text{Sensitivity} &= \frac{TP}{TP + FN} \times 100
+	\end{align}
+	
+	\vspace{0.5cm}
+	
+	\textbf{Especificidade (Specificity)} \\
+	Mede a capacidade do sistema de detectar corretamente os eventos que não são crises (verdadeiros negativos).
+	\begin{align}
+		\text{Specificity} &= \frac{TN}{TN + FP} \times 100
+	\end{align}
+	
+	\vspace{0.5cm}
+	
+	\textbf{Valor Preditivo Positivo (Precision)} \\
+	Indica a proporção de eventos identificados como crise que realmente eram crises epilépticas.
+	\begin{align}
+		\text{Positive Predictive Value} &= \frac{TP}{TP + FP} \times 100
+	\end{align}
+	
+	\noindent PCA = \textit{Principal Component Analysis} ou Análise de Componentes Principais: Técnica estatística usada para reduzir a dimensionalidade dos dados (extraindo as características mais relevantes) preservando a maior parte da variância do sinal. \\
+	SVM = \textit{Support Vector Machine} ou Máquina de Vetores de Suporte: Classificador supervisionado que busca encontrar a linha ou hiperplano ideal que melhor separa as diferentes classes de dados (ex: crise epiléptica vs. atividade normal). \\
+	NB = \textit{Naïve Bayes} ou Bayes Ingênuo: Classificador probabilístico rápido e simples baseado no Teorema de Bayes e que assume que todas as características extraídas são independentes entre si. \\
+	EMD = \textit{Empirical Mode Decomposition} ou Decomposição em Modos Empíricos: Método de processamento de sinais de tempo-frequência. Utiliza processamento adaptativo para decompor sinais não-lineares e não-estacionários em componentes mais simples chamadas de \textit{Intrinsic Mode Functions} (IMF) \\
+	RF = \textit{Random Forest} ou Floresta Aleatória: Algoritmo de classificação em conjunto (\textit{ensemble}) que cria várias árvores de decisão durante o treinamento e combina seus resultados para aumentar a precisão e evitar o sobreajuste (\textit{overfitting}). \\
+	MLP = \textit{Multilayer Perceptron} ou Perceptron Multicamadas: Tipo clássico de rede neural artificial (\textit{feedforward}) composta por pelo menos três camadas de nós (entrada, oculta e saída), capaz de classificar dados que não são linearmente separáveis. \\
+	K-NN = \textit{K-Nearest Neighbors} ou K-Vizinhos Mais Próximos: Algoritmo de classificação que atribui uma classe a um dado não classificado com base na classe majoritária dos seus $k$ vizinhos mais próximos no espaço de características. \\
+	RQA = \textit{Recurrence Quantification Analysis} ou Análise de Quantificação de Recorrência: Método de análise não-linear usado para investigar o comportamento de sistemas dinâmicos no tempo, sendo útil para detectar transições de estado no cérebro. \\
+	ECOC = \textit{Error-Correcting Output Code} ou Código de Saída Corretor de Erros: Técnica de meta-aprendizado que combina múltiplos classificadores binários simples para resolver problemas complexos de classificação com várias classes.
+	TN = \textit{True Negative} ou Verdadeiro Negativo \\
+	TP = \textit{True Positive} ou Verdadeiro Positivo \\
+	FN = \textit{False Negative} ou Falso Negativo \\
+	FP = \textit{False Positive} ou Falso Positivo \\
+	
+	Na revisão da literatura nota-se que cada estudo citado escolhe relatar as métricas que melhor validam seus resultados de pesquisa. Essa escolha está associada ao objetivo do estudo (por exemplo, criar um alarme rápido, criar um diagnóstico preciso) e não uma exigência inerente à matemática do classificador escolhido.
+	
+	
+	\section{Abordagem Não-Linear - Teoria do Caos}
+	o cérebro pode ser modelado como um sistema dinâmico não-linear que opera em pelo menos dois regimes: ictal e interictal. O termo "regime" é usado para que não usemos o termo "estado" e não causar confusão com nomenclaturas de sistemas dinâmicos. Em sistemas dinâmicos, um estado é um único ponto do espaço de fase do sistema, e o cérebro passa por milhões de estados dependendo dos estímulos e respostas de cada neurônio. O que muda numa crise epilética é o "atrator" ao qual a trajetória está confinada.
+	
+	[Eu to na dúvida se explico antes o que é cada termo base/chave de teoria do caos para que essa introdução faça sentido ou se uso esse pequeno texto justamente como gatilho para explicar o que é cada coisa e por que isso tá aqui].
+	
+	O exame de EEG atua como uma projeção de um sistema dinâmico de muitas dimensões. Cada eletrodo mede uma a atividade elétrica que é na verdade combinação/superposição da atividade de milhões de neurônios presentes na região da cabeça onde o eletrodo está conectado. A hipotese de diversos artigos e trabalhos da literatura é de que, durante uma crise epiléptica, o cérebro se torna um sistema com atividades mais cíclicas, previsíveis e "menos caóticas". [Explicar Lyapunov aqui?]
+	
+	Um método muito utilizado na literatura para extrair caracteristicas não-lineares do cérebro a partir do sinal de EEG é a chamada "reconstrução do espaço de fase". Esse processo recria a "trajetória" em que o sistema dinâmico do cérebro muda de um estado para o outro. Se essa trajetória é previsível, o atrator é estável e o cérebro está no regime de crise epiléptica. Se a trajetória é caótica, o atrator é instável e o cérebro está no regime de atividade saudável.
+
+	Métodos estatísticos analisam o EEG como um sinal estpcástico e tentam observar mudanças e padrões na distribuição desses dados, assim como mudanças espectrais, conteúdo em frequencia, amplitude de bandas/faixas. Métodos não lineares, como o citado que utiliza reconstrução por espaço de fase, tenta verificar mudança nesse próprio espaço reconstruído.
+	
+	\section{Teorias}
+	\subsection{EEG}
+	O banco de dados CHB-MIT utilizou o sistema 10-20 de montagem bipolar, em que a leitura do sinal elétrico usa como referência outro eletrodo, e não uma referência única para todos os eletrodos. Por isso cada canal possui o nome em duas parte (ex.: FP1-F7); o primeiro nome é a região do eletrodo lido e o segundo é a referência.
+	[Colocar foto da montagem 10-20]
+	[Colocar foto de um sinal de EEG saudável e de um sinal com crise]
+	
+	\subsection{Sistemas Dinâmicos Discretos}
+	Um sistema dinâmico discreto é definido por um mapa (função) f e pela iteração v(k+1) = f(v(k)). Cada ponto dessa iteração é um estado do sistema. O primeiro ponto no processo iterativo é chamado de "ponto inicial" ou "condição inicial". A sequência de pontos e o "desenho" formado pela união de todos esses pontos/estados é o que chamamos de órbita.
+	[Falar sobre pontos fixos]
+	[Mostrar o coweb plot para explicar o processo iterativo de mapas]
+	
+	Os conceitos de sistemas dinâmicos possuem paralelos e analogias com processamento digital de sinais. Um filtro IIR do tipo y[n] = a*y[n - 1] é também um mapa em R1. Esse filtro pode ser estável ou instável dependendo de "a". 
+	[comparar condição de estabilidade de um filtro com condição de estabilidade de órbita e pontos fixos em teoria do caos].
+	
+	\subsection{Reconstrução em Espaço de Fase}
+	\subsection{Seção de Poinceré}
+	\subsection{Expoente de Lyapunov}
+	\subsection{Análise de Componentes Principais (PCA)}
+	\subsection{Máquina de Vetores de Suporte (SVM)}
+	
+	\section{Banco de Dados}
+	
+	% --- Configuração da Bibliografia ---
+	\clearpage
+	\bibliographystyle{unsrturl} 
+	\bibliography{referencias_epilepsia}
+	
+\end{document}          
