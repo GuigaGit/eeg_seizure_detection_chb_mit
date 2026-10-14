@@ -3,9 +3,13 @@ import numpy as np
 import torch
 import torch.nn as nn
 import matplotlib
+
 # Non-interactive backend: this script only saves figures to disk. A GUI
-# backend (Qt/Tk over X11) can crash at exit on headless/SSH servers with
+# backend can crash at exit on headless/SSH servers with
 # "ICE default IO error handler doing an exit() ... errno = 32".
+# This is necessary because it was causing failures at the end of running]
+# the script on Lecun
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
@@ -29,6 +33,10 @@ class LinearSVM(nn.Module):
     optimizes the hinge-loss objective instead of e.g. mean squared error.
     """
 
+# Pesquisar inicializacao dos pesos.
+# Isso pode fazer efeito
+# Entender as diferenças entre inicializacao do SciPY e PyTorch
+# Ver valores default de tudo.
     def __init__(self, n_features):
         """
         Args:
@@ -51,9 +59,12 @@ class LinearSVM(nn.Module):
             torch.Tensor of shape (batch_size,) with one decision score per
             sample.
         """
+        # squeeze(-1) pra remover a dimensão de saída do Linear (batch_size, 1) -> (batch_size,)
         return self.linear(x).squeeze(-1)
 
-
+# Pre-processing recommended by Scikit-learn's SVM documentation: 
+# https://scikit-learn.org/stable/modules/svm.html#tips-for-using-svm
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
 def fit_scaler(X):
     """
     Computes the per-feature mean and standard deviation of a training set,
@@ -74,6 +85,7 @@ def fit_scaler(X):
         of 0, so dividing by it later doesn't produce NaN/Inf.
     """
     mean = X.mean(dim=0)
+    # Use biased estimator (unbiased=False) to match sklearn's StandardScaler behavior
     std = X.std(dim=0, unbiased=False)
     std = torch.where(std == 0, torch.ones_like(std), std)
     return mean, std
@@ -96,7 +108,7 @@ def apply_scaler(X, mean, std):
     """
     return (X - mean) / std
 
-
+# https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedKFold.html
 def stratified_kfold_indices(y, n_splits=3, seed=42):
     """
     Splits a dataset into `n_splits` folds for cross-validation, keeping the
@@ -192,6 +204,8 @@ def train_linear_svm(X, y, C, epochs=300, lr=0.05, seed=42, class_weight_balance
 
     y_signed = (y.float() * 2 - 1)
 
+    # our data has more background than seizure windows, so we can optionally re-weight the
+    # hinge loss to give equal total weight to each class (mirrors sklearn's class_weight='balanced')
     if class_weight_balanced:
         n_pos = (y == 1).sum().item()
         n_neg = (y == 0).sum().item()
@@ -208,9 +222,11 @@ def train_linear_svm(X, y, C, epochs=300, lr=0.05, seed=42, class_weight_balance
 
     model.train()
     for _ in range(epochs):
+        # https://en.wikipedia.org/wiki/Support_vector_machine#Soft-margin
         optimizer.zero_grad()
         out = model(X)
         hinge = torch.clamp(1 - y_signed * out, min=0)
+        # 1/n * Sum is equal the mean() function, so we can use mean() to compute the average hinge loss
         weighted_hinge = (hinge * sample_weight).mean()
         w = model.linear.weight
         loss = 0.5 * (w ** 2).sum() + C * weighted_hinge
