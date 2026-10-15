@@ -1,0 +1,134 @@
+\begin{thebibliography}{10}
+
+\bibitem{einstein_epilepsia}
+Hospital Israelita~Albert Einstein.
+\newblock Epilepsia - glossário de saúde.
+\newblock URL: \url{https://www.einstein.br/n/glossario-de-saude/epilepsia}.
+
+\bibitem{who_epilepsy}
+World~Health Organization.
+\newblock Epilepsy fact sheet.
+\newblock URL: \url{https://www.who.int/news-room/fact-sheets/detail/epilepsy}.
+
+\bibitem{pmc11960332}
+PMC.
+\newblock Therapeutic efficacy of voltage-gated sodium channel inhibitors in
+  epilepsy.
+\newblock {\em PubMed Central}, 2024.
+\newblock URL: \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC11960332/}.
+
+\bibitem{epilepsiabrasil_sudep}
+Associação~Brasileira de~Epilepsia.
+\newblock O que é sudep?
+\newblock URL: \url{https://epilepsiabrasil.org.br/sudep/}.
+
+\bibitem{alta_eeg}
+Alta Diagnósticos.
+\newblock Eletroencefalograma (eeg): O que é, para que serve e como é feito.
+\newblock URL:
+  \url{https://altadiagnosticos.com.br/saude/eletroencefalograma/}.
+
+\bibitem{physionet_chbmit}
+Ali Shoeb.
+\newblock Chb-mit scalp eeg database, 2009.
+\newblock URL: \url{https://physionet.org/content/chbmit/1.0.0/}.
+
+\bibitem{shoeb2009application}
+Ali~Hossam Shoeb.
+\newblock {\em Application of machine learning to epileptic seizure onset
+  detection and treatment}.
+\newblock PhD thesis, Massachusetts Institute of Technology, 2009.
+
+\bibitem{ihle2012epilepsiae}
+Matthias Ihle, Hinnerk Feldwisch-Drentrup, C{\'e}sar~A Teixeira, Adrien Witon,
+  Bj{\"o}rn Schelter, Jens Timmer, and Andreas Schulze-Bonhage.
+\newblock Epilepsiae--a european epilepsy database.
+\newblock {\em Computer methods and programs in biomedicine}, 106(3):127--138,
+  2012.
+
+\bibitem{freiburg_project}
+Freiburg Seizure~Prediction Project.
+\newblock Publications and eeg database.
+\newblock URL:
+  \url{https://www.epilepsy.uni-freiburg.de/freiburg-seizure-prediction-project/publications}.
+
+\bibitem{paveiestudo}
+J~Pavei, R~Walz, and JLB Marques.
+\newblock Estudo de biomarcadores para predi{\c{c}}{\~a}o de crises
+  epil{\'e}pticas utilizando ecg.
+
+\bibitem{ufDelRei_premio}
+Universidade~Federal de~São João Del-Rei.
+\newblock Pesquisa sobre controle de epilepsia é premiada em congresso
+  nacional.
+\newblock URL: \url{https://ufsj.edu.br/noticias_ler.php?codigo_noticia=7245}.
+
+\bibitem{mourad2025lightweight}
+Raja Mourad, Ahmad Diab, Zaher Merhi, Mohamad Khalil, and R{\'e}gine Le~Bouquin
+  Jeann{\`e}s.
+\newblock A lightweight autoencoder model for epileptic seizure detection.
+\newblock In {\em 2025 33rd European Signal Processing Conference (EUSIPCO)},
+  pages 1512--1516. IEEE, 2025.
+
+\bibitem{panchavati2023pretrained}
+Saarang Panchavati, Samuel Vander~Dussen, Hemal Semwal, Ahmed Ali, Justin Chen,
+  Haoran Li, Corey Arnold, and William Speier.
+\newblock Pretrained transformers for seizure detection.
+\newblock In {\em ICASSP 2023-2023 IEEE International Conference on Acoustics,
+  Speech and Signal Processing (ICASSP)}, pages 1--2. IEEE, 2023.
+
+\bibitem{wu2024enhancing}
+Yonglin Wu, Jionghui Liu, Yangyang Yuan, Haoran Ren, Chenyun Dai, and Yao Guo.
+\newblock Enhancing epileptic seizure detection with random input selection in
+  graph-wave networks.
+\newblock In {\em 2024 46th Annual international conference of the IEEE
+  Engineering in Medicine and Biology Society (EMBC)}, pages 1--4. IEEE, 2024.
+
+\bibitem{unaeuropa_epilepsy}
+Una Europa.
+\newblock Una europa epilepsy data challenge.
+\newblock URL:
+  \url{https://www.una-europa.eu/calendar/una-europa-epilepsy-data-challenge}.
+
+\bibitem{bhagubai2025seizeit2}
+Miguel Bhagubai, Christos Chatzichristos, Lauren Swinnen, Jaiver Macea, Jingwei
+  Zhang, Lieven Lagae, Katrien Jansen, Andreas Schulze-Bonhage, Francisco
+  Sales, Benno Mahler, et~al.
+\newblock Seizeit2: Wearable dataset of patients with focal epilepsy.
+\newblock {\em Scientific Data}, 12(1):1228, 2025.
+
+\bibitem{prasanna2021automated}
+J~Prasanna, MSP Subathra, Mazin~Abed Mohammed, Robertas
+  Dama{\v{s}}evi{\v{c}}ius, Nanjappan~Jothiraj Sairamya, and S~Thomas George.
+\newblock Automated epileptic seizure detection in pediatric subjects of
+  chb-mit eeg database—a survey.
+\newblock {\em Journal of Personalized Medicine}, 11(10):1028, 2021.
+
+\bibitem{zabihi2015analysis}
+Morteza Zabihi, Serkan Kiranyaz, Ali~Bahrami Rad, Aggelos~K Katsaggelos, Moncef
+  Gabbouj, and Turker Ince.
+\newblock Analysis of high-dimensional phase space via poincar{\'e} section for
+  patient-specific seizure detection.
+\newblock {\em IEEE Transactions on Neural Systems and Rehabilitation
+  Engineering}, 24(3):386--398, 2015.
+
+\bibitem{vanesbroeck2016multitask}
+A.~Van~Esbroeck, L.~Smith, Z.~Syed, S.~Singh, and Z.~N. Karam.
+\newblock Multi-task seizure detection: Addressing intra-patient variation in
+  seizure morphologies.
+\newblock {\em Machine Learning}, 102:309--321, 2016.
+
+\bibitem{alickovic2018performance}
+F.~Alickovic, J.~Kevric, and A.~Subasi.
+\newblock Performance evaluation of empirical mode decomposition, discrete
+  wavelet transform, and wavelet packed decomposition for automated epileptic
+  seizure detection and prediction.
+\newblock {\em Biomedical Signal Processing and Control}, 39:94--102, 2018.
+
+\bibitem{murali2016efficient}
+L.~Murali, D.~Chitra, T.~Manigandan, and B.~Sharanya.
+\newblock An efficient adaptive filter architecture for improving the seizure
+  detection in eeg signal.
+\newblock {\em Circuits, Systems, and Signal Processing}, 35:2914--2931, 2016.
+
+\end{thebibliography}

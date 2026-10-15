@@ -14,6 +14,11 @@
 \usepackage{url}
 \usepackage{hyperref}
 
+\usepackage{graphicx}
+\graphicspath{ {Imagens/} }
+
+\usepackage{hyperref}
+
 % Title Page
 \begin{document}
 	
@@ -41,22 +46,34 @@
 	\noindent % O \noindent impede que a primeira linha do texto sofra o recuo padrão de parágrafo, deixando-o alinhado à nova margem.
 	
 	Dezenas de milhões de pessoas no mundo sofrem com doenças e distúrbios neurológicos, como por exemplo doença de Alzheimer, Parkinson e Epilepsia. O acompanhamento e tratamento dos pacientes com esses distúrbios muitas vezes utiliza como principal ferramenta os exames de eletroencefalograma (EEG). O EEG é capaz de transcrever as atividades elétricas do cérebro em uma série temporal de dados que virá a ser analisada por profissionais da área em questão.
+	
 	A epilepsia é objeto de estudo de diversos profissionais da área de engenharia biomédica por conta da sua natureza elétrica. Médicos e especialistas conseguem distinguir sinais de EEG de momentos de crises epilépticas de sinais de EEG que não representam crises; além de catalogar o tipo de crise em questão.
 	Partindo da premissa de que a análise visual realizada por especialistas permite a identificação e classificação dessas crises, a literatura propõe que algoritmos de aprendizado de máquina podem ser treinados para extrair padrões semelhantes de forma automatizada.
-	Neste projeto de pesquisa propõe-se uma revisão bibliográfica, com estudo, replica e potencial aprimoramento de alguns algoritmos propostos pela literatura focados em detecção de crises (ou classificação entre um sinal que representa o cérebro no estados com e sem crise epiléptica). 
-	Para atingir tal objetivo foi utilizado o banco de dados público CHB-MIT Scalp Database [colocar na referencia], com sinais já rotulados por profissionais da área neurológica. Os algoritmos de aprendizado de máquina foram implementados com a biblioteca PyTorch [colocar na referencia].
+	
+	Neste projeto de pesquisa foi proposto uma revisão bibliográfica, com estudo, replica e potencial aprimoramento de alguns algoritmos propostos pela literatura focados em detecção de crises (ou classificação entre um sinal que representa o cérebro no estados com e sem crise epiléptica). 
+	
+	Para atingir tal objetivo foi utilizado o banco de dados público CHB-MIT Scalp Database [colocar na referencia], com sinais já rotulados por profissionais da área neurológica. Os algoritmos de aprendizado de máquina foram implementados com a biblioteca PyTorch [colocar na referencia] implementada em Python. O computador usado nos treinamentos era um [colocar as especificações da Lecun].
+	
 	Foi necessário estudar teoria do Caos pois parte da literatura utiliza a interpretação do cérebro como um sistema dinâmico caótico para extrair características que são usadas para alimentar os algoritmos de detecção.
 	
 	[No fim do resumo colocar alguns resultados numéricos obtidos das réplicas q eu fiz? Não sei se é pertinente pois eu estou apenas tentando replicar, e não construindo algo novo ainda]
-	
+	%
+	\\[3\baselineskip]
+	%
+	\textbf{Palavras-Chave} -- Detecção de Crises Epiléticas, Aprendizado de Máquina, Serial Vector Machine (SVM), Teoria do Caos.
 	
 	\clearpage
 	
 	\section{Introdução}
+	
+	\vspace{0.5cm} % Dá um pequeno espaço entre o título e o texto do resumo
+	
+	\noindent % O \noindent impede que a primeira linha do texto sofra o recuo padrão de parágrafo, deixando-o alinhado à nova margem.
+	
 	A epilepsia é uma doença neurológica crônica que causa atividades elétricas anormais e inesperadas no cérebro. Essas atividades elétricas recebem o nome de “Crise Epiléptica” e podem variar desde pequenos espasmos até perda de consciência \cite{einstein_epilepsia}.
 	Dados da Organização Mundial da Saúde (OMS) de 2024 estimam que 50 milhões de pessoas no mundo são afetadas por essa doença (7 a cada 1000 pessoas) \cite{who_epilepsy}, e dentre elas, cerca de 30\% dos casos são resistentes à medicação para controlar tais crises \cite{pmc11960332}. A epilepsia resistente à medicamentos está associada a riscos elevados, como acidentes, efeitos colaterais psicológicos, cognitivos e à morte súbita, chamada de \textit{Sudden Unexpected Death in Epilepsy} (SUDEP) \cite{epilepsiabrasil_sudep}.
 	
-	Por conta da natureza elétrica das crises epilépticas, a principal ferramenta utilizada para análise, caracterização e diagnóstico da epilepsia é o Eletroencefalograma (EEG). O EEG é um exame não invasivo que registra a atividade elétrica do cérebro, fornecendo informações sobre o funcionamento desse órgão. O EEG é realizado por meio de eletrodos que são colocados na cabeça e conseguem captar os pulsos elétricos cerebrais \cite{alta_eeg}. Utilizando sinais de EEG, profissionais especializados podem identificar padrões anormais de atividade cerebral, localizar o foco das crises e classificar as síndromes epilépticas. Apesar do EEG de couro cabeludo ser amplamente utilizado por ser não invasivo, ele apresenta limitações de resolução, o que pode exigir o uso de EEG invasivo, especialmente em avaliações pré-cirúrgicas.
+	Por conta da natureza elétrica das crises epilépticas, a principal ferramenta utilizada para análise, caracterização e diagnóstico da epilepsia é o Eletroencefalograma (EEG). O EEG é um exame que registra a atividade elétrica do cérebro meio de eletrodos, fornecendo informações sobre o funcionamento desse órgão. O exame de EEG pode ser invasivo; em que eletrodos intracranianos são inseridos por um neurocirurgião em um paciente anestesiado; ou não invasivo; em que são colocados eletrodos na cabeça, na superfície do couro cabeludo \cite{alta_eeg}. Utilizando sinais de EEG, profissionais especializados podem identificar padrões anormais de atividade cerebral, localizar o foco das crises e classificar as síndromes epilépticas. Apesar do EEG de couro cabeludo ser amplamente utilizado por ser não invasivo, ele apresenta limitações de resolução, o que pode exigir o uso de EEG invasivo, especialmente em avaliações pré-cirúrgicas e/ou com epilepsia refratária a medicamentos [colocar nas referencias]{https://www.epilepsy.com/diagnosis/eeg}.
 	
 	A digitalização dos registros de EEG impulsionou a criação de bancos de dados, tanto públicos quanto privados. Como exemplo de banco de dados público há o CHB-MIT Scalp EEG Database \cite{physionet_chbmit}, desenvolvido a partir de um estudo conjunto entre o \textit{Children’s Hospital Boston} e o \textit{Massachusetts Institute of Technology} (MIT) \cite{shoeb2009application}. Como exemplo de banco de dados privado há o EPILEPSIAE \cite{ihle2012epilepsiae} desenvolvido pelo \textit{Seizure Prediction Project} da Universidade de Freiburg \cite{freiburg_project}. A disponibilidade desses dados favorece o desenvolvimento de técnicas computacionais voltadas à detecção, classificação e previsão de crises epilépticas. A relevância e atualidade desses temas na literatura ficam evidentes pela presença de trabalhos submetidos a congressos de processamento de sinais, tanto nacionais, como o Congresso Brasileiro de Engenharia Biomédica (CBEB) \cite{paveiestudo}\cite{ufDelRei_premio}, quanto internacionais, como o \textit{European Signal Processing Conference} (EUSIPCO) \cite{mourad2025lightweight}, \textit{International Conference on Acoustics, Speech, and Signal Processing} (ICASSP) \cite{panchavati2023pretrained} e o \textit{Engineering in Medicine and Biology Conference} (EMBC) \cite{wu2024enhancing}. O engajamento da comunidade científica também se mostra na promoção de iniciativas como o ``Una Europa Epilepsy Data Challenge'' \cite{unaeuropa_epilepsy}, um desafio internacional criado em 2025 para fomentar o aprimoramento de algoritmos na detecção de crises utilizando uma base de dados preparado para dispositivos vestíveis (\textit{wearables}) \cite{bhagubai2025seizeit2}.
 	
@@ -95,7 +112,7 @@
 	Não há consenso na literatura sobre quais devem ser as métricas de qualidade de um algoritmo de detecção de crises epiléticas. Mas as principais são:
 	
 	\textbf{Acurácia (Accuracy)} \\
-	Representa a proporção de classificações corretas (tanto de crises quanto de não-crises) em relação ao total de amostras.
+	Representa a proporção de classificações corretas em relação ao total de amostras. Essa é uma medida quantitativa do desempenho do algoritmo em detectar uma crise que realmente aconteceu (verdadeiro positivo) e de não detectar uma crise em um sinal realmente saudável (verdadeiro negativo).
 	\begin{align}
 		\text{Accuracy} &= \frac{TP + TN}{TP + TN + FP + FN} \times 100
 	\end{align}
@@ -103,7 +120,7 @@
 	\vspace{0.5cm}
 	
 	\textbf{Sensibilidade (Sensitivity)} \\
-	Mede a capacidade do sistema de detectar corretamente os eventos de crise epiléptica (verdadeiros positivos).
+	Mede a capacidade do sistema de detectar corretamente os eventos de crise epiléptica (verdadeiros positivos); a capacidade de não deixar uma anomalia passar desapercebida.
 	\begin{align}
 		\text{Sensitivity} &= \frac{TP}{TP + FN} \times 100
 	\end{align}
@@ -111,18 +128,22 @@
 	\vspace{0.5cm}
 	
 	\textbf{Especificidade (Specificity)} \\
-	Mede a capacidade do sistema de detectar corretamente os eventos que não são crises (verdadeiros negativos).
+	Mede a capacidade do sistema de detectar corretamente os eventos que não são crises (verdadeiros negativos). Parâmetro quantitativo da capacidade do sistema de reconhecer um comportamento normal e não criar pânico a toa.
 	\begin{align}
 		\text{Specificity} &= \frac{TN}{TN + FP} \times 100
 	\end{align}
 	
+	Uma falha comum em sistemas de detecção de anomalias é o detector acusar que toda janela de análise é uma anomalia. Isso leva a casos em que a sensibilidade vai para 100\% porém a especificidade cai para 0\%.
+	
 	\vspace{0.5cm}
 	
 	\textbf{Valor Preditivo Positivo (Precision)} \\
-	Indica a proporção de eventos identificados como crise que realmente eram crises epilépticas.
+	Indica a proporção de eventos identificados como crise que realmente eram crises epilépticas. Essa métrica responde a pergunta "Se o sistema disse que tal momento é uma crise, o quão confiável é essa afirmação?".
 	\begin{align}
 		\text{Positive Predictive Value} &= \frac{TP}{TP + FP} \times 100
 	\end{align}
+	
+	\newpage
 	
 	\noindent PCA = \textit{Principal Component Analysis} ou Análise de Componentes Principais: Técnica estatística usada para reduzir a dimensionalidade dos dados (extraindo as características mais relevantes) preservando a maior parte da variância do sinal. \\
 	SVM = \textit{Support Vector Machine} ou Máquina de Vetores de Suporte: Classificador supervisionado que busca encontrar a linha ou hiperplano ideal que melhor separa as diferentes classes de dados (ex: crise epiléptica vs. atividade normal). \\
@@ -142,7 +163,9 @@
 	
 	
 	\section{Abordagem Não-Linear - Teoria do Caos}
-	o cérebro pode ser modelado como um sistema dinâmico não-linear que opera em pelo menos dois regimes: ictal e interictal. O termo "regime" é usado para que não usemos o termo "estado" e não causar confusão com nomenclaturas de sistemas dinâmicos. Em sistemas dinâmicos, um estado é um único ponto do espaço de fase do sistema, e o cérebro passa por milhões de estados dependendo dos estímulos e respostas de cada neurônio. O que muda numa crise epilética é o "atrator" ao qual a trajetória está confinada.
+	\noindent
+	
+	O cérebro pode ser modelado como um sistema dinâmico não-linear que opera em pelo menos dois regimes: ictal e interictal. O termo "regime" é usado para que não usemos o termo "estado" e não causar confusão com nomenclaturas de sistemas dinâmicos. Em sistemas dinâmicos, um estado é um único ponto do espaço de fase do sistema, e o cérebro passa por milhões de estados dependendo dos estímulos e respostas de cada neurônio. O que muda numa crise epilética é o "atrator" ao qual a trajetória está confinada.
 	
 	[Eu to na dúvida se explico antes o que é cada termo base/chave de teoria do caos para que essa introdução faça sentido ou se uso esse pequeno texto justamente como gatilho para explicar o que é cada coisa e por que isso tá aqui].
 	
@@ -153,27 +176,89 @@
 	Métodos estatísticos analisam o EEG como um sinal estpcástico e tentam observar mudanças e padrões na distribuição desses dados, assim como mudanças espectrais, conteúdo em frequencia, amplitude de bandas/faixas. Métodos não lineares, como o citado que utiliza reconstrução por espaço de fase, tenta verificar mudança nesse próprio espaço reconstruído.
 	
 	\section{Teorias}
-	\subsection{EEG}
-	O banco de dados CHB-MIT utilizou o sistema 10-20 de montagem bipolar, em que a leitura do sinal elétrico usa como referência outro eletrodo, e não uma referência única para todos os eletrodos. Por isso cada canal possui o nome em duas parte (ex.: FP1-F7); o primeiro nome é a região do eletrodo lido e o segundo é a referência.
-	[Colocar foto da montagem 10-20]
-	[Colocar foto de um sinal de EEG saudável e de um sinal com crise]
 	
 	\subsection{Sistemas Dinâmicos Discretos}
 	Um sistema dinâmico discreto é definido por um mapa (função) f e pela iteração v(k+1) = f(v(k)). Cada ponto dessa iteração é um estado do sistema. O primeiro ponto no processo iterativo é chamado de "ponto inicial" ou "condição inicial". A sequência de pontos e o "desenho" formado pela união de todos esses pontos/estados é o que chamamos de órbita.
 	[Falar sobre pontos fixos]
 	[Mostrar o coweb plot para explicar o processo iterativo de mapas]
 	
-	Os conceitos de sistemas dinâmicos possuem paralelos e analogias com processamento digital de sinais. Um filtro IIR do tipo y[n] = a*y[n - 1] é também um mapa em R1. Esse filtro pode ser estável ou instável dependendo de "a". 
+	Os conceitos de sistemas dinâmicos possuem paralelos e analogias com processamento digital de sinais. Um filtro IIR do tipo y[n] = a*y[n - 1] é também um mapa em R1. Esse filtro pode ser estável ou instável dependendo de ``a". 
 	[comparar condição de estabilidade de um filtro com condição de estabilidade de órbita e pontos fixos em teoria do caos].
 	
-	\subsection{Reconstrução em Espaço de Fase}
+	\subsection{Reconstrução em Espaço de Fase - Teorema de Takens}
+	\noindent
+	
+	A única grandeza medida e utilizada nos estudos deste projeto é a evolução dos sinais elétricos coletados por cada eletrodo. A variação da tensão ao longo do tempo representa apenas uma dimensão do sistema de ordem maior, que é o cérebro. 
+	
+	A dinâmica do cérebro é estimada utilizando o Teorema de Takens, que afirma que é possível reconstruir o espaço de fases de um sistema dinâmico a partir de uma única série temporal de observações [colocar referência pro teorema de takens].
+	
+	[Acho que não preciso explicar aqui porque o Takens funciona, ou preciso? Tem referencias explicando toda a teoria por trás].
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.5\textwidth]{"equacao_takes"}
+		\caption{Equação do Teorema de Takens}
+		\label{fig:minha_imagem}
+	\end{figure}
+	
+	Neste trabalho o número de dimensões d = 5 e o tau = 6 amostras (aproximadamente 23ms a 256Hz de frequência de amostragem).
+	
+	[Colocar em discussão a possibilidade de trocar esses parâmetros. A escolha deles hoje é devido o artigo que eu estou seguindo].
+	
 	\subsection{Seção de Poinceré}
 	\subsection{Expoente de Lyapunov}
+	\noindent 
+	O maior expoente de Lyapunov (do inglês Largest Lyapunov Exponent - LLE) é uma medida quantitativa de "o quanto um sinal é caótico ou não" e ele faz isso medindo a taxa de afastamento de trajetórias inicialmente próximas. Valores positivos de LLE indicam uma dinâmica caótica, típica de um EEG padrão. Valores negativos estão associados ao fato de que a dinâmica do cérebro está mais regular e isso coincide com o ínicio da crise (essa é a hipótese base para usar caos ao analizar EEG).
+	
+	[Colocar a expressão matemática do LLE].
+	[citar Rosenstein sobre como calcular computacionalmente o expoente de Lyapunov].
+	
 	\subsection{Análise de Componentes Principais (PCA)}
+	\noindent
+	O PCA é um método estatístico para reduzir dimensionalidade de um problema. [Eu acabei de ter um pensamento: Pq usar takens para aumentar a dimensão do EEG de 1 "> 5 e depois PCA de 5 "> 2? Pq não apenas usar Takens de 1 "> 2 e estudar o melhor d e tau pra isso?]. 
+	Reduzir dimensionalidade é bom para reduzir gastos computacionais excessivos e ajuda a evitar overfitting do modelo de aprendizado sob estudo.
+	
+	O PCA transforma um conjunto de dados com muitas dimensões em um conjunto de dados com um número de dimensão menor. Cada dimensão desse espaço transformado é chamado de "componente principal".	Essas novas dimensões são combinações lineares de cada dimensão original e o método tenta reter o máximo possível de informação dos dados originais.
+	
 	\subsection{Máquina de Vetores de Suporte (SVM)}
+	\noindent
+	
+	[https://scikit-learn.org/stable/modules/svm.html - Documentação do SciKit-Learn]. Esse link é útil pois eu uso ele pra entender como o scikit-learn implementou a SVM e uso de base para implementar com PyTorch. Esse link é bom pois tem imagens. Tentar replicar as imagens da documentação para mostrar como uma SVM funciona? 
+	
+	[\url{https://en.wikipedia.org/wiki/Support_vector_machine} - Explicação matemática de como implementar]
+	[\url{https://www.geeksforgeeks.org/machine-learning/support-vector-machine-algorithm/}]
 	
 	\section{Banco de Dados}
+	\noindent
+	O banco de dados escolhido para desenvolver esse trabalho foi o CHB-MIT pois é um banco de dados público bastante utilizado na literatura. Os registros têm amostragem de 256Hz, resolução de 16 bits e eletrodos no sistema 10-20 de montagem bipolar, em que a leitura do sinal elétrico usa como referência outro eletrodo, e não uma referência única para todos os eletrodos. Por isso cada canal possui o nome em duas parte (ex.: FP1-F7); o primeiro nome é a região do eletrodo lido e o segundo é a referência.
+	[Colocar foto da montagem 10-20]
+	[Colocar foto de um sinal de EEG saudável e de um sinal com crise]
 	
+	A maior parte dos arquivos tem 23 canais. [Voltar no documento da physionet e ver se o artigo atrelado ao banco de dados explica pq tem alguns arquivos que falta canal]. Entre arquivos consevutivos há lacunas de cerca de 10 segundos por conta de limitações de hardware durante a caputra dos dados de EEG [isso tá explícito no artigo]. Os intervalos de crise são extraídos dos arquivos "<nome-do-canal>-summary.txt"
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.5\textwidth]{"estrutura_banco_de_dados"}
+		\caption{Estrutura do Banco de Dados CHB-MIT}
+		\label{fig:minha_imagem}
+	\end{figure}
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.5\textwidth]{"caso_com_crise_banco_de_dados"}
+		\caption{Estrutura do Banco de Dados para o caso com crise}
+		\label{fig:minha_imagem}
+	\end{figure}
+	
+	A página do PhysioNet (onde o banco de dados está hospedado) e o artigo atrelado ao banco não cita a remoção de artefatos ou filtragem feita previamente à publicação do banco de dados. [Pegar lastro em artigos que usam esse banco de dados de que eles também não tratam de nenhuma forma os dados do banco]. [também não lembro de ter lido ninguem reclamar sobre a presença do 60Hz]
+	Os autores explicitam que usaram trechos de pelo menos 24 horas de EEG sem crise por paciente para incluir trechos de sono e artefatos. 
+	
+	\section{Resultados}
+	TODO
+	\section{Conclusão}
+	TODO
+	
+	Preencher as referências com os novos artigos que eu salvei. Colocar os sites de documentação do scikit learn e pytorch
 	% --- Configuração da Bibliografia ---
 	\clearpage
 	\bibliographystyle{unsrturl} 

@@ -1,0 +1,58 @@
+This is BibTeX, Version 0.99d
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: previa_dissertacao.aux
+Reallocating 'name_of_file' (item size: 1) to 9 items.
+The style file: unsrturl.bst
+Reallocating 'name_of_file' (item size: 1) to 22 items.
+Reallocating 'glb_str_end' (item size: 4) to 20 items.
+Reallocating 'glb_str_ptr' (item size: 4) to 20 items.
+Reallocating 'global_strs' (item size: 1) to 4000000 items.
+Reallocating 'singl_function' (item size: 4) to 100 items.
+Reallocating 'singl_function' (item size: 4) to 100 items.
+Database file #1: referencias_epilepsia.bib
+Warning--entry type for "physionet_chbmit" isn't style-file defined
+--line 44 of file referencias_epilepsia.bib
+Warning--empty journal in paveiestudo
+Warning--empty year in paveiestudo
+You've used 21 entries,
+            2616 wiz_defined-function locations,
+            699 strings with 9101 characters,
+and the built_in function-call counts, 6973 in all, are:
+= -- 640
+> -- 284
+< -- 3
++ -- 95
+- -- 74
+* -- 304
+:= -- 923
+add.period$ -- 66
+call.type$ -- 21
+change.case$ -- 20
+chr.to.int$ -- 0
+cite$ -- 23
+duplicate$ -- 201
+empty$ -- 806
+format.name$ -- 74
+if$ -- 1985
+int.to.chr$ -- 0
+int.to.str$ -- 21
+missing$ -- 12
+newline$ -- 108
+num.names$ -- 21
+pop$ -- 183
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 552
+stack$ -- 0
+substring$ -- 224
+swap$ -- 44
+text.length$ -- 3
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 2
+while$ -- 42
+width$ -- 23
+write$ -- 218
+(There were 3 warnings)
