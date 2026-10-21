@@ -33,19 +33,32 @@
 \@writefile{toc}{\contentsline {section}{\numberline {3}Teorias}{5}{section.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Sistemas Dinâmicos Discretos}{5}{subsection.3.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Reconstrução em Espaço de Fase - Teorema de Takens}{5}{subsection.3.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Equação do Teorema de Takens}}{5}{figure.1}\protected@file@percent }
-\newlabel{fig:minha_imagem}{{1}{5}{Equação do Teorema de Takens}{figure.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Seção de Poinceré}{5}{subsection.3.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Expoente de Lyapunov}{5}{subsection.3.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Análise de Componentes Principais (PCA)}{5}{subsection.3.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Relação entre o conjunto de interseções da Seção de Poincaré e o respectivo regime dinâmico do sistema.}}{6}{table.2}\protected@file@percent }
+\newlabel{tab:poincare_regimes}{{2}{6}{Relação entre o conjunto de interseções da Seção de Poincaré e o respectivo regime dinâmico do sistema}{table.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Análise de Componentes Principais (PCA)}{6}{subsection.3.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Máquina de Vetores de Suporte (SVM)}{6}{subsection.3.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {4}Banco de Dados}{6}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}Resultados}{6}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusão}{6}{section.6}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Estrutura do Banco de Dados CHB-MIT}}{7}{figure.2}\protected@file@percent }
-\newlabel{fig:minha_imagem}{{2}{7}{Estrutura do Banco de Dados CHB-MIT}{figure.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Estrutura do Banco de Dados para o caso com crise}}{7}{figure.3}\protected@file@percent }
-\newlabel{fig:minha_imagem}{{3}{7}{Estrutura do Banco de Dados para o caso com crise}{figure.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Estrutura do Banco de Dados CHB-MIT}}{7}{figure.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Estrutura do Banco de Dados para o caso com crise}}{7}{figure.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Como funcionam os scripts para Detecção de Crise (Pipeline)}{8}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Etapa 1: Processamento do Dataset (\texttt  {global\_parse\_dataset.py})}{8}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Função \texttt  {extrair\_dados\_sumario(caminho\_arquivo)}}{8}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Etapa 2: Reconstrução do Espaço de Fase e Características de Poincaré (\texttt  {poincare\_features.py})}{8}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Função \texttt  {time\_delay\_embedding(signal, d=5, tau=6)}}{8}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Funções \texttt  {pca\_transform(embedded, n\_components=None)} e \texttt  {fit\_line(x, y)}}{8}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Função \texttt  {get\_poincare\_intersections(embedded\_space)}}{9}{subsection.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Função \texttt  {extract\_features(intersections)}}{9}{subsection.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Funções \texttt  {extract\_all\_poincare\_features} e \texttt  {process\_single\_file}}{10}{subsection.7.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Etapa 3: Treinamento e Validação do Classificador (\texttt  {svm\_training.py})}{10}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Classe \texttt  {LinearSVM(nn.Module)}}{10}{subsection.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Funções \texttt  {fit\_scaler(X)} e \texttt  {apply\_scaler(X, mean, std)}}{10}{subsection.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Função \texttt  {train\_linear\_svm(X, y, C, epochs, lr, ...)}}{10}{subsection.8.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.4}Função \texttt  {compute\_metrics(y\_true, y\_pred)}}{10}{subsection.8.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.5}Função \texttt  {train\_patient\_specific\_models(...)}}{11}{subsection.8.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Resultados}{11}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10}Conclusão}{11}{section.10}\protected@file@percent }
 \bibstyle{unsrturl}
 \bibdata{referencias_epilepsia}
 \bibcite{einstein_epilepsia}{1}
@@ -69,4 +82,4 @@
 \bibcite{vanesbroeck2016multitask}{19}
 \bibcite{alickovic2018performance}{20}
 \bibcite{murali2016efficient}{21}
-\gdef \@abspage@last{9}
+\gdef \@abspage@last{13}

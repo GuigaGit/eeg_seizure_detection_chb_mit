@@ -2,7 +2,11 @@
 
 \usepackage[brazil]{babel}
 
-\usepackage{amsmath}
+\usepackage{amsmath, amssymb, amsfonts}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
 \usepackage{float}
 
 \usepackage[margin=2cm]{geometry}
@@ -19,6 +23,7 @@
 
 \usepackage{hyperref}
 
+\usepackage{booktabs}
 % Title Page
 \begin{document}
 	
@@ -194,18 +199,43 @@
 	
 	[Acho que não preciso explicar aqui porque o Takens funciona, ou preciso? Tem referencias explicando toda a teoria por trás].
 	
-	\begin{figure}[htbp]
-		\centering
-		\includegraphics[width=0.5\textwidth]{"equacao_takes"}
-		\caption{Equação do Teorema de Takens}
-		\label{fig:minha_imagem}
-	\end{figure}
+	[Coloquei aqui uma descrição inicial pra não ficar vago demais esse espaço. Uma prova teórica mais robusta é necessário? É útil?].
+	
+	Em um sistema determinístico as variáveis estão acopladas. A evolução histórica de uma variável medida carrega também informações sobre variáveis não medidas. 
+	Tomando como exemplo um pêndulo simples. O estado é composto pala tupla [posição, velocidade]. Se observarmos apenas a posição ao longo do tempo é possível recuperar a informação de velocidade do pendulo em um determinado instante, e assim, recuperar o estado inteiro.
+	
+	$$\mathbf{v}(t) = [x(t), x(t + \tau), \dots, x(t + (d - 1)\tau)]$$
 	
 	Neste trabalho o número de dimensões d = 5 e o tau = 6 amostras (aproximadamente 23ms a 256Hz de frequência de amostragem).
 	
 	[Colocar em discussão a possibilidade de trocar esses parâmetros. A escolha deles hoje é devido o artigo que eu estou seguindo].
 	
+	Importante: o teorema de Takens garante que o espaço de fases reconstruído é equivalente ao espaço original que seria gerado se tivéssemos acesso a todas as finitas dimensões que compõe o sistema. Não há como ter certeza absoluta que o cérebro se comporta sempre como um sistema dinâmico de dimensão finita.
+	[Essa frase meio que resguarda o modelo como - Se não funcionar eh pq o cerebro nao é assim como a gente acha q ele é. Mas ao mesmo tempo isso tira confiança na hipótese: se não sabemos se é assim, pq assumir que é e tentar fazer funcionar?]
+	
+	
 	\subsection{Seção de Poinceré}
+	\noindent
+	A seção de Poincaré é uma ferramenta usada em teoria do caos para estudar trajetórias de sistemas dinâmicos. A seção é um hiperplano transversal à órbita em estudo. Os pontos de intersecção entre o hiperplano e a órbita geram um desenho que pode fornecer informações sobre a natureza do da órbita. 
+	
+	Há quatro casos de desenhos formados pelos pontos de intersecção entre a Seção de Poincaré e a órbita do sistema em estudo:
+	
+	\begin{table}[htbp]
+		\centering
+		\caption{Relação entre o conjunto de interseções da Seção de Poincaré e o respectivo regime dinâmico do sistema.}
+		\label{tab:poincare_regimes}
+		\begin{tabular}{ll}
+			\toprule
+			\textbf{Conjunto de interseções} & \textbf{Regime indicado} \\
+			\midrule
+			Um único ponto & Órbita periódica (ciclo limite) \\
+			$k$ pontos & Órbita de período $k$ \\
+			Curva fechada & Movimento quase-periódico (toro) \\
+			Nuvem difusa & Caos \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	
 	\subsection{Expoente de Lyapunov}
 	\noindent 
 	O maior expoente de Lyapunov (do inglês Largest Lyapunov Exponent - LLE) é uma medida quantitativa de "o quanto um sinal é caótico ou não" e ele faz isso medindo a taxa de afastamento de trajetórias inicialmente próximas. Valores positivos de LLE indicam uma dinâmica caótica, típica de um EEG padrão. Valores negativos estão associados ao fato de que a dinâmica do cérebro está mais regular e isso coincide com o ínicio da crise (essa é a hipótese base para usar caos ao analizar EEG).
@@ -220,6 +250,7 @@
 	
 	O PCA transforma um conjunto de dados com muitas dimensões em um conjunto de dados com um número de dimensão menor. Cada dimensão desse espaço transformado é chamado de "componente principal".	Essas novas dimensões são combinações lineares de cada dimensão original e o método tenta reter o máximo possível de informação dos dados originais.
 	
+	[Colocar mais algumas infos aqui seguindo o documento que o Magno me mandou]
 	\subsection{Máquina de Vetores de Suporte (SVM)}
 	\noindent
 	
@@ -240,25 +271,179 @@
 		\centering
 		\includegraphics[width=0.5\textwidth]{"estrutura_banco_de_dados"}
 		\caption{Estrutura do Banco de Dados CHB-MIT}
-		\label{fig:minha_imagem}
 	\end{figure}
 	
 	\begin{figure}[htbp]
 		\centering
 		\includegraphics[width=0.5\textwidth]{"caso_com_crise_banco_de_dados"}
 		\caption{Estrutura do Banco de Dados para o caso com crise}
-		\label{fig:minha_imagem}
 	\end{figure}
 	
 	A página do PhysioNet (onde o banco de dados está hospedado) e o artigo atrelado ao banco não cita a remoção de artefatos ou filtragem feita previamente à publicação do banco de dados. [Pegar lastro em artigos que usam esse banco de dados de que eles também não tratam de nenhuma forma os dados do banco]. [também não lembro de ter lido ninguem reclamar sobre a presença do 60Hz]
 	Os autores explicitam que usaram trechos de pelo menos 24 horas de EEG sem crise por paciente para incluir trechos de sono e artefatos. 
 	
+	\section{Como funcionam os scripts para Detecção de Crise (Pipeline)}
+	
+	O script \texttt{main\_pipeline.py} é o gerenciador da sequência dos processos (conhecido popularmente como "pipeline") onde ocorre o processamento de sinais de eletroencefalograma (EEG) do \textit{dataset} CHB-MIT. Ele executa em subprocessos independentes as três etapas subsequentes da cadeia de aprendizado de máquina:
+	\begin{enumerate}
+		\item \textbf{Parsing e Estruturação de Rótulos}: Leitura dos arquivos de sumário em texto do dataset
+		\item \textbf{Reconstrução do Espaço de Fase e Extração de Características}: Mapeamento em espaço de fase, projeção em Componentes Principais, Seção de Poincaré e extração de estatísticas
+		\item \textbf{Treinamento e Validação do Classificador}: Padronização, validação cruzada estratificada por paciente, busca por hiperparâmetros e otimização por Gradiente Descendente do SVM Primal
+	\end{enumerate}
+	
+	\section{Etapa 1: Processamento do Dataset (\texttt{global\_parse\_dataset.py})}
+	
+	\subsection{Função \texttt{extrair\_dados\_sumario(caminho\_arquivo)}}
+	\begin{itemize}
+		\item \textbf{Motivo da Existência}: Os registros clínicos do CHB-MIT fornecem as anotações das crises epilépticas em formato de texto (\texttt{<nome-do-paciente>-summary.txt}). Esta função converte esse texto em uma estrutura de dados compatível com as funções do NumPy e CSV usadas pelas bibliotecas de aprendizado de máquina em Python.
+		\item \textbf{Funcionamento}: Realiza um \textit{parsing} identificando o nome de cada arquivo \texttt{.edf}, o número total de crises $N$, e os intervalos de tempo inicial e final (em segundos) de cada crise ($\text{label} = 1$). Arquivos sem crises registradas geram registros com $\text{label} = 0$.
+	\end{itemize}
+	
+	\section{Etapa 2: Reconstrução do Espaço de Fase e Características de Poincaré (\texttt{poincare\_features.py})}
+	
+	\subsection{Função \texttt{time\_delay\_embedding(signal, d=5, tau=6)}}
+	\begin{itemize}
+		\item \textbf{Motivo da Existência}: Conforme o Teorema de Reconstrução de Takens, o comportamento dinâmico não-linear do cérebro pode ser estimado a partir de uma única série temporal unidimensional $x(t)$ de EEG, projetando-a em um Espaço de Fase $d$-dimensional com tempo de atraso $\tau$.
+		\item \textbf{Formulação Matemática}:
+		Dada uma janela temporal com $N$ amostras $x = [x_1, x_2, \dots, x_N]^T$ [eu lembro que o Vitor usava muito o "T" nas aulas pq era convenção o vetor ser vetor coluna], o vetor reconstruído no tempo $i$ é dado por:
+		\begin{equation}
+			\mathbf{y}_i = \left[ x_i, x_{i+\tau}, x_{i+2\tau}, \dots, x_{i+(d-1)\tau} \right]^T \in \mathbb{R}^d
+		\end{equation}
+		O número total de pontos válidos na trajetória reconstruída é $N_v = N - (d-1)\tau$. A matriz do espaço de fase reconstruída é $\mathbf{Y} \in \mathbb{R}^{N_v \times d}$.
+	\end{itemize}
+	
+	\subsection{Funções \texttt{pca\_transform(embedded, n\_components=None)} e \texttt{fit\_line(x, y)}}
+	\begin{itemize}
+		\item \textbf{Motivo da Existência}: Para encontrar a Seção de Poincaré, o espaço de fase $d$-dimensional (ex: $d=5$) é projetado no plano de maior variância espacial utilizando Análise de Componentes Principais (PCA) via Decomposição em Valores Singulares (SVD) [usar SVD para calcular PCA vem da documentação do scikit learn]. Em seguida, ajusta-se uma reta de corte de referência.
+		\item \textbf{Formulação Matemática}:
+		Centraliza-se a matriz $\mathbf{Y}$, isto é, removemos o valor médio de cada amostra do vetor e isso faz com que a distribuição dos dados seja centrada no zero:
+		\begin{equation}
+			\bar{\mathbf{Y}} = \mathbf{Y} - \mathbf{1}\boldsymbol{\mu}^T, \quad \boldsymbol{\mu} = \frac{1}{N_v}\sum_{i=1}^{N_v} \mathbf{y}_i
+		\end{equation}
+		A decomposição SVD de $\bar{\mathbf{Y}}$ é expressa por:
+		\begin{equation}
+			\bar{\mathbf{Y}} = \mathbf{U} \mathbf{\Sigma} \mathbf{V}^T
+		\end{equation}
+		Onde as colunas de $\mathbf{V} \in \mathbb{R}^{d \times d}$ representam as direções dos Componentes Principais. A projeção bidimensional nos dois primeiros componentes ($\text{PC}_1, \text{PC}_2$) é obtida por $\mathbf{Z} = \bar{\mathbf{Y}} \mathbf{V}_{:, 1:2} \in \mathbb{R}^{N_v \times 2}$.
+		
+		A reta de ajuste $y = m x + c$ no plano $(\text{PC}_1, \text{PC}_2)$ é encontrada resolvendo os mínimos quadrados. Essa reta de ajuste que melhor representa os dados das duas componentes principais é considerada como a seção de Poincaré.
+	\end{itemize}
+	
+	\subsection{Função \texttt{get\_poincare\_intersections(embedded\_space)}}
+	\begin{itemize}
+		\item \textbf{Motivo da Existência}: Transforma a trajetória contínua do espaço de fase em uma sequência temporal discreta de pontos, reduzindo a dimensionalidade do sinal.
+		\item \textbf{Formulação Matemática}:
+		Para cada ponto $k$, calcula-se a distância orientada até a reta ajustada:
+		\begin{equation}
+			f_k = \text{PC}_{2,k} - (m \cdot \text{PC}_{1,k} + c)
+		\end{equation}
+		Ocorre um cruzamento entre o ponto $k$ e $k+1$ se $f_k \cdot f_{k+1} < 0$. O valor exato da coordenada $\text{PC}_1$ no ponto de interseção é estimado por interpolação linear:
+		\begin{equation}
+			x_I = \text{PC}_{1,k} + \frac{|f_k|}{|f_k| + |f_{k+1}|} \left( \text{PC}_{1,k+1} - \text{PC}_{1,k} \right)
+		\end{equation}
+	\end{itemize}
+	
+	\subsection{Função \texttt{extract\_features(intersections)}}
+	\begin{itemize}
+		\item \textbf{Motivo da Existência}: Sintetiza o conjunto discreto de interseções de Poincaré $X_I = \{x_{I,1}, x_{I,2}, \dots, x_{I,M}\}$ em um vetor estático de 7 características estatísticas e não-lineares, adequadas para os modelos de classificação.
+		\item \textbf{Formulação Matemática das 7 Características}:
+		\begin{enumerate}
+			\item \textbf{Amplitude/Amplitude Total (Range)}:
+			\begin{equation} R = \max(X_I) - \min(X_I) \end{equation}
+			
+			\item \textbf{Quantil 0,13 ($Q_{0.13}$)}: Percentil de $13\%$ da distribuição das interseções.
+			
+			\item \textbf{Amplitude Interquartil (IQR)}:
+			\begin{equation} \text{IQR} = Q_{0.75}(X_I) - Q_{0.25}(X_I) \end{equation}
+			
+			\item \textbf{Entropia de Shannon (baseada em Histograma)}:
+			Estimando a densidade de probabilidade $p(b_j)$ em $B$ compartimentos (bins escolhidos pela regra de Sturges, $B = \lceil \log_2 M \rceil + 1$):
+			\begin{equation} H = -\sum_{j=1}^{B} p(b_j) \log_2 p(b_j), \quad \text{para } p(b_j) > 0 \end{equation}
+			
+			\item \textbf{Valor Quadrático Médio (RMS)}:
+			\begin{equation} \text{RMS} = \sqrt{\frac{1}{M} \sum_{i=1}^{M} x_{I,i}^2} \end{equation}
+			
+			\item \textbf{Coeficiente de Variação (CV)}:
+			\begin{equation} \text{CV} = \frac{\sigma(X_I)}{\mu(X_I)} = \frac{\sqrt{\frac{1}{M}\sum (x_{I,i} - \bar{x})^2}}{\bar{x}} \end{equation}
+			
+			\item \textbf{Energia Interna ($E$)}:
+			\begin{equation} E = \sum_{i=1}^{M} x_{I,i}^2 \end{equation}
+		\end{enumerate}
+	\end{itemize}
+	
+	\subsection{Funções \texttt{extract\_all\_poincare\_features} e \texttt{process\_single\_file}}
+	\begin{itemize}
+		\item \textbf{Motivo da Existência}: Aplica o processo de extração para todos os 23 canais eletroencefálicos montados no sistema 10-20, gerando um vetor consolidado por janela de tempo de dimensão $23 \times 7 = 161$ características.
+		\item \textbf{Estratégia de Processamento}: Segmenta trechos com crises epilépticas anotadas ($\text{label} = 1$) em janelas de 1 segundo sem sobreposição, e amostra aleatoriamente janelas de fundo sem crise ($\text{label} = 0$) para balanceamento local de dados.
+	\end{itemize}
+	
+	\section{Etapa 3: Treinamento e Validação do Classificador (\texttt{svm\_training.py})}
+	
+	\subsection{Classe \texttt{LinearSVM(nn.Module)}}
+	\begin{itemize}
+		\item \textbf{Motivo da Existência}: Implementa um classificador SVM com kernel linear como um módulo customizado em PyTorch, operando a fronteira hiperplana $w^T x + b$.
+		\item \textbf{Equação da Fronteira de Decisão}:
+		\begin{equation}
+			f(\mathbf{x}) = \mathbf{w}^T \mathbf{x} + b
+		\end{equation}
+	\end{itemize}
+	
+	\subsection{Funções \texttt{fit\_scaler(X)} e \texttt{apply\_scaler(X, mean, std)}}
+	\begin{itemize}
+		\item \textbf{Motivo da Existência}: O SVM é sensível à escala dos atributos devido ao termo de regularização da norma $\|w\|^2$. O escalonamento $Z$-score padroniza cada atributo para ter média zero e desvio padrão unitário. [isso é pré-processamento sugerido pelo scikit learn]
+		\item \textbf{Formulação Matemática}:
+		\begin{equation}
+			\mu_j = \frac{1}{N}\sum_{i=1}^N X_{i,j}, \quad \sigma_j = \sqrt{\frac{1}{N}\sum_{i=1}^N (X_{i,j} - \mu_j)^2}
+		\end{equation}
+		\begin{equation}
+			\hat{X}_{i,j} = \frac{X_{i,j} - \mu_j}{\sigma_j + \epsilon}
+		\end{equation}
+	\end{itemize}
+	
+	\subsection{Função \texttt{train\_linear\_svm(X, y, C, epochs, lr, ...)}}
+	\begin{itemize}
+		\item \textbf{Motivo da Existência}: Otimiza os pesos $\mathbf{w}$ e bias $b$ do modelo minimizando a função de perda de margem suave (\textit{soft-margin hinge loss}) via otimizador Adam em ambiente GPU/CPU.
+		\item \textbf{Formulação Matemática do Objetivo Primal}:
+		Considerando rótulos transformados $y_i \in \{-1, +1\}$ e pesos de classe $w_i$, a função de custo total $L(\mathbf{w}, b)$ otimizada é:
+		\begin{equation}
+			\min_{\mathbf{w}, b} \left[ \frac{1}{2} \|\mathbf{w}\|^2 + C \cdot \frac{1}{N} \sum_{i=1}^{N} w_i \cdot \max\left(0, 1 - y_i (\mathbf{w}^T \mathbf{x}_i + b)\right) \right]
+		\end{equation}
+		Onde $C$ é a constante de regularização que equilibra a largura da margem e o erro de classificação.
+	\end{itemize}
+	
+	\subsection{Função \texttt{compute\_metrics(y\_true, y\_pred)}}
+	\begin{itemize}
+		\item \textbf{Motivo da Existência}: Avalia clinicamente o desempenho do modelo no diagnóstico do padrão ictal usando a matriz de confusão: Verdadeiros Positivos ($TP$), Verdadeiros Negativos ($TN$), Falsos Positivos ($FP$) e Falsos Negativos ($FN$).
+		\item \textbf{Métricas}:
+		\begin{equation}
+			\text{Acurácia (Acc)} = \frac{TP + TN}{TP + TN + FP + FN}
+		\end{equation}
+		\begin{equation}
+			\text{Sensibilidade (Recall)} = \frac{TP}{TP + FN}
+		\end{equation}
+		\begin{equation}
+			\text{Especificidade (Spe)} = \frac{TN}{TN + FP}
+		\end{equation}
+	\end{itemize}
+	
+	\subsection{Função \texttt{train\_patient\_specific\_models(...)}}
+	\begin{itemize}
+		\item \textbf{Motivo da Existência}: Executa o fluxo de treinamento individualizado por paciente.
+		\item \textbf{Estratégia de Validação}:
+		\begin{enumerate}
+			\item Divisão Cronológica: Os primeiros $50\%$ das janelas ordenadas no tempo são destinados ao treino, e os $50\%$ restantes ao teste.
+			\item Otimização de Hiperparâmetros: Realiza validação cruzada estratificada em $K$ pastas (\textit{Stratified $K$-Fold CV}) sobre o conjunto de treino para definir a melhor constante $C \in \{0.001, 0.01, 0.1, 1, 10, 100\}$.
+			\item Re-treinamento e Teste: Re-treina o modelo com o melhor $C$ selecionado sobre todo o conjunto de treino e realiza a predição cega no conjunto de teste futuro.
+		\end{enumerate}
+	\end{itemize}
+
 	\section{Resultados}
 	TODO
 	\section{Conclusão}
 	TODO
 	
 	Preencher as referências com os novos artigos que eu salvei. Colocar os sites de documentação do scikit learn e pytorch
+	
 	% --- Configuração da Bibliografia ---
 	\clearpage
 	\bibliographystyle{unsrturl} 

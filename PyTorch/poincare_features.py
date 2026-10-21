@@ -88,6 +88,8 @@ def pca_transform(embedded, n_components=None):
     Projects points onto their principal components (PyTorch replacement for
     sklearn.decomposition.PCA().fit_transform()).
 
+    Read more in: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
+    
     How: PCA is computed via SVD of the mean-centered data instead of via an
     eigendecomposition of the covariance matrix - numerically this is the
     same result (the right singular vectors Vh are the principal directions),
