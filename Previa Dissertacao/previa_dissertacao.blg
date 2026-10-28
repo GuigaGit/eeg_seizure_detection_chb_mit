@@ -14,45 +14,45 @@ Warning--entry type for "physionet_chbmit" isn't style-file defined
 --line 44 of file referencias_epilepsia.bib
 Warning--empty journal in paveiestudo
 Warning--empty year in paveiestudo
-You've used 21 entries,
+You've used 28 entries,
             2616 wiz_defined-function locations,
-            699 strings with 9101 characters,
-and the built_in function-call counts, 6973 in all, are:
-= -- 640
-> -- 284
-< -- 3
-+ -- 95
-- -- 74
-* -- 304
-:= -- 923
-add.period$ -- 66
-call.type$ -- 21
-change.case$ -- 20
+            747 strings with 10364 characters,
+and the built_in function-call counts, 9618 in all, are:
+= -- 914
+> -- 360
+< -- 5
++ -- 119
+- -- 91
+* -- 445
+:= -- 1258
+add.period$ -- 88
+call.type$ -- 28
+change.case$ -- 27
 chr.to.int$ -- 0
-cite$ -- 23
-duplicate$ -- 201
-empty$ -- 806
-format.name$ -- 74
-if$ -- 1985
+cite$ -- 30
+duplicate$ -- 279
+empty$ -- 1103
+format.name$ -- 91
+if$ -- 2726
 int.to.chr$ -- 0
-int.to.str$ -- 21
-missing$ -- 12
-newline$ -- 108
-num.names$ -- 21
-pop$ -- 183
+int.to.str$ -- 28
+missing$ -- 20
+newline$ -- 143
+num.names$ -- 30
+pop$ -- 234
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 552
+skip$ -- 746
 stack$ -- 0
-substring$ -- 224
-swap$ -- 44
-text.length$ -- 3
+substring$ -- 393
+swap$ -- 62
+text.length$ -- 5
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
 warning$ -- 2
-while$ -- 42
-width$ -- 23
-write$ -- 218
+while$ -- 63
+width$ -- 30
+write$ -- 297
 (There were 3 warnings)

@@ -66,7 +66,49 @@
 	\\[3\baselineskip]
 	%
 	\textbf{Palavras-Chave} -- Detecção de Crises Epiléticas, Aprendizado de Máquina, Serial Vector Machine (SVM), Teoria do Caos.
-	
+
+	\clearpage
+
+	\section*{Lista de Siglas}
+
+	\begin{description}
+		\item[CBEB] Congresso Brasileiro de Engenharia Biomédica.
+		\item[CHB] \textit{Children's Hospital Boston}: Hospital infantil de Boston, coautor do banco de dados CHB-MIT.
+		\item[CPU] \textit{Central Processing Unit} ou Unidade Central de Processamento.
+		\item[CSV] \textit{Comma-Separated Values} ou Valores Separados por Vírgula: Formato de arquivo de texto para armazenamento de dados tabulares.
+		\item[CV] \textit{Coefficient of Variation} ou Coeficiente de Variação: Razão entre o desvio padrão e a média de um conjunto de dados. Também usado como abreviação de \textit{Cross-Validation} ou Validação Cruzada (ex.: \textit{Stratified K-Fold CV}).
+		\item[ECOC] \textit{Error-Correcting Output Code} ou Código de Saída Corretor de Erros: Técnica de meta-aprendizado que combina múltiplos classificadores binários simples para resolver problemas complexos de classificação com várias classes.
+		\item[EDF] \textit{European Data Format}: Formato de arquivo padrão para armazenamento de sinais biomédicos, como os registros de EEG do CHB-MIT.
+		\item[EEG] Eletroencefalograma: Exame que registra a atividade elétrica do cérebro por meio de eletrodos.
+		\item[EMBC] \textit{Engineering in Medicine and Biology Conference}.
+		\item[EMD] \textit{Empirical Mode Decomposition} ou Decomposição em Modos Empíricos: Método de processamento de sinais de tempo-frequência. Utiliza processamento adaptativo para decompor sinais não-lineares e não-estacionários em componentes mais simples chamadas de \textit{Intrinsic Mode Functions} (IMF).
+		\item[EUSIPCO] \textit{European Signal Processing Conference}.
+		\item[FN] \textit{False Negative} ou Falso Negativo.
+		\item[FP] \textit{False Positive} ou Falso Positivo.
+		\item[GPU] \textit{Graphics Processing Unit} ou Unidade de Processamento Gráfico.
+		\item[ICASSP] \textit{International Conference on Acoustics, Speech, and Signal Processing}.
+		\item[IIR] \textit{Infinite Impulse Response} ou Resposta ao Impulso Infinita: Classe de filtros digitais recursivos, cuja saída depende de amostras anteriores da própria saída.
+		\item[IMF] \textit{Intrinsic Mode Function} ou Função de Modo Intrínseco: Componentes oscilatórias simples obtidas pela decomposição EMD.
+		\item[IQR] \textit{Interquartile Range} ou Amplitude Interquartil: Diferença entre o terceiro e o primeiro quartil de uma distribuição.
+		\item[K-NN] \textit{K-Nearest Neighbors} ou K-Vizinhos Mais Próximos: Algoritmo de classificação que atribui uma classe a um dado não classificado com base na classe majoritária dos seus $k$ vizinhos mais próximos no espaço de características.
+		\item[LDA] \textit{Linear Discriminant Analysis} ou Análise Discriminante Linear: Classificador que busca a combinação linear de características que melhor separa as classes.
+		\item[LLE] \textit{Largest Lyapunov Exponent} ou Maior Expoente de Lyapunov: Medida da taxa de afastamento de trajetórias inicialmente próximas em um sistema dinâmico.
+		\item[MIT] \textit{Massachusetts Institute of Technology}.
+		\item[MLP] \textit{Multilayer Perceptron} ou Perceptron Multicamadas: Tipo clássico de rede neural artificial (\textit{feedforward}) composta por pelo menos três camadas de nós (entrada, oculta e saída), capaz de classificar dados que não são linearmente separáveis.
+		\item[NB] \textit{Naïve Bayes} ou Bayes Ingênuo: Classificador probabilístico rápido e simples baseado no Teorema de Bayes e que assume que todas as características extraídas são independentes entre si.
+		\item[OMS] Organização Mundial da Saúde.
+		\item[PC] \textit{Principal Component} ou Componente Principal (ex.: $\text{PC}_1$, $\text{PC}_2$).
+		\item[PCA] \textit{Principal Component Analysis} ou Análise de Componentes Principais: Técnica estatística usada para reduzir a dimensionalidade dos dados (extraindo as características mais relevantes) preservando a maior parte da variância do sinal.
+		\item[RF] \textit{Random Forest} ou Floresta Aleatória: Algoritmo de classificação em conjunto (\textit{ensemble}) que cria várias árvores de decisão durante o treinamento e combina seus resultados para aumentar a precisão e evitar o sobreajuste (\textit{overfitting}).
+		\item[RMS] \textit{Root Mean Square} ou Valor Quadrático Médio.
+		\item[RQA] \textit{Recurrence Quantification Analysis} ou Análise de Quantificação de Recorrência: Método de análise não-linear usado para investigar o comportamento de sistemas dinâmicos no tempo, sendo útil para detectar transições de estado no cérebro.
+		\item[SUDEP] \textit{Sudden Unexpected Death in Epilepsy} ou Morte Súbita Inesperada na Epilepsia.
+		\item[SVD] \textit{Singular Value Decomposition} ou Decomposição em Valores Singulares: Fatoração de matrizes usada, neste trabalho, para calcular o PCA.
+		\item[SVM] \textit{Support Vector Machine} ou Máquina de Vetores de Suporte: Classificador supervisionado que busca encontrar a linha ou hiperplano ideal que melhor separa as diferentes classes de dados (ex: crise epiléptica vs. atividade normal).
+		\item[TN] \textit{True Negative} ou Verdadeiro Negativo.
+		\item[TP] \textit{True Positive} ou Verdadeiro Positivo.
+	\end{description}
+
 	\clearpage
 	
 	\section{Introdução}
@@ -148,78 +190,115 @@
 		\text{Positive Predictive Value} &= \frac{TP}{TP + FP} \times 100
 	\end{align}
 	
-	\newpage
-	
-	\noindent PCA = \textit{Principal Component Analysis} ou Análise de Componentes Principais: Técnica estatística usada para reduzir a dimensionalidade dos dados (extraindo as características mais relevantes) preservando a maior parte da variância do sinal. \\
-	SVM = \textit{Support Vector Machine} ou Máquina de Vetores de Suporte: Classificador supervisionado que busca encontrar a linha ou hiperplano ideal que melhor separa as diferentes classes de dados (ex: crise epiléptica vs. atividade normal). \\
-	NB = \textit{Naïve Bayes} ou Bayes Ingênuo: Classificador probabilístico rápido e simples baseado no Teorema de Bayes e que assume que todas as características extraídas são independentes entre si. \\
-	EMD = \textit{Empirical Mode Decomposition} ou Decomposição em Modos Empíricos: Método de processamento de sinais de tempo-frequência. Utiliza processamento adaptativo para decompor sinais não-lineares e não-estacionários em componentes mais simples chamadas de \textit{Intrinsic Mode Functions} (IMF) \\
-	RF = \textit{Random Forest} ou Floresta Aleatória: Algoritmo de classificação em conjunto (\textit{ensemble}) que cria várias árvores de decisão durante o treinamento e combina seus resultados para aumentar a precisão e evitar o sobreajuste (\textit{overfitting}). \\
-	MLP = \textit{Multilayer Perceptron} ou Perceptron Multicamadas: Tipo clássico de rede neural artificial (\textit{feedforward}) composta por pelo menos três camadas de nós (entrada, oculta e saída), capaz de classificar dados que não são linearmente separáveis. \\
-	K-NN = \textit{K-Nearest Neighbors} ou K-Vizinhos Mais Próximos: Algoritmo de classificação que atribui uma classe a um dado não classificado com base na classe majoritária dos seus $k$ vizinhos mais próximos no espaço de características. \\
-	RQA = \textit{Recurrence Quantification Analysis} ou Análise de Quantificação de Recorrência: Método de análise não-linear usado para investigar o comportamento de sistemas dinâmicos no tempo, sendo útil para detectar transições de estado no cérebro. \\
-	ECOC = \textit{Error-Correcting Output Code} ou Código de Saída Corretor de Erros: Técnica de meta-aprendizado que combina múltiplos classificadores binários simples para resolver problemas complexos de classificação com várias classes.
-	TN = \textit{True Negative} ou Verdadeiro Negativo \\
-	TP = \textit{True Positive} ou Verdadeiro Positivo \\
-	FN = \textit{False Negative} ou Falso Negativo \\
-	FP = \textit{False Positive} ou Falso Positivo \\
-	
+	\vspace{0.5cm}
+
 	Na revisão da literatura nota-se que cada estudo citado escolhe relatar as métricas que melhor validam seus resultados de pesquisa. Essa escolha está associada ao objetivo do estudo (por exemplo, criar um alarme rápido, criar um diagnóstico preciso) e não uma exigência inerente à matemática do classificador escolhido.
 	
 	
 	\section{Abordagem Não-Linear - Teoria do Caos}
+	\label{sec:caos}
 	\noindent
-	
-	O cérebro pode ser modelado como um sistema dinâmico não-linear que opera em pelo menos dois regimes: ictal e interictal. O termo "regime" é usado para que não usemos o termo "estado" e não causar confusão com nomenclaturas de sistemas dinâmicos. Em sistemas dinâmicos, um estado é um único ponto do espaço de fase do sistema, e o cérebro passa por milhões de estados dependendo dos estímulos e respostas de cada neurônio. O que muda numa crise epilética é o "atrator" ao qual a trajetória está confinada.
-	
-	[Eu to na dúvida se explico antes o que é cada termo base/chave de teoria do caos para que essa introdução faça sentido ou se uso esse pequeno texto justamente como gatilho para explicar o que é cada coisa e por que isso tá aqui].
-	
-	O exame de EEG atua como uma projeção de um sistema dinâmico de muitas dimensões. Cada eletrodo mede uma a atividade elétrica que é na verdade combinação/superposição da atividade de milhões de neurônios presentes na região da cabeça onde o eletrodo está conectado. A hipotese de diversos artigos e trabalhos da literatura é de que, durante uma crise epiléptica, o cérebro se torna um sistema com atividades mais cíclicas, previsíveis e "menos caóticas". [Explicar Lyapunov aqui?]
-	
-	Um método muito utilizado na literatura para extrair caracteristicas não-lineares do cérebro a partir do sinal de EEG é a chamada "reconstrução do espaço de fase". Esse processo recria a "trajetória" em que o sistema dinâmico do cérebro muda de um estado para o outro. Se essa trajetória é previsível, o atrator é estável e o cérebro está no regime de crise epiléptica. Se a trajetória é caótica, o atrator é instável e o cérebro está no regime de atividade saudável.
 
-	Métodos estatísticos analisam o EEG como um sinal estpcástico e tentam observar mudanças e padrões na distribuição desses dados, assim como mudanças espectrais, conteúdo em frequencia, amplitude de bandas/faixas. Métodos não lineares, como o citado que utiliza reconstrução por espaço de fase, tenta verificar mudança nesse próprio espaço reconstruído.
-	
-	\section{Teorias}
-	
-	\subsection{Sistemas Dinâmicos Discretos}
-	Um sistema dinâmico discreto é definido por um mapa (função) f e pela iteração v(k+1) = f(v(k)). Cada ponto dessa iteração é um estado do sistema. O primeiro ponto no processo iterativo é chamado de "ponto inicial" ou "condição inicial". A sequência de pontos e o "desenho" formado pela união de todos esses pontos/estados é o que chamamos de órbita.
-	[Falar sobre pontos fixos]
-	[Mostrar o coweb plot para explicar o processo iterativo de mapas]
-	
-	Os conceitos de sistemas dinâmicos possuem paralelos e analogias com processamento digital de sinais. Um filtro IIR do tipo y[n] = a*y[n - 1] é também um mapa em R1. Esse filtro pode ser estável ou instável dependendo de ``a". 
-	[comparar condição de estabilidade de um filtro com condição de estabilidade de órbita e pontos fixos em teoria do caos].
-	
-	\subsection{Reconstrução em Espaço de Fase - Teorema de Takens}
+	Esta seção está organizada em três partes. A primeira apresenta a teoria base de sistemas dinâmicos e caos necessária para o restante do trabalho. A segunda parte aplica esses conceitos ao mapa logístico, que é um sistema caótico clássico, simples e muito utilizado para introdução à teoria do caos. A terceira parte transporta o raciocínio para os sinais de EEG, direcionando a discussão ao problema de detecção de crises epilépticas.
+
+	\subsection{Teoria Base}
+	\label{subsec:teoria_base}
+
+	\subsubsection{Sistemas Dinâmicos}
 	\noindent
+	Um sistema dinâmico é uma modelo matemático usado para representar sistemas físicos que evoluem ao longo do tempo. O \textbf{estado} é um vetor $\mathbf{v} \in \mathbb{R}^n$ que reúne todas as variáveis necessárias para determinar a evolução futura do sistema, e o conjunto de todos os estados possíveis é chamado de \textbf{espaço de estados} \cite{strogatz2015nonlinear}.
+
+	Um sistema dinâmico discreto é definido por um mapa (função) $f$ e pela iteração
+	\begin{equation}
+		\mathbf{v}(k+1) = f\big(\mathbf{v}(k)\big)
+	\end{equation}
+	O primeiro ponto do processo iterativo, $\mathbf{v}(0)$, é chamado de ``ponto inicial'' ou ``condição inicial''. A sequência de estados $\{\mathbf{v}(0), \mathbf{v}(1), \mathbf{v}(2), \dots\}$ e o ``desenho'' formado pela união de todos esses pontos é a chamada \textbf{órbita}.
+
+	Um sistema dinâmico contínuo (também chamado de fluxo) é descrito por um sistema de equações diferenciais
+	\begin{equation}
+		\frac{d\mathbf{v}}{dt} = F\big(\mathbf{v}(t)\big),
+	\end{equation}
+	e a curva percorrida por $\mathbf{v}(t)$ no espaço de fase é chamada de \textbf{trajetória}. 
 	
-	A única grandeza medida e utilizada nos estudos deste projeto é a evolução dos sinais elétricos coletados por cada eletrodo. A variação da tensão ao longo do tempo representa apenas uma dimensão do sistema de ordem maior, que é o cérebro. 
-	
-	A dinâmica do cérebro é estimada utilizando o Teorema de Takens, que afirma que é possível reconstruir o espaço de fases de um sistema dinâmico a partir de uma única série temporal de observações [colocar referência pro teorema de takens].
-	
-	[Acho que não preciso explicar aqui porque o Takens funciona, ou preciso? Tem referencias explicando toda a teoria por trás].
-	
-	[Coloquei aqui uma descrição inicial pra não ficar vago demais esse espaço. Uma prova teórica mais robusta é necessário? É útil?].
-	
-	Em um sistema determinístico as variáveis estão acopladas. A evolução histórica de uma variável medida carrega também informações sobre variáveis não medidas. 
-	Tomando como exemplo um pêndulo simples. O estado é composto pala tupla [posição, velocidade]. Se observarmos apenas a posição ao longo do tempo é possível recuperar a informação de velocidade do pendulo em um determinado instante, e assim, recuperar o estado inteiro.
-	
-	$$\mathbf{v}(t) = [x(t), x(t + \tau), \dots, x(t + (d - 1)\tau)]$$
-	
-	Neste trabalho o número de dimensões d = 5 e o tau = 6 amostras (aproximadamente 23ms a 256Hz de frequência de amostragem).
-	
-	[Colocar em discussão a possibilidade de trocar esses parâmetros. A escolha deles hoje é devido o artigo que eu estou seguindo].
-	
-	Importante: o teorema de Takens garante que o espaço de fases reconstruído é equivalente ao espaço original que seria gerado se tivéssemos acesso a todas as finitas dimensões que compõe o sistema. Não há como ter certeza absoluta que o cérebro se comporta sempre como um sistema dinâmico de dimensão finita.
-	[Essa frase meio que resguarda o modelo como - Se não funcionar eh pq o cerebro nao é assim como a gente acha q ele é. Mas ao mesmo tempo isso tira confiança na hipótese: se não sabemos se é assim, pq assumir que é e tentar fazer funcionar?]
-	
-	
-	\subsection{Seção de Poinceré}
+	Em ambos os casos o sistema é \textbf{determinístico}: a mesma condição inicial sempre produz a mesma órbita ou trajetória. Um sinal amostrado de um sistema contínuo, como o EEG, pode ser visto como a observação de um fluxo em instantes discretos.
+
+	\subsubsection{Pontos Fixos e Estabilidade}
 	\noindent
-	A seção de Poincaré é uma ferramenta usada em teoria do caos para estudar trajetórias de sistemas dinâmicos. A seção é um hiperplano transversal à órbita em estudo. Os pontos de intersecção entre o hiperplano e a órbita geram um desenho que pode fornecer informações sobre a natureza do da órbita. 
+	Um \textbf{ponto fixo} de um mapa é um estado que não se altera com a iteração, isto é, $\mathbf{v} = f(\mathbf{v})$. Para um mapa em $\mathbb{R}^1$, a estabilidade de um ponto fixo $x$ é obtida observando como o mapa se comporta a pequenas perturbações em volta do ponto fixo. Escrevendo $x(k) = x + e(k)$, em que $e(k)$ é uma pequena perturbação:
+	\begin{equation}
+		e(k+1) \approx f'(x)\, e(k) \quad \Rightarrow \quad e(k) \approx \big(f'(x)\big)^k e(0).
+	\end{equation}
+	Assim, se $|f'(x)| < 1$ a perturbação decai e o ponto fixo é \textbf{estável} (atrai as órbitas vizinhas); se $|f'(x)| > 1$ a perturbação cresce e o ponto fixo é \textbf{instável}. Em $\mathbb{R}^n$ o papel de $f'(x)$ é desempenhado pelos autovalores da matriz Jacobiana de $f$ no ponto fixo, e a condição de estabilidade é que todos tenham módulo menor que 1. De forma análoga, uma \textbf{órbita periódica de período $k$} é formada por pontos que satisfazem $f^k(x) = x$, em que $f^k$ denota $k$ aplicações sucessivas de $f$.
+
+	Os conceitos de sistemas dinâmicos possuem paralelos com processamento digital de sinais. Um filtro IIR de primeira ordem sem entrada,
+	\begin{equation}
+		y[n] = a\, y[n-1],
+	\end{equation}
+	é também um mapa em $\mathbb{R}^1$, com $f(y) = a y$. Seu único ponto fixo é $y = 0$ e, como $f'(y) = a$, o critério de estabilidade de pontos fixos fornece $|a| < 1$, que é exatamente a condição de que o polo do filtro esteja dentro do círculo unitário. Para filtros de ordem maior escritos em espaço de estados, $\mathbf{v}[n+1] = \mathbf{A}\mathbf{v}[n]$, os polos são os autovalores de $\mathbf{A}$, que é a própria Jacobiana do mapa. A diferença essencial é que um sistema linear estável só pode convergir para um ponto fixo ou divergir, enquanto um sistema não-linear pode permanecer limitado e, ainda assim, nunca se repetir, o que dá origem ao caos.
+
+	\subsubsection{Atratores e Caos}
+	\noindent
+	Um \textbf{atrator} é um conjunto de estados para o qual as trajetórias convergem após um transitório. Os tipos mais comuns são: o ponto fixo estável; o ciclo limite (órbita periódica); o toro (movimento quase-periódico); e o \textbf{atrator estranho}, que possui estrutura fractal e está associado ao caos \cite{strogatz2015nonlinear}.
+	[eu peguei essa definição do livro mas eu mesmo nao manjo ainda oq eh estrutura fractal. Talvez eu tire isso daqui e deixe apenas q o atrator estranho ta relacionado ao caos]
 	
-	Há quatro casos de desenhos formados pelos pontos de intersecção entre a Seção de Poincaré e a órbita do sistema em estudo:
-	
+	Diz-se que um sistema é \textbf{caótico} quando apresenta, simultaneamente: (i) dinâmica determinística; (ii) trajetórias limitadas; (iii) comportamento aperiódico de longo prazo; e (iv) \textbf{sensibilidade às condições iniciais}, isto é, trajetórias que começam próximas se afastam exponencialmente com o tempo. A sensibilidade às condições iniciais é o que torna o comportamento de longo prazo imprevisível na prática, mesmo sendo o sistema determinístico. As ferramentas descritas a seguir (expoente de Lyapunov e seção de Poincaré) são formas de identificar e quantificar o tipo de atrator em que um sistema se encontra.
+
+	\subsubsection{Expoente de Lyapunov}
+	\label{subsubsec:lyapunov}
+	\noindent
+	O expoente de Lyapunov quantifica a sensibilidade às condições iniciais medindo a taxa média de afastamento de trajetórias inicialmente próximas. Se duas trajetórias começam separadas por uma distância $\delta_0$, a separação evolui aproximadamente como
+	\begin{equation}
+		\delta(t) \approx \delta_0\, e^{\lambda t}.
+	\end{equation}
+	Para um mapa em $\mathbb{R}^1$, o expoente é calculado ao longo da órbita como
+	\begin{equation}
+		\lambda = \lim_{N \to \infty} \frac{1}{N} \sum_{k=0}^{N-1} \ln \big| f'\big(x(k)\big) \big|.
+	\end{equation}
+	Se a órbita converge para um ponto fixo, $\lambda = \ln|f'(x)|$ é negativo quando $|f'(x)| < 1$. Essa condição é o critério de estabilidade (e, no caso do filtro IIR, o critério do polo dentro do círculo unitário).
+
+	Um sistema em $\mathbb{R}^n$ possui $n$ expoentes de Lyapunov, um para cada direção do espaço de fase, e o comportamento de longo prazo é dominado pelo \textbf{maior expoente de Lyapunov} (do inglês \textit{Largest Lyapunov Exponent} - LLE), denotado $\lambda_1$. A interpretação é:
+	\begin{itemize}
+		\item $\lambda_1 < 0$: órbitas periódicas estáveis ou que convergem para um ponto fixo;
+		\item $\lambda_1 > 0$: dinâmica caótica.
+	\end{itemize}
+
+	Na prática não se conhece o mapa $f$ do cérebro, apenas uma série temporal medida e com ruído. Para esse caso, Rosenstein \cite{rosenstein1993practical} propôs um método para estimar o maior expoente de Lyapunov a partir de observações da evolução temporal de uma das variáveis do sistema. Primeiro reconstrói-se o espaço de fase (Seção~\ref{subsubsec:takens}); depois, para cada ponto $\mathbf{y}_j$ da trajetória reconstruída, encontra-se o vizinho mais próximo $\mathbf{y}_{\hat{j}}$, exigindo que estejam suficientemente separados no tempo para não pertencerem ao mesmo trecho da trajetória:
+	\begin{equation}
+		d_j(0) = \min_{\hat{j}} \big\| \mathbf{y}_j - \mathbf{y}_{\hat{j}} \big\|, \qquad |j - \hat{j}| > \text{período médio}.
+	\end{equation}
+	Acompanha-se então a distância $d_j(i)$ entre os dois pontos após $i$ passos de tempo. Como $d_j(i) \approx d_j(0)\, e^{\lambda_1 i \Delta t}$, a média dos logaritmos
+	\begin{equation}
+		y(i) = \frac{1}{\Delta t} \big\langle \ln d_j(i) \big\rangle_j
+	\end{equation}
+	cresce linearmente com $i$ em uma região inicial, e $\lambda_1$ é estimado como a inclinação dessa reta.
+
+	\subsubsection{Reconstrução do Espaço de Fase - Teorema de Takens}
+	\label{subsubsec:takens}
+	\noindent
+
+	A única grandeza medida e utilizada nos estudos deste projeto é a evolução dos sinais elétricos coletados por cada eletrodo. A variação da tensão ao longo do tempo representa apenas uma dimensão do sistema de ordem maior, que é o cérebro. Porém, as ferramentas anteriores operam sobre o espaço de fase completo.
+
+	A dinâmica do cérebro é estimada utilizando o Teorema de Takens, que afirma que é possível reconstruir o espaço de fase de um sistema dinâmico a partir de uma única série temporal de observações \cite{takens1981detecting}.
+
+	A intuição por trás do teorema é que, em um sistema determinístico, as variáveis estão acopladas: a evolução histórica de uma variável medida carrega também informações sobre as variáveis não medidas. Tomando como exemplo um pêndulo simples, o estado é composto pela tupla [posição, velocidade]. Se observarmos apenas a posição ao longo do tempo, é possível recuperar a velocidade em um determinado instante a partir de duas posições consecutivas (diferença finita) e, assim, recuperar o estado inteiro. O teorema de Takens generaliza essa ideia: em vez de derivadas, utilizam-se cópias atrasadas do sinal como coordenadas,
+	\begin{equation}
+		\mathbf{v}(t) = \big[x(t),\, x(t + \tau),\, \dots,\, x(t + (d - 1)\tau)\big],
+	\end{equation}
+	em que $d$ é a \textbf{dimensão de imersão} e $\tau$ é o \textbf{atraso}.
+
+	Na literatura, $\tau$ costuma ser escolhido pelo primeiro mínimo da informação mútua do sinal \cite{fraser1986independent} (ou pelo primeiro cruzamento por zero da autocorrelação), e $d$ pelo método dos falsos vizinhos mais próximos \cite{kennel1992determining}. Neste trabalho, a dimensão de imersão é $d = 5$ e o atraso é $\tau = 6$ amostras (aproximadamente 23\,ms a 256\,Hz de frequência de amostragem), seguindo os valores do artigo de referência \cite{zabihi2015analysis}.
+
+	[Colocar em discussão a possibilidade de trocar esses parâmetros, por exemplo estimando $\tau$ e $d$ por informação mútua e falsos vizinhos mais próximos nos sinais do CHB-MIT].
+
+	Importante: as garantias do teorema de Takens valem para um sistema determinístico, de dimensão finita, observado sem ruído e por tempo suficientemente longo. O EEG não satisfaz rigorosamente nenhuma dessas condições. Por isso, neste trabalho, a reconstrução não é usada para afirmar que o cérebro \emph{é} um sistema caótico de baixa dimensão, mas como uma hipótese de modelagem: o espaço reconstruído é uma representação do sinal da qual se extraem características, e a validade dessa representação é avaliada empiricamente pelo desempenho do classificador em distinguir os regimes com e sem crise.
+
+	\subsubsection{Seção de Poincaré}
+	\label{subsubsec:poincare}
+	\noindent
+	A seção de Poincaré é uma ferramenta usada em teoria do caos para estudar trajetórias de sistemas dinâmicos contínuos. A seção é uma hipersuperfície $\Sigma$ (por exemplo, um hiperplano) transversal à trajetória em estudo. Registram-se os pontos em que a trajetória cruza $\Sigma$ em um mesmo sentido, o que define o \textbf{mapa de Poincaré} $P: \Sigma \to \Sigma$, que leva cada cruzamento ao cruzamento seguinte. Essa construção transforma um fluxo contínuo em $\mathbb{R}^n$ em um mapa discreto em $\mathbb{R}^{n-1}$, reduzindo a dimensão do problema e permitindo aplicar as ferramentas de mapas descritas anteriormente. Por exemplo, um ponto fixo do mapa de Poincaré corresponde a uma órbita periódica do fluxo.
+
+	O desenho formado pelos pontos de intersecção entre a seção e a trajetória fornece informações sobre a natureza da órbita. Há quatro casos típicos, resumidos na Tabela~\ref{tab:poincare_regimes}.
+
 	\begin{table}[htbp]
 		\centering
 		\caption{Relação entre o conjunto de interseções da Seção de Poincaré e o respectivo regime dinâmico do sistema.}
@@ -235,15 +314,63 @@
 			\bottomrule
 		\end{tabular}
 	\end{table}
-	
-	\subsection{Expoente de Lyapunov}
-	\noindent 
-	O maior expoente de Lyapunov (do inglês Largest Lyapunov Exponent - LLE) é uma medida quantitativa de "o quanto um sinal é caótico ou não" e ele faz isso medindo a taxa de afastamento de trajetórias inicialmente próximas. Valores positivos de LLE indicam uma dinâmica caótica, típica de um EEG padrão. Valores negativos estão associados ao fato de que a dinâmica do cérebro está mais regular e isso coincide com o ínicio da crise (essa é a hipótese base para usar caos ao analizar EEG).
-	
-	[Colocar a expressão matemática do LLE].
-	[citar Rosenstein sobre como calcular computacionalmente o expoente de Lyapunov].
-	
+
+	\subsection{Exemplo de Aplicação: Mapa Logístico}
+	\label{subsec:logistico}
+	\noindent
+	O mapa logístico \cite{may1976simple} é um modelo simplificado de crescimento populacional e um dos exemplos mais simples de sistema capaz de apresentar caos:
+	\begin{equation}
+		x(k+1) = f\big(x(k)\big) = r\, x(k)\big(1 - x(k)\big), \qquad x \in [0, 1], \; r \in [0, 4],
+	\end{equation}
+	em que $x(k)$ representa a população normalizada na geração $k$ e $r$ é a taxa de crescimento. Apesar de ser um mapa unidimensional e determinado por uma única equação quadrática, ele percorre todos os regimes descritos na teoria base apenas variando o parâmetro $r$.
+
+	\textbf{Pontos fixos e estabilidade.} Os pontos fixos são as soluções de $x = r x(1 - x)$, isto é, $x = 0$ e $x = 1 - 1/r$. Como $f'(x) = r(1 - 2x)$, tem-se $f'(0) = r$ e $f'(1 - 1/r) = 2 - r$. Pelo critério $|f'(x)| < 1$, a origem é estável para $r < 1$ e o ponto fixo não trivial é estável para $1 < r < 3$. Para $r = 2{,}8$, por exemplo, qualquer condição inicial em $(0, 1)$ converge para $x = 1 - 1/2{,}8 \approx 0{,}643$.
+
+	\textbf{Duplicação de período e caos.} Em $r = 3$ tem-se $f'(x) = -1$, o ponto fixo perde estabilidade e surge uma órbita estável de período 2. Para $r = 3{,}2$, a órbita alterna entre $x \approx 0{,}513$ e $x \approx 0{,}799$. Aumentando $r$, ocorre uma cascata de duplicações de período ($2, 4, 8, \dots$) que se acumula em $r_\infty \approx 3{,}57$. A partir desse valor, o mapa passa a apresentar comportamento caótico para a maior parte dos valores de $r$, e em $r = 4$ a órbita se espalha por todo o intervalo $[0, 1]$ sem nunca se repetir.
+
+	\textbf{Sensibilidade às condições iniciais.} Com $r = 4$, duas órbitas que partem de $x(0) = 0{,}2$ e $x(0) = 0{,}2 + 10^{-7}$ são indistinguíveis nas primeiras iterações, mas a diferença entre elas aproximadamente dobra a cada passo e, após cerca de 20 a 25 iterações, as duas sequências já não têm relação entre si. O mesmo experimento com $r = 2{,}8$ faz a diferença desaparecer, pois as duas órbitas convergem para o mesmo ponto fixo.
+
+	\textbf{Expoente de Lyapunov.} Aplicando a definição para mapas unidimensionais:
+	\begin{itemize}
+		\item $r = 2{,}8$ (ponto fixo): $\lambda = \ln|2 - 2{,}8| = \ln 0{,}8 \approx -0{,}22$;
+		\item $r = 3{,}2$ (período 2): $\lambda = \frac{1}{2}\ln\big|f'(x_1) f'(x_2)\big| \approx -0{,}92$;
+		\item $r = 4$ (caos): $\lambda = \ln 2 \approx 0{,}69 > 0$.
+	\end{itemize}
+	O sinal do expoente separa os regimes regulares ($\lambda < 0$) do regime caótico ($\lambda > 0$), e a dobra da distância a cada iteração observada no item anterior corresponde a $e^{\lambda} = 2$.
+
+	\textbf{Analogia com a seção de Poincaré.} Como o mapa logístico já é um sistema discreto, ele desempenha o mesmo papel que o mapa de Poincaré de um fluxo contínuo: cada iteração corresponde a um ``cruzamento''. Observando o conjunto de valores visitados após o transitório, obtém-se exatamente a classificação da Tabela~\ref{tab:poincare_regimes}: um único ponto para $r = 2{,}8$, dois pontos para $r = 3{,}2$, quatro pontos para $r = 3{,}5$ e uma nuvem que preenche o intervalo para $r = 4$. O \textbf{diagrama de bifurcação}, que mostra esses valores em função de $r$, resume essa transição em uma única figura.
+
+	\textbf{Reconstrução do espaço de fase.} Imagine que se observe apenas a sequência $x(k)$ com $r = 4$, sem conhecer a equação. No tempo, ela é visualmente indistinguível de um ruído aleatório uniforme em $[0, 1]$. Ao reconstruir o espaço de fase com $d = 2$ e $\tau = 1$, isto é, desenhando os pares $\big(x(k), x(k+1)\big)$, os pontos do sinal caótico caem todos sobre a parábola $x(k+1) = 4x(k)(1 - x(k))$, revelando a regra determinística que gerou o sinal, enquanto os pontos do ruído aleatório preenchem o quadrado uniformemente. Essa é a ideia central da abordagem não-linear: um sinal que parece aleatório do ponto de vista estatístico pode ter uma estrutura determinística que só aparece no espaço de fase reconstruído.
+
+	O ponto central do exemplo é que \textbf{o mesmo sistema}, sob uma mudança de parâmetro, troca de atrator (de um ponto fixo, para órbitas periódicas e então para o caos), e essa troca é visível tanto no conjunto de pontos visitados quanto no expoente de Lyapunov. É exatamente esse tipo de mudança que se busca detectar no EEG.
+
+	[Colocar figuras: (a) \textit{cobweb plot} para $r = 2{,}8$ e $r = 4$; (b) série temporal das duas condições iniciais próximas com $r = 4$; (c) diagrama de bifurcação com o expoente de Lyapunov em função de $r$; (d) pares $(x(k), x(k+1))$ do mapa com $r = 4$ comparados a ruído uniforme].
+
+	\subsection{Aplicação em EEG}
+	\label{subsec:caos_eeg}
+	\noindent
+
+	O cérebro pode ser modelado como um sistema dinâmico não-linear que opera em pelo menos dois regimes: ictal (durante a crise) e interictal (entre crises). O termo ``regime'' é usado para não causar confusão com o termo ``estado'' de sistemas dinâmicos. Um estado é um único ponto do espaço de fase, e o cérebro passa por inúmeros estados dependendo dos estímulos e das respostas de cada neurônio. O que muda numa crise epiléptica é o \textbf{atrator} ao qual a trajetória está confinada, de forma análoga à mudança do parâmetro $r$ no mapa logístico.
+
+	O exame de EEG atua como uma projeção desse sistema de muitas dimensões. Cada eletrodo mede uma atividade elétrica que é, na verdade, a superposição da atividade de milhões de neurônios da região da cabeça onde o eletrodo está posicionado. Diferente do mapa logístico, em que a variável observada é o próprio estado, no EEG observa-se apenas uma projeção de um sistema de dimensão muito maior, e por isso a reconstrução de Takens com $d > 2$ é necessária. A hipótese de diversos trabalhos da literatura é de que, durante uma crise epiléptica, grandes populações de neurônios passam a disparar de forma sincronizada, e o cérebro se torna um sistema com atividade mais regular, cíclica e ``menos caótica''. Iasemidis et al. \cite{iasemidis1990phase}, por exemplo, observaram uma redução do maior expoente de Lyapunov estimado a partir de sinais de EEG intracraniano durante crises parciais. É importante notar que a hipótese é de \emph{diminuição} de $\lambda_1$ em relação ao regime interictal, e não necessariamente de que ele se torne negativo.
+
+	Os métodos estatísticos tradicionais analisam o EEG como um sinal estocástico e procuram mudanças na distribuição das amostras, no conteúdo espectral ou na energia em bandas de frequência. Os métodos não-lineares, por sua vez, reconstroem o espaço de fase do sinal e procuram mudanças na geometria da trajetória reconstruída. Neste trabalho, seguindo Zabihi et al. \cite{zabihi2015analysis}, a cadeia de processamento aplica ao EEG as ferramentas da teoria base:
+	\begin{enumerate}
+		\item Cada canal de EEG é dividido em janelas de 1 segundo (256 amostras), e cada janela faz o papel da série observada $x(t)$.
+		\item A trajetória é reconstruída pelo teorema de Takens com $d = 5$ e $\tau = 6$, resultando em $256 - (5-1)\cdot 6 = 232$ pontos em $\mathbb{R}^5$.
+		\item A trajetória é projetada nos dois primeiros componentes principais (PCA, Seção~\ref{subsec:pca}), e uma reta ajustada aos pontos nesse plano é usada como seção de Poincaré.
+		\item Os pontos de intersecção entre a trajetória e a seção são resumidos por estatísticas (amplitude, quantil, amplitude interquartil, entropia, RMS, coeficiente de variação e energia).
+		\item Essas características alimentam um classificador SVM que decide se a janela pertence ao regime ictal ou interictal.
+	\end{enumerate}
+
+	A intuição, de acordo com a Tabela~\ref{tab:poincare_regimes}, é que em um regime mais regular (ictal) as intersecções tendem a se concentrar em poucas regiões da seção, enquanto no regime interictal elas se espalham de forma mais difusa. As características estatísticas extraídas das intersecções medem justamente esse grau de concentração ou dispersão. Ressalta-se que, com janelas curtas e sinais ruidosos, essas características não constituem uma prova de caos ou de periodicidade no sentido rigoroso; elas são descritores da geometria da trajetória reconstruída, cuja utilidade é avaliada pela capacidade de separar os dois regimes.
+
+	[Colocar figura: trajetória reconstruída e seção de Poincaré de uma janela interictal e de uma janela ictal de um mesmo paciente do CHB-MIT].
+
+	\section{Teorias}
+
 	\subsection{Análise de Componentes Principais (PCA)}
+	\label{subsec:pca}
 	\noindent
 	O PCA é um método estatístico para reduzir dimensionalidade de um problema. [Eu acabei de ter um pensamento: Pq usar takens para aumentar a dimensão do EEG de 1 "> 5 e depois PCA de 5 "> 2? Pq não apenas usar Takens de 1 "> 2 e estudar o melhor d e tau pra isso?]. 
 	Reduzir dimensionalidade é bom para reduzir gastos computacionais excessivos e ajuda a evitar overfitting do modelo de aprendizado sob estudo.
@@ -282,160 +409,7 @@
 	A página do PhysioNet (onde o banco de dados está hospedado) e o artigo atrelado ao banco não cita a remoção de artefatos ou filtragem feita previamente à publicação do banco de dados. [Pegar lastro em artigos que usam esse banco de dados de que eles também não tratam de nenhuma forma os dados do banco]. [também não lembro de ter lido ninguem reclamar sobre a presença do 60Hz]
 	Os autores explicitam que usaram trechos de pelo menos 24 horas de EEG sem crise por paciente para incluir trechos de sono e artefatos. 
 	
-	\section{Como funcionam os scripts para Detecção de Crise (Pipeline)}
-	
-	O script \texttt{main\_pipeline.py} é o gerenciador da sequência dos processos (conhecido popularmente como "pipeline") onde ocorre o processamento de sinais de eletroencefalograma (EEG) do \textit{dataset} CHB-MIT. Ele executa em subprocessos independentes as três etapas subsequentes da cadeia de aprendizado de máquina:
-	\begin{enumerate}
-		\item \textbf{Parsing e Estruturação de Rótulos}: Leitura dos arquivos de sumário em texto do dataset
-		\item \textbf{Reconstrução do Espaço de Fase e Extração de Características}: Mapeamento em espaço de fase, projeção em Componentes Principais, Seção de Poincaré e extração de estatísticas
-		\item \textbf{Treinamento e Validação do Classificador}: Padronização, validação cruzada estratificada por paciente, busca por hiperparâmetros e otimização por Gradiente Descendente do SVM Primal
-	\end{enumerate}
-	
-	\section{Etapa 1: Processamento do Dataset (\texttt{global\_parse\_dataset.py})}
-	
-	\subsection{Função \texttt{extrair\_dados\_sumario(caminho\_arquivo)}}
-	\begin{itemize}
-		\item \textbf{Motivo da Existência}: Os registros clínicos do CHB-MIT fornecem as anotações das crises epilépticas em formato de texto (\texttt{<nome-do-paciente>-summary.txt}). Esta função converte esse texto em uma estrutura de dados compatível com as funções do NumPy e CSV usadas pelas bibliotecas de aprendizado de máquina em Python.
-		\item \textbf{Funcionamento}: Realiza um \textit{parsing} identificando o nome de cada arquivo \texttt{.edf}, o número total de crises $N$, e os intervalos de tempo inicial e final (em segundos) de cada crise ($\text{label} = 1$). Arquivos sem crises registradas geram registros com $\text{label} = 0$.
-	\end{itemize}
-	
-	\section{Etapa 2: Reconstrução do Espaço de Fase e Características de Poincaré (\texttt{poincare\_features.py})}
-	
-	\subsection{Função \texttt{time\_delay\_embedding(signal, d=5, tau=6)}}
-	\begin{itemize}
-		\item \textbf{Motivo da Existência}: Conforme o Teorema de Reconstrução de Takens, o comportamento dinâmico não-linear do cérebro pode ser estimado a partir de uma única série temporal unidimensional $x(t)$ de EEG, projetando-a em um Espaço de Fase $d$-dimensional com tempo de atraso $\tau$.
-		\item \textbf{Formulação Matemática}:
-		Dada uma janela temporal com $N$ amostras $x = [x_1, x_2, \dots, x_N]^T$ [eu lembro que o Vitor usava muito o "T" nas aulas pq era convenção o vetor ser vetor coluna], o vetor reconstruído no tempo $i$ é dado por:
-		\begin{equation}
-			\mathbf{y}_i = \left[ x_i, x_{i+\tau}, x_{i+2\tau}, \dots, x_{i+(d-1)\tau} \right]^T \in \mathbb{R}^d
-		\end{equation}
-		O número total de pontos válidos na trajetória reconstruída é $N_v = N - (d-1)\tau$. A matriz do espaço de fase reconstruída é $\mathbf{Y} \in \mathbb{R}^{N_v \times d}$.
-	\end{itemize}
-	
-	\subsection{Funções \texttt{pca\_transform(embedded, n\_components=None)} e \texttt{fit\_line(x, y)}}
-	\begin{itemize}
-		\item \textbf{Motivo da Existência}: Para encontrar a Seção de Poincaré, o espaço de fase $d$-dimensional (ex: $d=5$) é projetado no plano de maior variância espacial utilizando Análise de Componentes Principais (PCA) via Decomposição em Valores Singulares (SVD) [usar SVD para calcular PCA vem da documentação do scikit learn]. Em seguida, ajusta-se uma reta de corte de referência.
-		\item \textbf{Formulação Matemática}:
-		Centraliza-se a matriz $\mathbf{Y}$, isto é, removemos o valor médio de cada amostra do vetor e isso faz com que a distribuição dos dados seja centrada no zero:
-		\begin{equation}
-			\bar{\mathbf{Y}} = \mathbf{Y} - \mathbf{1}\boldsymbol{\mu}^T, \quad \boldsymbol{\mu} = \frac{1}{N_v}\sum_{i=1}^{N_v} \mathbf{y}_i
-		\end{equation}
-		A decomposição SVD de $\bar{\mathbf{Y}}$ é expressa por:
-		\begin{equation}
-			\bar{\mathbf{Y}} = \mathbf{U} \mathbf{\Sigma} \mathbf{V}^T
-		\end{equation}
-		Onde as colunas de $\mathbf{V} \in \mathbb{R}^{d \times d}$ representam as direções dos Componentes Principais. A projeção bidimensional nos dois primeiros componentes ($\text{PC}_1, \text{PC}_2$) é obtida por $\mathbf{Z} = \bar{\mathbf{Y}} \mathbf{V}_{:, 1:2} \in \mathbb{R}^{N_v \times 2}$.
-		
-		A reta de ajuste $y = m x + c$ no plano $(\text{PC}_1, \text{PC}_2)$ é encontrada resolvendo os mínimos quadrados. Essa reta de ajuste que melhor representa os dados das duas componentes principais é considerada como a seção de Poincaré.
-	\end{itemize}
-	
-	\subsection{Função \texttt{get\_poincare\_intersections(embedded\_space)}}
-	\begin{itemize}
-		\item \textbf{Motivo da Existência}: Transforma a trajetória contínua do espaço de fase em uma sequência temporal discreta de pontos, reduzindo a dimensionalidade do sinal.
-		\item \textbf{Formulação Matemática}:
-		Para cada ponto $k$, calcula-se a distância orientada até a reta ajustada:
-		\begin{equation}
-			f_k = \text{PC}_{2,k} - (m \cdot \text{PC}_{1,k} + c)
-		\end{equation}
-		Ocorre um cruzamento entre o ponto $k$ e $k+1$ se $f_k \cdot f_{k+1} < 0$. O valor exato da coordenada $\text{PC}_1$ no ponto de interseção é estimado por interpolação linear:
-		\begin{equation}
-			x_I = \text{PC}_{1,k} + \frac{|f_k|}{|f_k| + |f_{k+1}|} \left( \text{PC}_{1,k+1} - \text{PC}_{1,k} \right)
-		\end{equation}
-	\end{itemize}
-	
-	\subsection{Função \texttt{extract\_features(intersections)}}
-	\begin{itemize}
-		\item \textbf{Motivo da Existência}: Sintetiza o conjunto discreto de interseções de Poincaré $X_I = \{x_{I,1}, x_{I,2}, \dots, x_{I,M}\}$ em um vetor estático de 7 características estatísticas e não-lineares, adequadas para os modelos de classificação.
-		\item \textbf{Formulação Matemática das 7 Características}:
-		\begin{enumerate}
-			\item \textbf{Amplitude/Amplitude Total (Range)}:
-			\begin{equation} R = \max(X_I) - \min(X_I) \end{equation}
-			
-			\item \textbf{Quantil 0,13 ($Q_{0.13}$)}: Percentil de $13\%$ da distribuição das interseções.
-			
-			\item \textbf{Amplitude Interquartil (IQR)}:
-			\begin{equation} \text{IQR} = Q_{0.75}(X_I) - Q_{0.25}(X_I) \end{equation}
-			
-			\item \textbf{Entropia de Shannon (baseada em Histograma)}:
-			Estimando a densidade de probabilidade $p(b_j)$ em $B$ compartimentos (bins escolhidos pela regra de Sturges, $B = \lceil \log_2 M \rceil + 1$):
-			\begin{equation} H = -\sum_{j=1}^{B} p(b_j) \log_2 p(b_j), \quad \text{para } p(b_j) > 0 \end{equation}
-			
-			\item \textbf{Valor Quadrático Médio (RMS)}:
-			\begin{equation} \text{RMS} = \sqrt{\frac{1}{M} \sum_{i=1}^{M} x_{I,i}^2} \end{equation}
-			
-			\item \textbf{Coeficiente de Variação (CV)}:
-			\begin{equation} \text{CV} = \frac{\sigma(X_I)}{\mu(X_I)} = \frac{\sqrt{\frac{1}{M}\sum (x_{I,i} - \bar{x})^2}}{\bar{x}} \end{equation}
-			
-			\item \textbf{Energia Interna ($E$)}:
-			\begin{equation} E = \sum_{i=1}^{M} x_{I,i}^2 \end{equation}
-		\end{enumerate}
-	\end{itemize}
-	
-	\subsection{Funções \texttt{extract\_all\_poincare\_features} e \texttt{process\_single\_file}}
-	\begin{itemize}
-		\item \textbf{Motivo da Existência}: Aplica o processo de extração para todos os 23 canais eletroencefálicos montados no sistema 10-20, gerando um vetor consolidado por janela de tempo de dimensão $23 \times 7 = 161$ características.
-		\item \textbf{Estratégia de Processamento}: Segmenta trechos com crises epilépticas anotadas ($\text{label} = 1$) em janelas de 1 segundo sem sobreposição, e amostra aleatoriamente janelas de fundo sem crise ($\text{label} = 0$) para balanceamento local de dados.
-	\end{itemize}
-	
-	\section{Etapa 3: Treinamento e Validação do Classificador (\texttt{svm\_training.py})}
-	
-	\subsection{Classe \texttt{LinearSVM(nn.Module)}}
-	\begin{itemize}
-		\item \textbf{Motivo da Existência}: Implementa um classificador SVM com kernel linear como um módulo customizado em PyTorch, operando a fronteira hiperplana $w^T x + b$.
-		\item \textbf{Equação da Fronteira de Decisão}:
-		\begin{equation}
-			f(\mathbf{x}) = \mathbf{w}^T \mathbf{x} + b
-		\end{equation}
-	\end{itemize}
-	
-	\subsection{Funções \texttt{fit\_scaler(X)} e \texttt{apply\_scaler(X, mean, std)}}
-	\begin{itemize}
-		\item \textbf{Motivo da Existência}: O SVM é sensível à escala dos atributos devido ao termo de regularização da norma $\|w\|^2$. O escalonamento $Z$-score padroniza cada atributo para ter média zero e desvio padrão unitário. [isso é pré-processamento sugerido pelo scikit learn]
-		\item \textbf{Formulação Matemática}:
-		\begin{equation}
-			\mu_j = \frac{1}{N}\sum_{i=1}^N X_{i,j}, \quad \sigma_j = \sqrt{\frac{1}{N}\sum_{i=1}^N (X_{i,j} - \mu_j)^2}
-		\end{equation}
-		\begin{equation}
-			\hat{X}_{i,j} = \frac{X_{i,j} - \mu_j}{\sigma_j + \epsilon}
-		\end{equation}
-	\end{itemize}
-	
-	\subsection{Função \texttt{train\_linear\_svm(X, y, C, epochs, lr, ...)}}
-	\begin{itemize}
-		\item \textbf{Motivo da Existência}: Otimiza os pesos $\mathbf{w}$ e bias $b$ do modelo minimizando a função de perda de margem suave (\textit{soft-margin hinge loss}) via otimizador Adam em ambiente GPU/CPU.
-		\item \textbf{Formulação Matemática do Objetivo Primal}:
-		Considerando rótulos transformados $y_i \in \{-1, +1\}$ e pesos de classe $w_i$, a função de custo total $L(\mathbf{w}, b)$ otimizada é:
-		\begin{equation}
-			\min_{\mathbf{w}, b} \left[ \frac{1}{2} \|\mathbf{w}\|^2 + C \cdot \frac{1}{N} \sum_{i=1}^{N} w_i \cdot \max\left(0, 1 - y_i (\mathbf{w}^T \mathbf{x}_i + b)\right) \right]
-		\end{equation}
-		Onde $C$ é a constante de regularização que equilibra a largura da margem e o erro de classificação.
-	\end{itemize}
-	
-	\subsection{Função \texttt{compute\_metrics(y\_true, y\_pred)}}
-	\begin{itemize}
-		\item \textbf{Motivo da Existência}: Avalia clinicamente o desempenho do modelo no diagnóstico do padrão ictal usando a matriz de confusão: Verdadeiros Positivos ($TP$), Verdadeiros Negativos ($TN$), Falsos Positivos ($FP$) e Falsos Negativos ($FN$).
-		\item \textbf{Métricas}:
-		\begin{equation}
-			\text{Acurácia (Acc)} = \frac{TP + TN}{TP + TN + FP + FN}
-		\end{equation}
-		\begin{equation}
-			\text{Sensibilidade (Recall)} = \frac{TP}{TP + FN}
-		\end{equation}
-		\begin{equation}
-			\text{Especificidade (Spe)} = \frac{TN}{TN + FP}
-		\end{equation}
-	\end{itemize}
-	
-	\subsection{Função \texttt{train\_patient\_specific\_models(...)}}
-	\begin{itemize}
-		\item \textbf{Motivo da Existência}: Executa o fluxo de treinamento individualizado por paciente.
-		\item \textbf{Estratégia de Validação}:
-		\begin{enumerate}
-			\item Divisão Cronológica: Os primeiros $50\%$ das janelas ordenadas no tempo são destinados ao treino, e os $50\%$ restantes ao teste.
-			\item Otimização de Hiperparâmetros: Realiza validação cruzada estratificada em $K$ pastas (\textit{Stratified $K$-Fold CV}) sobre o conjunto de treino para definir a melhor constante $C \in \{0.001, 0.01, 0.1, 1, 10, 100\}$.
-			\item Re-treinamento e Teste: Re-treina o modelo com o melhor $C$ selecionado sobre todo o conjunto de treino e realiza a predição cega no conjunto de teste futuro.
-		\end{enumerate}
-	\end{itemize}
+
 
 	\section{Resultados}
 	TODO

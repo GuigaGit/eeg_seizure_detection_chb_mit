@@ -131,4 +131,47 @@ L.~Murali, D.~Chitra, T.~Manigandan, and B.~Sharanya.
   detection in eeg signal.
 \newblock {\em Circuits, Systems, and Signal Processing}, 35:2914--2931, 2016.
 
+\bibitem{strogatz2015nonlinear}
+Steven~H. Strogatz.
+\newblock {\em Nonlinear Dynamics and Chaos: With Applications to Physics,
+  Biology, Chemistry, and Engineering}.
+\newblock Westview Press, 2 edition, 2015.
+
+\bibitem{rosenstein1993practical}
+Michael~T. Rosenstein, James~J. Collins, and Carlo~J. De~Luca.
+\newblock A practical method for calculating largest {Lyapunov} exponents from
+  small data sets.
+\newblock {\em Physica D: Nonlinear Phenomena}, 65(1--2):117--134, 1993.
+
+\bibitem{takens1981detecting}
+Floris Takens.
+\newblock Detecting strange attractors in turbulence.
+\newblock In David Rand and Lai-Sang Young, editors, {\em Dynamical Systems and
+  Turbulence, Warwick 1980}, volume 898 of {\em Lecture Notes in Mathematics},
+  pages 366--381. Springer, 1981.
+
+\bibitem{fraser1986independent}
+Andrew~M. Fraser and Harry~L. Swinney.
+\newblock Independent coordinates for strange attractors from mutual
+  information.
+\newblock {\em Physical Review A}, 33(2):1134--1140, 1986.
+
+\bibitem{kennel1992determining}
+Matthew~B. Kennel, Reggie Brown, and Henry D.~I. Abarbanel.
+\newblock Determining embedding dimension for phase-space reconstruction using
+  a geometrical construction.
+\newblock {\em Physical Review A}, 45(6):3403--3411, 1992.
+
+\bibitem{may1976simple}
+Robert~M. May.
+\newblock Simple mathematical models with very complicated dynamics.
+\newblock {\em Nature}, 261(5560):459--467, 1976.
+
+\bibitem{iasemidis1990phase}
+Leonidas~D. Iasemidis, J.~Chris Sackellares, Hitten~P. Zaveri, and William~J.
+  Williams.
+\newblock Phase space topography and the {Lyapunov} exponent of
+  electrocorticograms in partial seizures.
+\newblock {\em Brain Topography}, 2(3):187--201, 1990.
+
 \end{thebibliography}
