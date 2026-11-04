@@ -1,66 +1,95 @@
 \begin{thebibliography}{10}
 
+\bibitem{physionet_chbmit}
+Ali Shoeb.
+\newblock {CHB-MIT} scalp {EEG} database, 2009.
+\newblock URL: \url{https://physionet.org/content/chbmit/1.0.0/}.
+
+\bibitem{ansel2024pytorch2}
+Jason Ansel, Edward Yang, Horace He, Natalia Gimelshein, Animesh Jain, Michael
+  Voznesensky, Bin Bao, Peter Bell, David Berard, Evgeni Burovski, et~al.
+\newblock {PyTorch} 2: Faster machine learning through dynamic {Python}
+  bytecode transformation and graph compilation.
+\newblock In {\em 29th ACM International Conference on Architectural Support
+  for Programming Languages and Operating Systems, Volume 2 (ASPLOS '24)}. ACM,
+  apr 2024.
+\newblock URL: \url{https://docs.pytorch.org/assets/pytorch2-2.pdf}, \href
+  {https://doi.org/10.1145/3620665.3640366}
+  {\path{doi:10.1145/3620665.3640366}}.
+
 \bibitem{einstein_epilepsia}
 Hospital Israelita~Albert Einstein.
 \newblock Epilepsia - glossário de saúde.
+\newblock Acesso em: 14 abr. 2026.
 \newblock URL: \url{https://www.einstein.br/n/glossario-de-saude/epilepsia}.
 
 \bibitem{who_epilepsy}
 World~Health Organization.
 \newblock Epilepsy fact sheet.
+\newblock Acesso em: 14 abr. 2026.
 \newblock URL: \url{https://www.who.int/news-room/fact-sheets/detail/epilepsy}.
 
 \bibitem{pmc11960332}
-PMC.
+John Agbo, Zainab~G. Ibrahim, Shehu~Y. Magaji, Yahkub~Babatunde Mutalub,
+  Philemon~Paul Mshelia, and Daniel~H. Mhya.
 \newblock Therapeutic efficacy of voltage-gated sodium channel inhibitors in
   epilepsy.
-\newblock {\em PubMed Central}, 2024.
-\newblock URL: \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC11960332/}.
+\newblock {\em Acta Epileptologica}, 5(1):16, 2023.
+\newblock URL: \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC11960332/}, \href
+  {https://doi.org/10.1186/s42494-023-00127-2}
+  {\path{doi:10.1186/s42494-023-00127-2}}.
 
 \bibitem{epilepsiabrasil_sudep}
 Associação~Brasileira de~Epilepsia.
-\newblock O que é sudep?
+\newblock O que é {SUDEP}?
+\newblock Acesso em: 14 abr. 2026.
 \newblock URL: \url{https://epilepsiabrasil.org.br/sudep/}.
 
 \bibitem{alta_eeg}
 Alta Diagnósticos.
-\newblock Eletroencefalograma (eeg): O que é, para que serve e como é feito.
+\newblock Eletroencefalograma ({EEG}): O que é, para que serve e como é
+  feito.
+\newblock Acesso em: 14 abr. 2026.
 \newblock URL:
   \url{https://altadiagnosticos.com.br/saude/eletroencefalograma/}.
 
-\bibitem{physionet_chbmit}
-Ali Shoeb.
-\newblock Chb-mit scalp eeg database, 2009.
-\newblock URL: \url{https://physionet.org/content/chbmit/1.0.0/}.
+\bibitem{epilepsycom_eeg}
+Epilepsy Foundation.
+\newblock {EEG} (electroencephalogram) diagnosis.
+\newblock Acesso em: 14 abr. 2026.
+\newblock URL: \url{https://www.epilepsy.com/diagnosis/eeg}.
 
 \bibitem{shoeb2009application}
 Ali~Hossam Shoeb.
 \newblock {\em Application of machine learning to epileptic seizure onset
   detection and treatment}.
 \newblock PhD thesis, Massachusetts Institute of Technology, 2009.
+\newblock URL: \url{https://dspace.mit.edu/handle/1721.1/54669}.
 
 \bibitem{ihle2012epilepsiae}
 Matthias Ihle, Hinnerk Feldwisch-Drentrup, C{\'e}sar~A Teixeira, Adrien Witon,
   Bj{\"o}rn Schelter, Jens Timmer, and Andreas Schulze-Bonhage.
-\newblock Epilepsiae--a european epilepsy database.
+\newblock {EPILEPSIAE}--a {European} epilepsy database.
 \newblock {\em Computer methods and programs in biomedicine}, 106(3):127--138,
   2012.
 
 \bibitem{freiburg_project}
 Freiburg Seizure~Prediction Project.
-\newblock Publications and eeg database.
+\newblock Publications and {EEG} database.
+\newblock Acesso em: 14 abr. 2026.
 \newblock URL:
   \url{https://www.epilepsy.uni-freiburg.de/freiburg-seizure-prediction-project/publications}.
 
 \bibitem{paveiestudo}
 J~Pavei, R~Walz, and JLB Marques.
 \newblock Estudo de biomarcadores para predi{\c{c}}{\~a}o de crises
-  epil{\'e}pticas utilizando ecg.
+  epil{\'e}pticas utilizando {ECG}.
 
 \bibitem{ufDelRei_premio}
 Universidade~Federal de~São João Del-Rei.
 \newblock Pesquisa sobre controle de epilepsia é premiada em congresso
   nacional.
+\newblock Acesso em: 14 abr. 2026.
 \newblock URL: \url{https://ufsj.edu.br/noticias_ler.php?codigo_noticia=7245}.
 
 \bibitem{mourad2025lightweight}
@@ -86,7 +115,8 @@ Yonglin Wu, Jionghui Liu, Yangyang Yuan, Haoran Ren, Chenyun Dai, and Yao Guo.
 
 \bibitem{unaeuropa_epilepsy}
 Una Europa.
-\newblock Una europa epilepsy data challenge.
+\newblock {Una Europa} epilepsy data challenge.
+\newblock Acesso em: 14 abr. 2026.
 \newblock URL:
   \url{https://www.una-europa.eu/calendar/una-europa-epilepsy-data-challenge}.
 
@@ -94,21 +124,21 @@ Una Europa.
 Miguel Bhagubai, Christos Chatzichristos, Lauren Swinnen, Jaiver Macea, Jingwei
   Zhang, Lieven Lagae, Katrien Jansen, Andreas Schulze-Bonhage, Francisco
   Sales, Benno Mahler, et~al.
-\newblock Seizeit2: Wearable dataset of patients with focal epilepsy.
+\newblock {SeizeIT2}: Wearable dataset of patients with focal epilepsy.
 \newblock {\em Scientific Data}, 12(1):1228, 2025.
 
 \bibitem{prasanna2021automated}
 J~Prasanna, MSP Subathra, Mazin~Abed Mohammed, Robertas
   Dama{\v{s}}evi{\v{c}}ius, Nanjappan~Jothiraj Sairamya, and S~Thomas George.
 \newblock Automated epileptic seizure detection in pediatric subjects of
-  chb-mit eeg database—a survey.
+  {CHB-MIT} {EEG} database---a survey.
 \newblock {\em Journal of Personalized Medicine}, 11(10):1028, 2021.
 
 \bibitem{zabihi2015analysis}
 Morteza Zabihi, Serkan Kiranyaz, Ali~Bahrami Rad, Aggelos~K Katsaggelos, Moncef
   Gabbouj, and Turker Ince.
-\newblock Analysis of high-dimensional phase space via poincar{\'e} section for
-  patient-specific seizure detection.
+\newblock Analysis of high-dimensional phase space via {P}oincar{\'e} section
+  for patient-specific seizure detection.
 \newblock {\em IEEE Transactions on Neural Systems and Rehabilitation
   Engineering}, 24(3):386--398, 2015.
 
@@ -128,8 +158,17 @@ F.~Alickovic, J.~Kevric, and A.~Subasi.
 \bibitem{murali2016efficient}
 L.~Murali, D.~Chitra, T.~Manigandan, and B.~Sharanya.
 \newblock An efficient adaptive filter architecture for improving the seizure
-  detection in eeg signal.
+  detection in {EEG} signal.
 \newblock {\em Circuits, Systems, and Signal Processing}, 35:2914--2931, 2016.
+
+\bibitem{aboghazalah2024arrhythmia}
+Maie Aboghazalah, Passent El-kafrawy, Abdelmoty~M. Ahmed, Rasha Elnemr,
+  Belgacem Bouallegue, and Ayman El-sayed.
+\newblock Arrhythmia detection by using chaos theory with machine learning
+  algorithms.
+\newblock {\em Computers, Materials \& Continua}, 79(3):3855--3875, 2024.
+\newblock \href {https://doi.org/10.32604/cmc.2023.039936}
+  {\path{doi:10.32604/cmc.2023.039936}}.
 
 \bibitem{strogatz2015nonlinear}
 Steven~H. Strogatz.
@@ -162,16 +201,10 @@ Matthew~B. Kennel, Reggie Brown, and Henry D.~I. Abarbanel.
   a geometrical construction.
 \newblock {\em Physical Review A}, 45(6):3403--3411, 1992.
 
-\bibitem{may1976simple}
-Robert~M. May.
-\newblock Simple mathematical models with very complicated dynamics.
-\newblock {\em Nature}, 261(5560):459--467, 1976.
-
-\bibitem{iasemidis1990phase}
-Leonidas~D. Iasemidis, J.~Chris Sackellares, Hitten~P. Zaveri, and William~J.
-  Williams.
-\newblock Phase space topography and the {Lyapunov} exponent of
-  electrocorticograms in partial seizures.
-\newblock {\em Brain Topography}, 2(3):187--201, 1990.
+\bibitem{scikitlearn_svm}
+{scikit-learn developers}.
+\newblock Support vector machines --- {scikit-learn} documentation.
+\newblock Acesso em: 3 nov. 2026.
+\newblock URL: \url{https://scikit-learn.org/stable/modules/svm.html}.
 
 \end{thebibliography}
