@@ -54,10 +54,10 @@
 	
 	Dezenas de milhões de pessoas no mundo sofrem com doenças e distúrbios neurológicos, como por exemplo doença de Alzheimer, Parkinson e Epilepsia. O acompanhamento e tratamento dos pacientes com esses distúrbios muitas vezes utiliza como principal ferramenta os exames de eletroencefalograma (EEG). O EEG é capaz de transcrever as atividades elétricas do cérebro em uma série temporal de dados que virá a ser analisada por profissionais da área em questão.
 	
-	A epilepsia é objeto de estudo de diversos profissionais da área de engenharia biomédica por conta da sua natureza elétrica. Médicos e especialistas conseguem distinguir sinais de EEG de momentos de crises epilépticas de sinais de EEG que não representam crises; além de catalogar o tipo de crise em questão.
+	Médicos e especialistas conseguem distinguir sinais de EEG de momentos de crises epilépticas de sinais de EEG que não representam crises; além de catalogar o tipo de crise em questão.
 	Partindo da premissa de que a análise visual realizada por especialistas permite a identificação e classificação dessas crises, a literatura propõe que algoritmos de aprendizado de máquina podem ser treinados para extrair padrões semelhantes de forma automatizada.
 	
-	Neste projeto de pesquisa foi proposto uma revisão bibliográfica, com estudo, replica e potencial aprimoramento de alguns algoritmos propostos pela literatura focados em detecção de crises (ou classificação entre um sinal que representa o cérebro no estados com e sem crise epiléptica). 
+	Neste projeto de pesquisa [não é mais projeto de pesquisa e sim dissertação] foi proposto uma revisão bibliográfica, com estudo, replica e potencial aprimoramento de alguns algoritmos propostos pela literatura focados em detecção de crises (ou classificação entre um sinal que representa o cérebro no estados com e sem crise epiléptica). 
 	
 	Para atingir tal objetivo foi utilizado o banco de dados público CHB-MIT Scalp Database \cite{physionet_chbmit}, com sinais já rotulados por profissionais da área neurológica. Os algoritmos de aprendizado de máquina foram implementados com a biblioteca PyTorch \cite{ansel2024pytorch2} implementada em Python. O computador usado nos treinamentos era um [colocar as especificações da Lecun].
 	
@@ -120,6 +120,10 @@
 	
 	\section{Introdução}
 	
+	[no geral precisa organizar melhor a fluidez do texto]
+	[no fim da introdução precisa falar como o trabalho todo está organizado]
+	[o inicio de cada seção explica como aquela seção está organizada]
+	
 	\vspace{0.5cm} % Dá um pequeno espaço entre o título e o texto do resumo
 	
 	\noindent % O \noindent impede que a primeira linha do texto sofra o recuo padrão de parágrafo, deixando-o alinhado à nova margem.
@@ -141,6 +145,10 @@
 	Na literatura há diversas abordagens para a detecção automática de crises de epilepsia utilizando sinais de EEG. Os resultados de cada abordagem variam conforme o domínio de extração de características do sinal e o classificador escolhido. A partir de dados do artigo de revisão ``Automated Epileptic Seizure Detection in Pediatric Subjects of CHB-MIT EEG Database—A Survey'' \cite{prasanna2021automated}, um trabalho que compila informações sobre estudos de detecção de crises epilépticas, foi feito um levantamento que relaciona alguns algoritmos com os resultados em detecção de crises. Os resultados de alguns algoritmos podem ser visto na tabela 1.
 	
 	[mudar essa tabela para colocar explicitamente resultados de algoritmos que usam teoria do caos]
+	[fazer um paragrafo explicando a tabela. Os nomes tão meio jogados]
+	[colocar o conteudo em portugues]
+	[Talvez o conteudo esteja em desacordo com a teoria]
+	
 	\begin{table}[H]
 		\centering
 		\caption{Comparação de Algoritmos para Detecção de Crises Epilépticas}
@@ -163,7 +171,7 @@
 		}
 	\end{table}
 	
-	
+	[Esse trecho ficou esquisito. Tá com cara de apostila]
 	Não há consenso na literatura sobre quais devem ser as métricas de qualidade de um algoritmo de detecção de crises epiléticas. Mas as principais são:
 	
 	\textbf{Acurácia (Accuracy)} \\
@@ -216,7 +224,7 @@
 	Ter diferentes modelos para o mesmo sistema é útil por alguns motivos:
 	\begin{itemize}
 		\item Cada modelo evidencia um aspecto diferente do mesmo fenômeno. Uma crise pode aparecer como um aumento de amplitude no tempo, como a concentração de energia em uma faixa de frequência ou como uma trajetória mais regular no espaço de fase. Um aspecto difícil de observar sob um modelo pode ser evidente sob outro.
-		\item As características extraídas de modelos diferentes tendem a ser complementares, e por isso é comum combinar características de mais de um domínio em um mesmo classificador. A própria cadeia de processamento deste trabalho (Seção~\ref{subsec:caos_eeg}) combina dois modelos: a trajetória é reconstruída segundo a teoria do caos, mas os pontos de intersecção com a seção de Poincaré são resumidos por estatísticas do domínio do tempo.
+		\item As características extraídas de modelos diferentes tendem a ser complementares, e por isso é comum combinar características de mais de um domínio em um mesmo classificador. A própria cadeia de processamento deste trabalho [evitar falar coisas que ainda vão ser vistas no futuro do texto](Seção~\ref{subsec:caos_eeg}) combina dois modelos: a trajetória é reconstruída segundo a teoria do caos, mas os pontos de intersecção com a seção de Poincaré são resumidos por estatísticas do domínio do tempo.
 		\item A escolha do modelo é uma hipótese de trabalho, e não uma afirmação sobre a natureza do cérebro. Comparar o desempenho de classificadores construídos sobre modelos diferentes é uma forma empírica de descobrir qual aspecto do sinal melhor separa os regimes com e sem crise.
 		\item Os modelos diferem em custo computacional e em interpretabilidade. Características do domínio do tempo são baratas de calcular, o que é relevante para os dispositivos vestíveis citados na Introdução, enquanto as características de caos exigem a reconstrução do espaço de fase e buscas de vizinhos mais próximos. No outro extremo, o aprendizado profundo dispensa a escolha explícita de um modelo, mas em troca perde a interpretação física do que a rede aprendeu.
 	\end{itemize}
@@ -238,15 +246,16 @@
 			\midrule
 			\textbf{Domínio do tempo} & Processo aleatório: um sinal que varia ao longo do tempo & Mudança na distribuição: formato da curva  & Momentos (média, variância, assimetria, curtose), cruzamentos por zero, \textit{line length} \\
 			\midrule
-			\textbf{Domínio da frequência} & Conjunto de osciladores: soma de ritmos (delta, teta, alfa, beta, gama), cada um com sua frequência & Mudança na distribuição de energia entre as frequências: um ritmo domina e fica muito forte e sincronizado & Periodograma, PSD (densidade espectral de potência), potência por banda, frequência dominante \\
+			\textbf{Domínio da frequência} & Conjunto de osciladores: soma do comportamento de várias bandas [trocar pela letra em si, e nao o nome dela](delta, teta, alfa, beta, gama) & Mudança na distribuição de energia entre as frequências: uma banda domina dependendo do estado do cérebro & Periodograma, PSD (densidade espectral de potência), potência por banda, frequência dominante \\
 			\midrule
-			\textbf{Domínio tempo-frequência} & Oscilador que muda no tempo: os ritmos não são estáticos, e suas frequências variam a cada instante & Padrão que evolui: a frequência e a energia mudam de forma característica ao longo da crise (início, propagação, fim) & Espectrograma (STFT), \textit{wavelets} (CWT, DWT), energia por sub-banda, EMD \\
+			\textbf{Domínio tempo-frequência} &  &  & Espectrograma (STFT), \textit{wavelets} (CWT, DWT), energia por sub-banda, EMD \\
 			\midrule
 			\textbf{Aprendizado profundo} (\textit{Deep Learning}) & Caixa-preta: não se assume um modelo, a rede aprende direto dos dados & Sem interpretação: é o padrão que a rede aprendeu a separar & Aprendidas automaticamente pela rede (sem extração manual de características) \\
 			\bottomrule
 		\end{tabular}
 	\end{table}
 
+	[Eu to um pouco confuso sobre a real diferença entre oq eh o cerebro pro modelo em frequencia vs tempo-frequencia. O artigo publicado junto com o CHB MIT fala sobre detecção de crise. Entender se ele fala sobre tempo-frequencia ou só frequencia]
 	\subsection{Teoria Base}
 	\label{subsec:teoria_base}
 	\noindent
@@ -278,9 +287,13 @@
 	Vamos analisar o pêndulo simples como um sistema dinâmico. O estado é a tupla composta pelo ângulo de deslocamento do pêndulo e a velocidade do mesmo (com direção e sentido). Todas as possíveis combinações de velocidade e ângulo (ou posição) para esse pêndulo formam o espaço de estados. A posição de onde se solta o pêndulo e sua velocidade no instante inicial definem a condição inicial. As figuras 1, 2 e 3 mostram interpretações visuais dos conceitos apresentados.
 	O sistema pendulo amortecido pode ser escrito como:
 	
+	[trocar titulos e eixos para portugues pq o texto todo ta em portugues]
 	\begin{equation}
 		\ddot{\theta} = -\left(\frac{g}{L}\right)\theta - b\dot{\theta}
 	\end{equation}
+	[tirar a barrinha deslizante embaixo]
+	[fonte ta pequena dos eixos e do titulo]
+	[trocar fonte para computer Modern - q eh a nativa do Latex]
 	
 	em que ``b'' é a constante de amortecimento do movimento. Para b = 0 o pêndulo é ideal e não dissipa energia.
 	
