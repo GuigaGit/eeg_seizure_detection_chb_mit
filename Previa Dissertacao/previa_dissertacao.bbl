@@ -59,6 +59,37 @@ Epilepsy Foundation.
 \newblock Acesso em: 14 abr. 2026.
 \newblock URL: \url{https://www.epilepsy.com/diagnosis/eeg}.
 
+\bibitem{jasper1958ten}
+Herbert~H. Jasper.
+\newblock The ten-twenty electrode system of the international federation.
+\newblock {\em Electroencephalography and Clinical Neurophysiology},
+  10:371--375, 1958.
+
+\bibitem{acharya2016acns}
+Jayant~N. Acharya, Abeer Hani, Janna Cheek, Partha Thirumala, and Tammy~N.
+  Tsuchida.
+\newblock American clinical neurophysiology society guideline 2: Guidelines for
+  standard electrode position nomenclature.
+\newblock {\em Journal of Clinical Neurophysiology}, 33(4):308--311, 2016.
+\newblock \href {https://doi.org/10.1097/WNP.0000000000000316}
+  {\path{doi:10.1097/WNP.0000000000000316}}.
+
+\bibitem{tomaton124_10_20}
+{TOMATON124}.
+\newblock 21 electrodes of international 10-20 system for eeg.
+\newblock 1 ilustração, 2010.
+\newblock Acesso em: 11 nov. 2026.
+\newblock URL:
+  \url{https://pt.wikipedia.org/wiki/Ficheiro:21_electrodes_of_International_10-20_system_for_EEG.svg}.
+
+\bibitem{neuromat_touca_eeg}
+{CEPID NEUROMAT}.
+\newblock Random structures in the brain 102.
+\newblock 1 fotografia, 2017.
+\newblock Acesso em: 11 nov. 2026.
+\newblock URL:
+  \url{https://commons.wikimedia.org/wiki/File:Random_Structures_in_the_Brain_102.jpg}.
+
 \bibitem{shoeb2009application}
 Ali~Hossam Shoeb.
 \newblock {\em Application of machine learning to epileptic seizure onset

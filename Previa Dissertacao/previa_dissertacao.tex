@@ -52,18 +52,16 @@
 	
 	\noindent % O \noindent impede que a primeira linha do texto sofra o recuo padrão de parágrafo, deixando-o alinhado à nova margem.
 	
-	Dezenas de milhões de pessoas no mundo sofrem com doenças e distúrbios neurológicos, como por exemplo doença de Alzheimer, Parkinson e Epilepsia. O acompanhamento e tratamento dos pacientes com esses distúrbios muitas vezes utiliza como principal ferramenta os exames de eletroencefalograma (EEG). O EEG é capaz de transcrever as atividades elétricas do cérebro em uma série temporal de dados que virá a ser analisada por profissionais da área em questão.
+	Dezenas de milhões de pessoas no mundo sofrem com doenças e distúrbios neurológicos, como por exemplo doença de Alzheimer, Parkinson e epilepsia. O acompanhamento e tratamento dos pacientes com esses distúrbios muitas vezes utiliza como principal ferramenta os exames de eletroencefalograma (EEG). O EEG é capaz de transcrever as atividades elétricas do cérebro em uma série temporal de dados que pode ser analisado por profissionais da área em questão.
 	
-	Médicos e especialistas conseguem distinguir sinais de EEG de momentos de crises epilépticas de sinais de EEG que não representam crises; além de catalogar o tipo de crise em questão.
+	Médicos e especialistas conseguem distinguir sinais de EEG em momentos de crises epilépticas daqueles que não representam crises; além de catalogar o tipo de crise em questão.
 	Partindo da premissa de que a análise visual realizada por especialistas permite a identificação e classificação dessas crises, a literatura propõe que algoritmos de aprendizado de máquina podem ser treinados para extrair padrões semelhantes de forma automatizada.
 	
-	Neste projeto de pesquisa [não é mais projeto de pesquisa e sim dissertação] foi proposto uma revisão bibliográfica, com estudo, replica e potencial aprimoramento de alguns algoritmos propostos pela literatura focados em detecção de crises (ou classificação entre um sinal que representa o cérebro no estados com e sem crise epiléptica). 
+	Neste trabalho foi proposto uma revisão bibliográfica, com estudo e potencial aprimoramento de alguns algoritmos propostos pela literatura focados em detecção de crises. 
 	
-	Para atingir tal objetivo foi utilizado o banco de dados público CHB-MIT Scalp Database \cite{physionet_chbmit}, com sinais já rotulados por profissionais da área neurológica. Os algoritmos de aprendizado de máquina foram implementados com a biblioteca PyTorch \cite{ansel2024pytorch2} implementada em Python. O computador usado nos treinamentos era um [colocar as especificações da Lecun].
+	Para atingir tal objetivo foi utilizado o banco de dados público CHB-MIT Scalp Database \cite{physionet_chbmit}, com sinais já rotulados por profissionais da área neurológica. Os algoritmos de aprendizado de máquina foram implementados com a biblioteca PyTorch \cite{ansel2024pytorch2} do Python.
 	
-	Foi necessário estudar teoria do Caos pois parte da literatura utiliza a interpretação do cérebro como um sistema dinâmico caótico para extrair características que são usadas para alimentar os algoritmos de detecção.
-	
-	[No fim do resumo colocar alguns resultados numéricos obtidos das réplicas q eu fiz? Não sei se é pertinente pois eu estou apenas tentando replicar, e não construindo algo novo ainda]
+	[No fim do resumo colocar alguns resultados numéricos obtidos e aprimoramentos propostos]
 	%
 	\\[3\baselineskip]
 	%
@@ -119,6 +117,7 @@
 	\clearpage
 	
 	\section{Introdução}
+	\label{sec:intro}
 	
 	[no geral precisa organizar melhor a fluidez do texto]
 	[no fim da introdução precisa falar como o trabalho todo está organizado]
@@ -128,11 +127,48 @@
 	
 	\noindent % O \noindent impede que a primeira linha do texto sofra o recuo padrão de parágrafo, deixando-o alinhado à nova margem.
 	
-	A epilepsia é uma doença neurológica crônica que causa atividades elétricas anormais e inesperadas no cérebro. Essas atividades elétricas recebem o nome de “Crise Epiléptica” e podem variar desde pequenos espasmos até perda de consciência \cite{einstein_epilepsia}.
-	Dados da Organização Mundial da Saúde (OMS) de 2024 estimam que 50 milhões de pessoas no mundo são afetadas por essa doença (7 a cada 1000 pessoas) \cite{who_epilepsy}, e dentre elas, cerca de 30\% dos casos são resistentes à medicação para controlar tais crises \cite{pmc11960332}. A epilepsia resistente à medicamentos está associada a riscos elevados, como acidentes, efeitos colaterais psicológicos, cognitivos e à morte súbita, chamada de \textit{Sudden Unexpected Death in Epilepsy} (SUDEP) \cite{epilepsiabrasil_sudep}.
+	A epilepsia é uma doença neurológica crônica que causa atividades elétricas anormais e inesperadas no cérebro. Essas atividades elétricas recebem o nome de “crise epiléptica” e podem variar desde pequenos espasmos até perda de consciência \cite{einstein_epilepsia}.
+	Dados da Organização Mundial da Saúde (OMS) de 2024 estimam que 50 milhões de pessoas no mundo são afetadas por essa doença (7 a cada 1000 pessoas) \cite{who_epilepsy}, e dentre elas, cerca de 30\% dos casos são resistentes à medicação para controlar tais crises \cite{pmc11960332}. A epilepsia resistente a medicamentos está associada a riscos elevados, como acidentes, efeitos colaterais psicológicos, cognitivos e à morte súbita, chamada de \textit{Sudden Unexpected Death in Epilepsy} (SUDEP) \cite{epilepsiabrasil_sudep}.
 	
-	Por conta da natureza elétrica das crises epilépticas, a principal ferramenta utilizada para análise, caracterização e diagnóstico da epilepsia é o Eletroencefalograma (EEG). O EEG é um exame que registra a atividade elétrica do cérebro meio de eletrodos, fornecendo informações sobre o funcionamento desse órgão. O exame de EEG pode ser invasivo; em que eletrodos intracranianos são inseridos por um neurocirurgião em um paciente anestesiado; ou não invasivo; em que são colocados eletrodos na cabeça, na superfície do couro cabeludo \cite{alta_eeg}. Utilizando sinais de EEG, profissionais especializados podem identificar padrões anormais de atividade cerebral, localizar o foco das crises e classificar as síndromes epilépticas. Apesar do EEG de couro cabeludo ser amplamente utilizado por ser não invasivo, ele apresenta limitações de resolução, o que pode exigir o uso de EEG invasivo, especialmente em avaliações pré-cirúrgicas e/ou com epilepsia refratária a medicamentos \cite{epilepsycom_eeg}.
-	
+	A principal ferramenta utilizada para análise, caracterização e diagnóstico da epilepsia é o Eletroencefalograma (EEG). O EEG é um exame que registra a atividade elétrica do cérebro por meio de eletrodos, fornecendo informações sobre o funcionamento desse órgão. O exame de EEG pode ser invasivo; em que eletrodos intracranianos são inseridos por um neurocirurgião em um paciente anestesiado; ou não invasivo; em que são colocados eletrodos na cabeça, na superfície do couro cabeludo \cite{alta_eeg}. Utilizando sinais de EEG, profissionais especializados podem identificar padrões anormais de atividade cerebral, localizar o foco das crises e classificar as síndromes epilépticas. Apesar do EEG de couro cabeludo ser amplamente utilizado por ser não invasivo, ele apresenta limitações de resolução, o que pode exigir o uso de EEG invasivo, especialmente em avaliações pré-cirúrgicas e/ou com epilepsia refratária a medicamentos \cite{epilepsycom_eeg}.
+
+	No EEG de couro cabeludo, o posicionamento dos eletrodos costuma seguir o Sistema Internacional 10-20 \cite{jasper1958ten}. O nome do sistema vem do fato de que os eletrodos são distribuídos em intervalos de 10\% ou 20\% das distâncias entre pontos de referência anatômicos do crânio: o násio (depressão entre a testa e o nariz), o ínio (protuberância na parte de trás da cabeça) e os pontos pré-auriculares. Dessa forma, a montagem se ajusta ao tamanho da cabeça de cada paciente, o que torna comparáveis os registros feitos em pacientes ou em momentos diferentes. Cada eletrodo é identificado por letras que indicam a região sobre a qual ele está posicionado (Fp: frontopolar; F: frontal; C: central; T: temporal; P: parietal; O: occipital; A: auricular, usado como referência nos lóbulos das orelhas), seguidas de um número ímpar para o hemisfério esquerdo, de um número par para o hemisfério direito, ou da letra ``z'' (de \textit{zero}) para a linha média, como mostra a Figura~\ref{fig:montagem_10_20}. Na nomenclatura atualizada, os eletrodos T3, T4, T5 e T6 passaram a ser chamados de T7, T8, P7 e P8, respectivamente \cite{acharya2016acns}; esta é a nomenclatura usada nos canais do CHB-MIT. Na prática, os eletrodos costumam ser fixados em uma touca elástica (Figura~\ref{fig:touca_eeg}), o que agiliza a colocação e ajuda a manter as posições previstas pelo padrão.
+
+
+	\begin{figure}[H]
+		\centering
+		\begin{minipage}[b]{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{"montage_10_20_eeg"}
+			\caption{Posição dos 21 eletrodos do Sistema Internacional 10-20. Fonte: \cite{tomaton124_10_20}.}
+			\label{fig:montagem_10_20}
+		\end{minipage}
+		\hfill
+		\begin{minipage}[b]{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{"touca_eeg"}
+			\caption{Toucas de EEG com eletrodos posicionados em manequins. Fonte: \cite{neuromat_touca_eeg}.}
+			\label{fig:touca_eeg}
+		\end{minipage}
+	\end{figure}
+
+	As Figuras~\ref{fig:eeg_sem_crise} e \ref{fig:eeg_com_crise} mostram trechos de 15 segundos de registros do banco de dados CHB-MIT \cite{physionet_chbmit}, visualizados no próprio site do PhysioNet. Cada linha é um canal formado pela diferença de potencial entre dois eletrodos do sistema 10-20 (por exemplo, FP1-F7) e o eixo horizontal indica o tempo decorrido desde o início do registro. No trecho sem crise, o sinal é irregular e de amplitude moderada, com apenas alguns eventos isolados de maior amplitude. No trecho com crise, a partir de aproximadamente 00:50:00, a amplitude aumenta de forma abrupta e a mudança se espalha por praticamente todos os canais. É esse tipo de diferença que os especialistas identificam visualmente e que os algoritmos de detecção automática procuram reconhecer.
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.85\textwidth]{"eeg_sem_crise_chbMIT_01"}
+		\caption{Trecho de EEG sem crise epiléptica do banco de dados CHB-MIT. Fonte: captura de tela do PhysioNet \cite{physionet_chbmit}.}
+		\label{fig:eeg_sem_crise}
+
+		\vspace{0.5cm}
+
+		\includegraphics[width=0.85\textwidth]{"eeg_com_crise_chbMIT_01"}
+		\caption{Trecho de EEG com crise epiléptica do banco de dados CHB-MIT. Fonte: captura de tela do PhysioNet \cite{physionet_chbmit}.}
+		\label{fig:eeg_com_crise}
+	\end{figure}
+
+	\clearpage
+
 	A digitalização dos registros de EEG impulsionou a criação de bancos de dados, tanto públicos quanto privados. Como exemplo de banco de dados público há o CHB-MIT Scalp EEG Database \cite{physionet_chbmit}, desenvolvido a partir de um estudo conjunto entre o \textit{Children’s Hospital Boston} e o \textit{Massachusetts Institute of Technology} (MIT) \cite{shoeb2009application}. Como exemplo de banco de dados privado há o EPILEPSIAE \cite{ihle2012epilepsiae} desenvolvido pelo \textit{Seizure Prediction Project} da Universidade de Freiburg \cite{freiburg_project}. A disponibilidade desses dados favorece o desenvolvimento de técnicas computacionais voltadas à detecção, classificação e previsão de crises epilépticas. A relevância e atualidade desses temas na literatura ficam evidentes pela presença de trabalhos submetidos a congressos de processamento de sinais, tanto nacionais, como o Congresso Brasileiro de Engenharia Biomédica (CBEB) \cite{paveiestudo}\cite{ufDelRei_premio}, quanto internacionais, como o \textit{European Signal Processing Conference} (EUSIPCO) \cite{mourad2025lightweight}, \textit{International Conference on Acoustics, Speech, and Signal Processing} (ICASSP) \cite{panchavati2023pretrained} e o \textit{Engineering in Medicine and Biology Conference} (EMBC) \cite{wu2024enhancing}. O engajamento da comunidade científica também se mostra na promoção de iniciativas como o ``Una Europa Epilepsy Data Challenge'' \cite{unaeuropa_epilepsy}, um desafio internacional criado em 2025 para fomentar o aprimoramento de algoritmos na detecção de crises utilizando uma base de dados preparado para dispositivos vestíveis (\textit{wearables}) \cite{bhagubai2025seizeit2}.
 	
 	Atualmente diversos modelos de detecção de crises epilépticas têm alcançado resultados considerados satisfatórios para classificar sinais que representam crises e separá-los dos sinais sem crise. Mesmo assim há desafios significativos em aberto. Alguns desafios da detecção de crises epilépticas são:
@@ -210,8 +246,30 @@
 
 	Na revisão da literatura nota-se que cada estudo citado escolhe relatar as métricas que melhor validam seus resultados de pesquisa. Essa escolha está associada ao objetivo do estudo (por exemplo, criar um alarme rápido, criar um diagnóstico preciso) e não uma exigência inerente à matemática do classificador escolhido.
 	
+	\section{Banco de Dados}
+	\noindent
+	O banco de dados escolhido para desenvolver esse trabalho foi o CHB-MIT pois é um banco de dados público bastante utilizado na literatura. Os registros têm amostragem de 256Hz, resolução de 16 bits e eletrodos no sistema 10-20 de montagem bipolar, em que a leitura do sinal elétrico usa como referência outro eletrodo, e não uma referência única para todos os eletrodos. Por isso cada canal possui o nome em duas parte (ex.: FP1-F7); o primeiro nome é a região do eletrodo lido e o segundo é a referência.
+	[Colocar foto da montagem 10-20]
+	[Colocar foto de um sinal de EEG saudável e de um sinal com crise]
 	
-	\section{Abordagem Não-Linear - Teoria do Caos}
+	A maior parte dos arquivos tem 23 canais. [Voltar no documento da physionet e ver se o artigo atrelado ao banco de dados explica pq tem alguns arquivos que falta canal]. Entre arquivos consevutivos há lacunas de cerca de 10 segundos por conta de limitações de hardware durante a caputra dos dados de EEG [isso tá explícito no artigo]. Os intervalos de crise são extraídos dos arquivos "<nome-do-canal>-summary.txt"
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.5\textwidth]{"estrutura_banco_de_dados"}
+		\caption{Estrutura do Banco de Dados CHB-MIT}
+	\end{figure}
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.5\textwidth]{"caso_com_crise_banco_de_dados"}
+		\caption{Estrutura do Banco de Dados para o caso com crise}
+	\end{figure}
+	
+	A página do PhysioNet (onde o banco de dados está hospedado) e o artigo atrelado ao banco não cita a remoção de artefatos ou filtragem feita previamente à publicação do banco de dados. [Pegar lastro em artigos que usam esse banco de dados de que eles também não tratam de nenhuma forma os dados do banco]. [também não lembro de ter lido ninguem reclamar sobre a presença do 60Hz]
+	Os autores explicitam que usaram trechos de pelo menos 24 horas de EEG sem crise por paciente para incluir trechos de sono e artefatos. 
+	
+	\section{Teoria do Caos}
 	\label{sec:caos}
 	\noindent
 
@@ -510,29 +568,6 @@
 	
 	[\url{https://en.wikipedia.org/wiki/Support_vector_machine} - Explicação matemática de como implementar]
 	[\url{https://www.geeksforgeeks.org/machine-learning/support-vector-machine-algorithm/}]
-	
-	\section{Banco de Dados}
-	\noindent
-	O banco de dados escolhido para desenvolver esse trabalho foi o CHB-MIT pois é um banco de dados público bastante utilizado na literatura. Os registros têm amostragem de 256Hz, resolução de 16 bits e eletrodos no sistema 10-20 de montagem bipolar, em que a leitura do sinal elétrico usa como referência outro eletrodo, e não uma referência única para todos os eletrodos. Por isso cada canal possui o nome em duas parte (ex.: FP1-F7); o primeiro nome é a região do eletrodo lido e o segundo é a referência.
-	[Colocar foto da montagem 10-20]
-	[Colocar foto de um sinal de EEG saudável e de um sinal com crise]
-	
-	A maior parte dos arquivos tem 23 canais. [Voltar no documento da physionet e ver se o artigo atrelado ao banco de dados explica pq tem alguns arquivos que falta canal]. Entre arquivos consevutivos há lacunas de cerca de 10 segundos por conta de limitações de hardware durante a caputra dos dados de EEG [isso tá explícito no artigo]. Os intervalos de crise são extraídos dos arquivos "<nome-do-canal>-summary.txt"
-	
-	\begin{figure}[htbp]
-		\centering
-		\includegraphics[width=0.5\textwidth]{"estrutura_banco_de_dados"}
-		\caption{Estrutura do Banco de Dados CHB-MIT}
-	\end{figure}
-	
-	\begin{figure}[htbp]
-		\centering
-		\includegraphics[width=0.5\textwidth]{"caso_com_crise_banco_de_dados"}
-		\caption{Estrutura do Banco de Dados para o caso com crise}
-	\end{figure}
-	
-	A página do PhysioNet (onde o banco de dados está hospedado) e o artigo atrelado ao banco não cita a remoção de artefatos ou filtragem feita previamente à publicação do banco de dados. [Pegar lastro em artigos que usam esse banco de dados de que eles também não tratam de nenhuma forma os dados do banco]. [também não lembro de ter lido ninguem reclamar sobre a presença do 60Hz]
-	Os autores explicitam que usaram trechos de pelo menos 24 horas de EEG sem crise por paciente para incluir trechos de sono e artefatos. 
 	
 
 

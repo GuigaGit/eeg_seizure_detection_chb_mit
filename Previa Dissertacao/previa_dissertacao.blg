@@ -12,45 +12,45 @@ Reallocating 'singl_function' (item size: 4) to 100 items.
 Database file #1: referencias_epilepsia.bib
 Warning--empty journal in paveiestudo
 Warning--empty year in paveiestudo
-You've used 30 entries,
+You've used 34 entries,
             2616 wiz_defined-function locations,
-            762 strings with 11381 characters,
-and the built_in function-call counts, 10696 in all, are:
-= -- 1030
-> -- 422
+            788 strings with 12207 characters,
+and the built_in function-call counts, 12038 in all, are:
+= -- 1177
+> -- 457
 < -- 5
-+ -- 140
-- -- 110
-* -- 515
-:= -- 1407
-add.period$ -- 107
-call.type$ -- 30
-change.case$ -- 29
++ -- 152
+- -- 118
+* -- 570
+:= -- 1576
+add.period$ -- 124
+call.type$ -- 34
+change.case$ -- 33
 chr.to.int$ -- 0
-cite$ -- 32
-duplicate$ -- 301
-empty$ -- 1209
-format.name$ -- 110
-if$ -- 3020
+cite$ -- 36
+duplicate$ -- 333
+empty$ -- 1368
+format.name$ -- 118
+if$ -- 3409
 int.to.chr$ -- 0
-int.to.str$ -- 30
-missing$ -- 20
-newline$ -- 165
-num.names$ -- 32
-pop$ -- 286
+int.to.str$ -- 34
+missing$ -- 22
+newline$ -- 190
+num.names$ -- 36
+pop$ -- 320
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 787
+skip$ -- 893
 stack$ -- 0
-substring$ -- 386
-swap$ -- 71
-text.length$ -- 11
+substring$ -- 438
+swap$ -- 77
+text.length$ -- 13
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
 warning$ -- 2
-while$ -- 64
-width$ -- 32
-write$ -- 342
+while$ -- 72
+width$ -- 36
+write$ -- 394
 (There were 2 warnings)
