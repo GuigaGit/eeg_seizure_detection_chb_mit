@@ -52,12 +52,12 @@
 	
 	\noindent % O \noindent impede que a primeira linha do texto sofra o recuo padrão de parágrafo, deixando-o alinhado à nova margem.
 	
-	Dezenas de milhões de pessoas no mundo sofrem com doenças e distúrbios neurológicos, como por exemplo doença de Alzheimer, Parkinson e epilepsia. O acompanhamento e tratamento dos pacientes com esses distúrbios muitas vezes utiliza como principal ferramenta os exames de eletroencefalograma (EEG). O EEG é capaz de transcrever as atividades elétricas do cérebro em uma série temporal de dados que pode ser analisado por profissionais da área em questão.
-	
-	Médicos e especialistas conseguem distinguir sinais de EEG em momentos de crises epilépticas daqueles que não representam crises; além de catalogar o tipo de crise em questão.
+	Dezenas de milhões de pessoas no mundo sofrem com doenças e distúrbios neurológicos, como por exemplo doença de Alzheimer, Parkinson e epilepsia. O acompanhamento e tratamento dos pacientes com esses distúrbios muitas vezes utiliza como principal ferramenta os exames de eletroencefalograma (EEG). O EEG é capaz de transcrever as atividades elétricas do cérebro em uma série temporal de dados que pode ser analisada por profissionais da área em questão.
+
+	Médicos e especialistas conseguem distinguir sinais de EEG obtidos durante crises epilépticas daqueles que não representam crises, além de catalogar o tipo de crise em questão.
 	Partindo da premissa de que a análise visual realizada por especialistas permite a identificação e classificação dessas crises, a literatura propõe que algoritmos de aprendizado de máquina podem ser treinados para extrair padrões semelhantes de forma automatizada.
 	
-	Neste trabalho foi proposto uma revisão bibliográfica, com estudo e potencial aprimoramento de alguns algoritmos propostos pela literatura focados em detecção de crises. 
+	Neste trabalho foi proposta uma revisão bibliográfica, com estudo e potencial aprimoramento de alguns algoritmos propostos pela literatura focados em detecção de crises. 
 	
 	Para atingir tal objetivo foi utilizado o banco de dados público CHB-MIT Scalp Database \cite{physionet_chbmit}, com sinais já rotulados por profissionais da área neurológica. Os algoritmos de aprendizado de máquina foram implementados com a biblioteca PyTorch \cite{ansel2024pytorch2} do Python.
 	
@@ -65,14 +65,13 @@
 	%
 	\\[3\baselineskip]
 	%
-	\textbf{Palavras-Chave} -- Detecção de Crises Epiléticas, Aprendizado de Máquina, Serial Vector Machine (SVM), Teoria do Caos.
+	\textbf{Palavras-Chave} -- Detecção de Crises Epilépticas, Aprendizado de Máquina, \textit{Support Vector Machine} (SVM), Teoria do Caos.
 
 	\clearpage
 
 	\section*{Lista de Siglas}
 
 	\begin{description}
-		\item[CBEB] Congresso Brasileiro de Engenharia Biomédica.
 		\item[CHB] \textit{Children's Hospital Boston}: Hospital infantil de Boston, coautor do banco de dados CHB-MIT.
 		\item[CPU] \textit{Central Processing Unit} ou Unidade Central de Processamento.
 		\item[CSV] \textit{Comma-Separated Values} ou Valores Separados por Vírgula: Formato de arquivo de texto para armazenamento de dados tabulares.
@@ -83,13 +82,10 @@
 		\item[ECOC] \textit{Error-Correcting Output Code} ou Código de Saída Corretor de Erros: Técnica de meta-aprendizado que combina múltiplos classificadores binários simples para resolver problemas complexos de classificação com várias classes.
 		\item[EDF] \textit{European Data Format}: Formato de arquivo padrão para armazenamento de sinais biomédicos, como os registros de EEG do CHB-MIT.
 		\item[EEG] Eletroencefalograma: Exame que registra a atividade elétrica do cérebro por meio de eletrodos.
-		\item[EMBC] \textit{Engineering in Medicine and Biology Conference}.
-		\item[EMD] \textit{Empirical Mode Decomposition} ou Decomposição em Modos Empíricos: Método de processamento de sinais de tempo-frequência. Utiliza processamento adaptativo para decompor sinais não-lineares e não-estacionários em componentes mais simples chamadas de \textit{Intrinsic Mode Functions} (IMF).
-		\item[EUSIPCO] \textit{European Signal Processing Conference}.
+		\item[EMD] \textit{Empirical Mode Decomposition} ou Decomposição em Modos Empíricos: Método de processamento de sinais de tempo-frequência. Utiliza processamento adaptativo para decompor sinais não lineares e não estacionários em componentes mais simples chamadas de \textit{Intrinsic Mode Functions} (IMF).
 		\item[FN] \textit{False Negative} ou Falso Negativo.
 		\item[FP] \textit{False Positive} ou Falso Positivo.
 		\item[GPU] \textit{Graphics Processing Unit} ou Unidade de Processamento Gráfico.
-		\item[ICASSP] \textit{International Conference on Acoustics, Speech, and Signal Processing}.
 		\item[IIR] \textit{Infinite Impulse Response} ou Resposta ao Impulso Infinita: Classe de filtros digitais recursivos, cuja saída depende de amostras anteriores da própria saída.
 		\item[IMF] \textit{Intrinsic Mode Function} ou Função de Modo Intrínseco: Componentes oscilatórias simples obtidas pela decomposição EMD.
 		\item[IQR] \textit{Interquartile Range} ou Amplitude Interquartil: Diferença entre o terceiro e o primeiro quartil de uma distribuição.
@@ -105,7 +101,7 @@
 		\item[PSD] \textit{Power Spectral Density} ou Densidade Espectral de Potência: Distribuição da potência de um sinal em função da frequência.
 		\item[RF] \textit{Random Forest} ou Floresta Aleatória: Algoritmo de classificação em conjunto (\textit{ensemble}) que cria várias árvores de decisão durante o treinamento e combina seus resultados para aumentar a precisão e evitar o sobreajuste (\textit{overfitting}).
 		\item[RMS] \textit{Root Mean Square} ou Valor Quadrático Médio.
-		\item[RQA] \textit{Recurrence Quantification Analysis} ou Análise de Quantificação de Recorrência: Método de análise não-linear usado para investigar o comportamento de sistemas dinâmicos no tempo, sendo útil para detectar transições de estado no cérebro.
+		\item[RQA] \textit{Recurrence Quantification Analysis} ou Análise de Quantificação de Recorrência: Método de análise não linear usado para investigar o comportamento de sistemas dinâmicos no tempo, sendo útil para detectar transições de estado no cérebro.
 		\item[STFT] \textit{Short-Time Fourier Transform} ou Transformada de Fourier de Tempo Curto: Transformada de Fourier aplicada a janelas sucessivas do sinal; o quadrado do seu módulo é o espectrograma.
 		\item[SUDEP] \textit{Sudden Unexpected Death in Epilepsy} ou Morte Súbita Inesperada na Epilepsia.
 		\item[SVD] \textit{Singular Value Decomposition} ou Decomposição em Valores Singulares: Fatoração de matrizes usada, neste trabalho, para calcular o PCA.
@@ -120,7 +116,6 @@
 	\label{sec:intro}
 	
 	[no geral precisa organizar melhor a fluidez do texto]
-	[no fim da introdução precisa falar como o trabalho todo está organizado]
 	[o inicio de cada seção explica como aquela seção está organizada]
 	
 	\vspace{0.5cm} % Dá um pequeno espaço entre o título e o texto do resumo
@@ -130,7 +125,7 @@
 	A epilepsia é uma doença neurológica crônica que causa atividades elétricas anormais e inesperadas no cérebro. Essas atividades elétricas recebem o nome de “crise epiléptica” e podem variar desde pequenos espasmos até perda de consciência \cite{einstein_epilepsia}.
 	Dados da Organização Mundial da Saúde (OMS) de 2024 estimam que 50 milhões de pessoas no mundo são afetadas por essa doença (7 a cada 1000 pessoas) \cite{who_epilepsy}, e dentre elas, cerca de 30\% dos casos são resistentes à medicação para controlar tais crises \cite{pmc11960332}. A epilepsia resistente a medicamentos está associada a riscos elevados, como acidentes, efeitos colaterais psicológicos, cognitivos e à morte súbita, chamada de \textit{Sudden Unexpected Death in Epilepsy} (SUDEP) \cite{epilepsiabrasil_sudep}.
 	
-	A principal ferramenta utilizada para análise, caracterização e diagnóstico da epilepsia é o Eletroencefalograma (EEG). O EEG é um exame que registra a atividade elétrica do cérebro por meio de eletrodos, fornecendo informações sobre o funcionamento desse órgão. O exame de EEG pode ser invasivo; em que eletrodos intracranianos são inseridos por um neurocirurgião em um paciente anestesiado; ou não invasivo; em que são colocados eletrodos na cabeça, na superfície do couro cabeludo \cite{alta_eeg}. Utilizando sinais de EEG, profissionais especializados podem identificar padrões anormais de atividade cerebral, localizar o foco das crises e classificar as síndromes epilépticas. Apesar do EEG de couro cabeludo ser amplamente utilizado por ser não invasivo, ele apresenta limitações de resolução, o que pode exigir o uso de EEG invasivo, especialmente em avaliações pré-cirúrgicas e/ou com epilepsia refratária a medicamentos \cite{epilepsycom_eeg}.
+	A principal ferramenta utilizada para análise, caracterização e diagnóstico da epilepsia é o Eletroencefalograma (EEG). O EEG é um exame que registra a atividade elétrica do cérebro por meio de eletrodos, fornecendo informações sobre o funcionamento desse órgão. O exame de EEG pode ser invasivo, quando eletrodos intracranianos são inseridos por um neurocirurgião em um paciente anestesiado, ou não invasivo, quando os eletrodos são colocados na superfície do couro cabeludo \cite{alta_eeg}. Utilizando sinais de EEG, profissionais especializados podem identificar padrões anormais de atividade cerebral, localizar o foco das crises e classificar as síndromes epilépticas. Apesar do EEG de couro cabeludo ser amplamente utilizado por ser não invasivo, ele apresenta limitações de resolução, o que pode exigir o uso de EEG invasivo, especialmente em avaliações pré-cirúrgicas e/ou com epilepsia refratária a medicamentos \cite{epilepsycom_eeg}.
 
 	No EEG de couro cabeludo, o posicionamento dos eletrodos costuma seguir o Sistema Internacional 10-20 \cite{jasper1958ten}. O nome do sistema vem do fato de que os eletrodos são distribuídos em intervalos de 10\% ou 20\% das distâncias entre pontos de referência anatômicos do crânio: o násio (depressão entre a testa e o nariz), o ínio (protuberância na parte de trás da cabeça) e os pontos pré-auriculares. Dessa forma, a montagem se ajusta ao tamanho da cabeça de cada paciente, o que torna comparáveis os registros feitos em pacientes ou em momentos diferentes. Cada eletrodo é identificado por letras que indicam a região sobre a qual ele está posicionado (Fp: frontopolar; F: frontal; C: central; T: temporal; P: parietal; O: occipital; A: auricular, usado como referência nos lóbulos das orelhas), seguidas de um número ímpar para o hemisfério esquerdo, de um número par para o hemisfério direito, ou da letra ``z'' (de \textit{zero}) para a linha média, como mostra a Figura~\ref{fig:montagem_10_20}. Na nomenclatura atualizada, os eletrodos T3, T4, T5 e T6 passaram a ser chamados de T7, T8, P7 e P8, respectivamente \cite{acharya2016acns}; esta é a nomenclatura usada nos canais do CHB-MIT. Na prática, os eletrodos costumam ser fixados em uma touca elástica (Figura~\ref{fig:touca_eeg}), o que agiliza a colocação e ajuda a manter as posições previstas pelo padrão.
 
@@ -169,98 +164,78 @@
 
 	\clearpage
 
-	A digitalização dos registros de EEG impulsionou a criação de bancos de dados, tanto públicos quanto privados. Como exemplo de banco de dados público há o CHB-MIT Scalp EEG Database \cite{physionet_chbmit}, desenvolvido a partir de um estudo conjunto entre o \textit{Children’s Hospital Boston} e o \textit{Massachusetts Institute of Technology} (MIT) \cite{shoeb2009application}. Como exemplo de banco de dados privado há o EPILEPSIAE \cite{ihle2012epilepsiae} desenvolvido pelo \textit{Seizure Prediction Project} da Universidade de Freiburg \cite{freiburg_project}. A disponibilidade desses dados favorece o desenvolvimento de técnicas computacionais voltadas à detecção, classificação e previsão de crises epilépticas. A relevância e atualidade desses temas na literatura ficam evidentes pela presença de trabalhos submetidos a congressos de processamento de sinais, tanto nacionais, como o Congresso Brasileiro de Engenharia Biomédica (CBEB) \cite{paveiestudo}\cite{ufDelRei_premio}, quanto internacionais, como o \textit{European Signal Processing Conference} (EUSIPCO) \cite{mourad2025lightweight}, \textit{International Conference on Acoustics, Speech, and Signal Processing} (ICASSP) \cite{panchavati2023pretrained} e o \textit{Engineering in Medicine and Biology Conference} (EMBC) \cite{wu2024enhancing}. O engajamento da comunidade científica também se mostra na promoção de iniciativas como o ``Una Europa Epilepsy Data Challenge'' \cite{unaeuropa_epilepsy}, um desafio internacional criado em 2025 para fomentar o aprimoramento de algoritmos na detecção de crises utilizando uma base de dados preparado para dispositivos vestíveis (\textit{wearables}) \cite{bhagubai2025seizeit2}.
+	A digitalização dos registros de EEG impulsionou a criação de bancos de dados, tanto públicos quanto privados \cite{ihle2012epilepsiae, freiburg_project}. Como exemplo de banco de dados público há o CHB-MIT Scalp EEG Database \cite{physionet_chbmit}, desenvolvido a partir de um estudo conjunto entre o \textit{Children’s Hospital Boston} e o \textit{Massachusetts Institute of Technology} (MIT) \cite{shoeb2009application}. A disponibilidade desses dados favorece o desenvolvimento de técnicas computacionais voltadas à detecção, classificação e previsão de crises epilépticas. A relevância e atualidade desses temas na literatura ficam evidentes pela quantidade de trabalhos publicados a respeito em anos recentes \cite{paveiestudo, ufDelRei_premio, mourad2025lightweight, panchavati2023pretrained, wu2024enhancing}. O engajamento da comunidade científica também se mostra na promoção de iniciativas como o ``Una Europa Epilepsy Data Challenge'' \cite{unaeuropa_epilepsy}, um desafio internacional criado em 2025 para fomentar o aprimoramento de algoritmos na detecção de crises utilizando uma base de dados preparada para dispositivos vestíveis (\textit{wearables}) \cite{bhagubai2025seizeit2}.
+
+	Na literatura há diversas abordagens para a detecção automática de crises de epilepsia utilizando sinais de EEG \cite{acharya2013automated}. Os resultados de cada abordagem variam conforme o domínio de extração de características do sinal e o classificador escolhido. A partir de dados do artigo de revisão \cite{prasanna2021automated}, foi feito um levantamento que relaciona alguns algoritmos com os resultados em detecção de crises, apresentado na Tabela~\ref{tab:comparacao_algoritmos}. As métricas de desempenho que aparecem na tabela são definidas na Seção~\ref{sec:metricas}.
+
+	[mudar essa tabela para colocar explicitamente resultados de algoritmos que usam Teoria do Caos - talvez nao]
 	
-	Atualmente diversos modelos de detecção de crises epilépticas têm alcançado resultados considerados satisfatórios para classificar sinais que representam crises e separá-los dos sinais sem crise. Mesmo assim há desafios significativos em aberto. Alguns desafios da detecção de crises epilépticas são:
-	\begin{itemize}
-		\item Variabilidade do Paciente: Algoritmos treinados com dados de um paciente ou conjunto de dados específico costumam apresentar desempenho menos satisfatório condições diferentes às de treino. Isso é devido à significativa variabilidade do sinal de EEG entre pacientes. Generalizar modelos para diferentes tipos de crises, populações demográficas e configurações de gravação é um grande desafio.
-		\item Escassez e Qualidade dos Dados: Dados de EEG anotados de alta qualidade e longo prazo são escassos devido a regulamentações de privacidade, altos custos de rotulagem e inconsistências na anotação de especialistas. A maioria dos conjuntos de dados públicos é pequena ou carece de diversidade de tipos de crises, o que pode levar ao \textit{overfitting} e a métricas de desempenho infladas.
-		\item Restrições computacionais em tempo real: Alguns algoritmos são complexos de tal forma que exigem recursos computacionais que dificultam sua incorporação em \textit{wearables} para monitoramento ambulatorial de longo prazo e em tempo real.
-	\end{itemize}
-	
-	Na literatura há diversas abordagens para a detecção automática de crises de epilepsia utilizando sinais de EEG. Os resultados de cada abordagem variam conforme o domínio de extração de características do sinal e o classificador escolhido. A partir de dados do artigo de revisão ``Automated Epileptic Seizure Detection in Pediatric Subjects of CHB-MIT EEG Database—A Survey'' \cite{prasanna2021automated}, um trabalho que compila informações sobre estudos de detecção de crises epilépticas, foi feito um levantamento que relaciona alguns algoritmos com os resultados em detecção de crises. Os resultados de alguns algoritmos podem ser visto na tabela 1.
-	
-	[mudar essa tabela para colocar explicitamente resultados de algoritmos que usam teoria do caos]
 	[fazer um paragrafo explicando a tabela. Os nomes tão meio jogados]
-	[colocar o conteudo em portugues]
+	
 	[Talvez o conteudo esteja em desacordo com a teoria]
 	
+	[Todo o conteúdo dessa tabela foi retirado do artigo de revisao "Survey" (o famoso)]
+	
+	[Uma coisa que eu acho que dá pra fazer para melhorar essa tabela é trocar ela por artigos que eu de fato consegui replicar e o desempenho que eu obtive] 
+	
+	[Do jeito q essa tabela foi construída realmente não tá boa. Melhorar]
+	
+	[procurar no google scholar se esse artigo de revisao foi citado em algum artigo mais recente. Verificar se o conteudo dela ainda vale]
+	
+	[trocar a coluna de "Características" por algo mais genérico ou explicar com mais detalhes. Explicar com mais detalhes agora pode tornar o texto muito massante. Repensar.]
+	
+	[Explicar melhor também a coluna de "classificador". Explicar cada um]
+	
+	[Explicar melhor o termo "Dominio Nao Linear". Talvez seja um erro semantico dizer a palavra "Dominio"]
 	\begin{table}[H]
 		\centering
-		\caption{Comparação de Algoritmos para Detecção de Crises Epilépticas}
+		\caption{Comparação de Algoritmos para Detecção de Crises Epilépticas. Explicitar que a tabela foi tirada de um artigo de revisao (e citar o artigo)}
 		\label{tab:comparacao_algoritmos}
 		\renewcommand{\arraystretch}{1.5}
 		\makebox[\textwidth][c]{
-			\begin{tabular}{|p{2.5cm}|p{1.8cm}|p{4.5cm}|p{2.2cm}|p{3.0cm}|}
+			\begin{tabular}{|p{2.5cm}|p{4.5cm}|p{2.2cm}|p{3.0cm}|}
 				\hline
-				\textbf{Domínio de Extração} & \textbf{Método / Estudo} & \textbf{Características Extraídas} & \textbf{Classificador} & \textbf{Desempenho Reportado} \\ \hline
+				\textbf{Domínio de Extração} & \textbf{Características Extraídas} & \textbf{Classificador} & \textbf{Desempenho Reportado} \\ \hline
 				
-				\textbf{Domínio do Tempo} & PCA \cite{zabihi2015analysis}& Quantile, Inter Quantile, Range, Shannon entropy, Root-Mean-Square, Coefficient of Variation, Energy & LDA e NB &  Sensitivity: 88,27\% \newline Specificity: 93,21\% \\ \hline
+				\textbf{Domínio do Tempo} & Quantil, amplitude interquartil, amplitude, entropia de Shannon, valor RMS, coeficiente de variação e energia & LDA e NB &  Sensibilidade: 88,27\% \newline Especificidade: 93,21\% \\ \hline
+
+				\textbf{Domínio da Frequência} & Informação de variabilidade temporal & SVM & Sensibilidade: 100\% \\ \hline
+
+				\textbf{Domínio de Tempo-Frequência} & Média dos coeficientes, potência média dos coeficientes em cada sub-banda, desvio padrão dos coeficientes, assimetria e curtose & SVM, RF, MLP e K-NN & Acurácia: 99,7\% \newline Sensibilidade: 99,65\% \newline Especificidade: 99,8\% \\ \hline
+
+				\textbf{Domínio Não Linear} & Determinismo, comprimento médio das linhas diagonais, entropia, laminaridade e tempo de aprisionamento (\textit{trapping time}) & ECOC & Sensibilidade: 97,4\% \newline Especificidade: 93,5\% \\ \hline
 				
-				\textbf{Domínio da Frequência} & Filter bank \cite{vanesbroeck2016multitask} & Temporal variability information & SVM & Sensitivity: 100\% \\ \hline
-				
-				\textbf{Domínio de Tempo-Frequência} & EMD \cite{alickovic2018performance}& Mean of coefficients, average power of coefficient in every sub-band, std-deviation of coefficients, skewness e kurtosis & SVM, RF, MLP e K-NN & Accuracy: 99,7\% \newline Sensitivity: 99,65\% \newline Specificity: 99,8\% \\ \hline
-				
-				\textbf{Domínio Não-Linear} & RQA \cite{murali2016efficient}& Determinism, Avg-diagonal line length, entropy, laminarity e trapping time & ECOC & Sensitivity: 97,4\% \newline Specificity: 93,5\% \\ \hline
-				
+				[colocar uma coluna a mais com a referencia - ou colocar em alguma das células pelo menos]
 			\end{tabular}
 		}
 	\end{table}
 	
-	[Esse trecho ficou esquisito. Tá com cara de apostila]
-	Não há consenso na literatura sobre quais devem ser as métricas de qualidade de um algoritmo de detecção de crises epiléticas. Mas as principais são:
-	
-	\textbf{Acurácia (Accuracy)} \\
-	Representa a proporção de classificações corretas em relação ao total de amostras. Essa é uma medida quantitativa do desempenho do algoritmo em detectar uma crise que realmente aconteceu (verdadeiro positivo) e de não detectar uma crise em um sinal realmente saudável (verdadeiro negativo).
-	\begin{align}
-		\text{Accuracy} &= \frac{TP + TN}{TP + TN + FP + FN} \times 100
-	\end{align}
-	
-	\vspace{0.5cm}
-	
-	\textbf{Sensibilidade (Sensitivity)} \\
-	Mede a capacidade do sistema de detectar corretamente os eventos de crise epiléptica (verdadeiros positivos); a capacidade de não deixar uma anomalia passar desapercebida.
-	\begin{align}
-		\text{Sensitivity} &= \frac{TP}{TP + FN} \times 100
-	\end{align}
-	
-	\vspace{0.5cm}
-	
-	\textbf{Especificidade (Specificity)} \\
-	Mede a capacidade do sistema de detectar corretamente os eventos que não são crises (verdadeiros negativos). Parâmetro quantitativo da capacidade do sistema de reconhecer um comportamento normal e não criar pânico a toa.
-	\begin{align}
-		\text{Specificity} &= \frac{TN}{TN + FP} \times 100
-	\end{align}
-	
-	Uma falha comum em sistemas de detecção de anomalias é o detector acusar que toda janela de análise é uma anomalia. Isso leva a casos em que a sensibilidade vai para 100\% porém a especificidade cai para 0\%.
-	
-	\vspace{0.5cm}
-	
-	\textbf{Valor Preditivo Positivo (Precision)} \\
-	Indica a proporção de eventos identificados como crise que realmente eram crises epilépticas. Essa métrica responde a pergunta "Se o sistema disse que tal momento é uma crise, o quão confiável é essa afirmação?".
-	\begin{align}
-		\text{Positive Predictive Value} &= \frac{TP}{TP + FP} \times 100
-	\end{align}
-	
-	\vspace{0.5cm}
+	Atualmente diversos modelos de detecção de crises epilépticas têm alcançado resultados considerados satisfatórios para classificar sinais que representam crises e separá-los dos sinais sem crise. Mesmo assim há desafios significativos em aberto. Alguns desafios da detecção de crises epilépticas são:
+	\begin{itemize}
+		\item Variabilidade do Paciente: algoritmos treinados com dados de um paciente ou conjunto de dados específico costumam apresentar desempenho menos satisfatório em condições diferentes das de treino. Isso se deve à significativa variabilidade do sinal de EEG entre pacientes. Generalizar modelos para diferentes tipos de crises, populações demográficas e configurações de gravação é um grande desafio;
+		\item Escassez e Qualidade dos Dados: a despeito da crescente disponibilidade de bancos de dados públicos e privados contendo sinais de EEG, dados anotados de alta qualidade e longo prazo continuam relativamente escassos devido a fatores como regulamentações de privacidade, altos custos de rotulagem e inconsistências na anotação de especialistas [citar referências]. A maioria dos conjuntos de dados públicos é pequena ou carece de diversidade de tipos de crises, o que pode levar ao \textit{overfitting} e a métricas de desempenho infladas;
+		\item Restrições computacionais em tempo real: a complexidade computacional de alguns algoritmos dificulta sua incorporação em dispositivos vestíveis para monitoramento ambulatorial de longo prazo e em tempo real.
+	\end{itemize}
 
-	Na revisão da literatura nota-se que cada estudo citado escolhe relatar as métricas que melhor validam seus resultados de pesquisa. Essa escolha está associada ao objetivo do estudo (por exemplo, criar um alarme rápido, criar um diagnóstico preciso) e não uma exigência inerente à matemática do classificador escolhido.
-	
+	Diante desses desafios, este trabalho tem como objetivos compreender o estado da arte da detecção automática de crises epilépticas a partir de sinais de EEG, estudar os desafios atuais da área e identificar eventuais pontos de melhoria nas técnicas existentes. Para isso, são estudados e implementados algoritmos propostos na literatura, com ênfase nos que utilizam ferramentas da Teoria do Caos para extrair características do sinal, como o proposto em \cite{zabihi2015analysis}, avaliados com os registros do banco de dados CHB-MIT.
+
+	O restante deste documento está organizado da seguinte forma. Na Seção~\ref{sec:banco_dados}, descreve-se o banco de dados CHB-MIT, utilizado neste trabalho. Na Seção~\ref{sec:caos}, aborda-se a Teoria do Caos, que embasa algumas das soluções estudadas para detecção de crises epilépticas. Na Seção~\ref{sec:other_theories}, é feita uma breve revisão das técnicas de aprendizado de máquina utilizadas e, na Seção~\ref{sec:metricas}, são apresentadas as métricas usadas para avaliar o desempenho dos algoritmos de detecção. Por fim, os resultados e as conclusões do trabalho são apresentados nas Seções~\ref{sec:resultados} e \ref{sec:conclusao}, respectivamente.
+
 	\section{Banco de Dados}
+	\label{sec:banco_dados}
 	\noindent
-	O banco de dados escolhido para desenvolver esse trabalho foi o CHB-MIT pois é um banco de dados público bastante utilizado na literatura. Os registros têm amostragem de 256Hz, resolução de 16 bits e eletrodos no sistema 10-20 de montagem bipolar, em que a leitura do sinal elétrico usa como referência outro eletrodo, e não uma referência única para todos os eletrodos. Por isso cada canal possui o nome em duas parte (ex.: FP1-F7); o primeiro nome é a região do eletrodo lido e o segundo é a referência.
-	[Colocar foto da montagem 10-20]
-	[Colocar foto de um sinal de EEG saudável e de um sinal com crise]
+	O banco de dados escolhido para desenvolver esse trabalho foi o CHB-MIT pois é um banco de dados público bastante utilizado na literatura. Os registros têm amostragem de 256Hz, resolução de 16 bits e eletrodos no sistema 10-20 (Figura~\ref{fig:montagem_10_20}) de montagem bipolar, em que a leitura do sinal elétrico usa como referência outro eletrodo, e não uma referência única para todos os eletrodos. Por isso cada canal possui o nome em duas partes (ex.: FP1-F7); o primeiro nome é a região do eletrodo lido e o segundo é a referência. Exemplos de trechos de registros sem e com crise são mostrados nas Figuras~\ref{fig:eeg_sem_crise} e \ref{fig:eeg_com_crise}, respectivamente.
+
+	A maior parte dos arquivos tem 23 canais. [Voltar no documento da physionet e ver se o artigo atrelado ao banco de dados explica pq tem alguns arquivos que falta canal]. Entre arquivos consecutivos há lacunas de cerca de 10 segundos por conta de limitações de hardware durante a captura dos dados de EEG [isso tá explícito no artigo]. Os intervalos de crise são extraídos dos arquivos \texttt{chbXX-summary.txt}, um por paciente.
 	
-	A maior parte dos arquivos tem 23 canais. [Voltar no documento da physionet e ver se o artigo atrelado ao banco de dados explica pq tem alguns arquivos que falta canal]. Entre arquivos consevutivos há lacunas de cerca de 10 segundos por conta de limitações de hardware durante a caputra dos dados de EEG [isso tá explícito no artigo]. Os intervalos de crise são extraídos dos arquivos "<nome-do-canal>-summary.txt"
-	
-	\begin{figure}[htbp]
+	[transformar essas imagens em tabelas]
+	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.5\textwidth]{"estrutura_banco_de_dados"}
 		\caption{Estrutura do Banco de Dados CHB-MIT}
 	\end{figure}
 	
-	\begin{figure}[htbp]
+	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.5\textwidth]{"caso_com_crise_banco_de_dados"}
 		\caption{Estrutura do Banco de Dados para o caso com crise}
@@ -273,21 +248,23 @@
 	\label{sec:caos}
 	\noindent
 
-	Um modelo matemático é uma ferramenta que serve para representar um sistema ou processo real. Um mesmo sistema pode possuir diferentes modelos matemáticos. Nenhum modelo descreve a realidade por completo. Todo modelo é uma simplificação: ele escolhe quais variáveis representar, quais hipóteses assumir e quais efeitos desprezar, sempre em função da pergunta que se quer responder. Um exemplo comum na engenharia elétrica é o resistor: em baixas frequências ele é bem descrito apenas pela Lei de Ohm, $v = Ri$, mas em altas frequências passa a ser necessário incluir a indutância e a capacitância parasitas. Nenhum dos dois modelos está errado; cada um é válido em uma faixa de condições e com a precisão adequada ao problema. Da mesma forma, o pêndulo apresentado na Seção~\ref{subsec:teoria_base} pode ser modelado como ideal ou amortecido, dependendo se a dissipação de energia é relevante para a análise, ou ainda linearizado para pequenas oscilações.
+	Um modelo matemático é uma ferramenta que serve para representar um sistema ou processo real. Um mesmo sistema pode possuir diferentes modelos matemáticos. Nenhum modelo descreve a realidade por completo. Todo modelo é uma simplificação: ele escolhe quais variáveis representar, quais hipóteses assumir e quais efeitos desprezar, sempre em função da pergunta que se quer responder. Um exemplo comum na engenharia elétrica é o resistor: em baixas frequências ele é bem descrito apenas pela Lei de Ohm, $v = Ri$, mas em altas frequências passa a ser necessário incluir a indutância e a capacitância parasitas. Nenhum dos dois modelos está errado; cada um é válido em uma faixa de condições e com a precisão adequada ao problema. Da mesma forma, um pêndulo pode ser modelado como ideal ou amortecido, dependendo de a dissipação de energia ser relevante para a análise, ou ainda linearizado para pequenas oscilações.
 
 	O cérebro humano é composto por bilhões de neurônios, cada um com dinâmica própria, acoplados entre si por meio de sinapses. Se considerarmos o cérebro como um sistema dinâmico veremos que não existe um modelo completo para ele. A principal ferramenta que temos para observar o comportamento do sistema cérebro é o EEG, e este mede apenas a atividade elétrica combinada de grandes populações de neurônios em poucos pontos do couro cabeludo. Em outras palavras, o EEG é limitado demais para representar com fidelidade a dinâmica do cérebro. 
 	
-	Na literatura há diversas abordagens de como detectar crises epilépticas a partir da leitura de sinais de EEG. Cada abordagem parte, explícita ou implicitamente, de um modelo do que é o cérebro e do que é o sinal de EEG. Esse modelo define o que significa uma crise epiléptica, isto é, o que muda no sistema quando ela acontece, e, a partir disso, quais características devem ser extraídas do sinal para detectá-la.
+	Na literatura há diversas abordagens de como detectar crises epilépticas a partir da leitura de sinais de EEG \cite{acharya2013automated}. Cada abordagem parte, explícita ou implicitamente, de um modelo do que é o cérebro e do que é o sinal de EEG. Esse modelo define o que significa uma crise epiléptica, isto é, o que muda no sistema quando ela acontece e, a partir disso, quais características devem ser extraídas do sinal para detectá-la.
+
+	[citar referências para a discussão sobre modelos]
 
 	Ter diferentes modelos para o mesmo sistema é útil por alguns motivos:
 	\begin{itemize}
-		\item Cada modelo evidencia um aspecto diferente do mesmo fenômeno. Uma crise pode aparecer como um aumento de amplitude no tempo, como a concentração de energia em uma faixa de frequência ou como uma trajetória mais regular no espaço de fase. Um aspecto difícil de observar sob um modelo pode ser evidente sob outro.
-		\item As características extraídas de modelos diferentes tendem a ser complementares, e por isso é comum combinar características de mais de um domínio em um mesmo classificador. A própria cadeia de processamento deste trabalho [evitar falar coisas que ainda vão ser vistas no futuro do texto](Seção~\ref{subsec:caos_eeg}) combina dois modelos: a trajetória é reconstruída segundo a teoria do caos, mas os pontos de intersecção com a seção de Poincaré são resumidos por estatísticas do domínio do tempo.
-		\item A escolha do modelo é uma hipótese de trabalho, e não uma afirmação sobre a natureza do cérebro. Comparar o desempenho de classificadores construídos sobre modelos diferentes é uma forma empírica de descobrir qual aspecto do sinal melhor separa os regimes com e sem crise.
-		\item Os modelos diferem em custo computacional e em interpretabilidade. Características do domínio do tempo são baratas de calcular, o que é relevante para os dispositivos vestíveis citados na Introdução, enquanto as características de caos exigem a reconstrução do espaço de fase e buscas de vizinhos mais próximos. No outro extremo, o aprendizado profundo dispensa a escolha explícita de um modelo, mas em troca perde a interpretação física do que a rede aprendeu.
+		\item Cada modelo evidencia um aspecto diferente do mesmo fenômeno. Uma crise pode aparecer como um aumento de amplitude no tempo, como a concentração de energia em uma faixa de frequência ou como uma trajetória mais regular no espaço de fase. Um aspecto difícil de observar sob um modelo pode ser evidente sob outro;
+		\item As características extraídas de modelos diferentes tendem a ser complementares, e por isso é comum combinar características de mais de um domínio em um mesmo classificador. Por exemplo, é possível reconstruir a trajetória do sistema segundo a Teoria do Caos e resumir essa trajetória por estatísticas do domínio do tempo;
+		\item A escolha do modelo é uma hipótese de trabalho, e não uma afirmação sobre a natureza do cérebro. Comparar o desempenho de classificadores construídos sobre modelos diferentes é uma forma empírica de descobrir qual aspecto do sinal melhor separa os regimes com e sem crise;
+		\item Os modelos diferem em custo computacional e em interpretabilidade. Características do domínio do tempo são baratas de calcular, o que é relevante para os dispositivos vestíveis, enquanto as características de caos exigem a reconstrução do espaço de fase e buscas de vizinhos mais próximos. No outro extremo, o aprendizado profundo dispensa a escolha explícita de um modelo, mas em troca perde a interpretação física do que a rede aprendeu.
 	\end{itemize}
 
-	A Tabela~\ref{tab:modelos_cerebro} resume as principais abordagens encontradas na literatura a partir de três perguntas: o que se assume que o cérebro é, o que caracteriza uma crise sob essa hipótese e quais características são extraídas do sinal. As quatro primeiras linhas correspondem aos domínios de extração da Tabela~\ref{tab:comparacao_algoritmos} (a abordagem de caos corresponde ao domínio não-linear), e a última corresponde ao aprendizado profundo, que não utiliza extração manual de características.
+	A Tabela~\ref{tab:modelos_cerebro} resume as principais abordagens encontradas na literatura a partir de três perguntas: o que se assume que o cérebro é, o que caracteriza uma crise sob essa hipótese e quais características são extraídas do sinal. As quatro primeiras linhas correspondem aos domínios de extração da Tabela~\ref{tab:comparacao_algoritmos} (a abordagem de caos corresponde ao domínio não linear), e a última corresponde ao aprendizado profundo, que não utiliza extração manual de características.
 
 	\begin{table}[H]
 		\centering
@@ -300,98 +277,100 @@
 			\toprule
 			\textbf{Abordagem} & \textbf{O que é o cérebro?} & \textbf{O que é uma crise?} & \textbf{Características} \\
 			\midrule
-			\textbf{Caos} & Sistema dinâmico não-linear: o estado atual determina o próximo, e pequenas perturbações influenciam muito no futuro & Mudança na previsibilidade: o cérebro passa a um comportamento mais regular e ordenado do que o normal & Expoente de Lyapunov, seção de Poincaré, atratores e órbitas \\
+			\textbf{Caos} & Sistema dinâmico não linear: o estado atual determina o próximo, e pequenas perturbações influenciam muito no futuro & Mudança na previsibilidade: o cérebro passa a um comportamento mais regular e ordenado do que o normal & Expoente de Lyapunov, seção de Poincaré, atratores e órbitas \cite{iasemidis1990phase, zabihi2015analysis} \\
 			\midrule
-			\textbf{Domínio do tempo} & Processo aleatório: um sinal que varia ao longo do tempo & Mudança na distribuição: formato da curva  & Momentos (média, variância, assimetria, curtose), cruzamentos por zero, \textit{line length} \\
+			\textbf{Domínio do tempo} & Sistema que gera um processo aleatório: um sinal que varia ao longo do tempo & Mudança na distribuição: formato da curva  & Momentos (média, variância, assimetria, curtose), cruzamentos por zero, \textit{line length} \cite{esteller2001line} \\
 			\midrule
-			\textbf{Domínio da frequência} & Conjunto de osciladores: soma do comportamento de várias bandas [trocar pela letra em si, e nao o nome dela](delta, teta, alfa, beta, gama) & Mudança na distribuição de energia entre as frequências: uma banda domina dependendo do estado do cérebro & Periodograma, PSD (densidade espectral de potência), potência por banda, frequência dominante \\
+			\textbf{Domínio da frequência} & Conjunto de osciladores: soma do comportamento de várias bandas ($\delta$, $\theta$, $\alpha$, $\beta$, $\gamma$), com conteúdo espectral considerado constante dentro de cada janela de análise & Mudança na distribuição de energia entre as frequências: uma banda domina dependendo do estado do cérebro & Periodograma, PSD (densidade espectral de potência), potência por banda, frequência dominante \cite{shoeb2010application} \\
 			\midrule
-			\textbf{Domínio tempo-frequência} &  &  & Espectrograma (STFT), \textit{wavelets} (CWT, DWT), energia por sub-banda, EMD \\
+			\textbf{Domínio tempo-frequência} & Conjunto de osciladores cujas amplitudes e frequências variam ao longo do tempo: um sinal não estacionário & Mudança, localizada no tempo, na distribuição de energia entre as frequências: a crise aparece como uma alteração do conteúdo espectral em um intervalo específico do registro & Espectrograma (STFT), \textit{wavelets} (CWT, DWT), energia por sub-banda, EMD \cite{subasi2007eeg, alickovic2018performance} \\
 			\midrule
-			\textbf{Aprendizado profundo} (\textit{Deep Learning}) & Caixa-preta: não se assume um modelo, a rede aprende direto dos dados & Sem interpretação: é o padrão que a rede aprendeu a separar & Aprendidas automaticamente pela rede (sem extração manual de características) \\
+			\textbf{Aprendizado profundo} (\textit{Deep Learning}) & Caixa-preta: não se assume um modelo, a rede aprende direto dos dados & Sem interpretação: é o padrão que a rede aprendeu a separar & Permite aprender características sem extração prévia [melhorar depois] \cite{acharya2018deep, craik2019deep} \\
 			\bottomrule
 		\end{tabular}
 	\end{table}
 
-	[Eu to um pouco confuso sobre a real diferença entre oq eh o cerebro pro modelo em frequencia vs tempo-frequencia. O artigo publicado junto com o CHB MIT fala sobre detecção de crise. Entender se ele fala sobre tempo-frequencia ou só frequencia]
+	[Verificar se o artigo atrelado ao CHB-MIT \cite{shoeb2009application} usa características de frequência ou de tempo-frequência]
+
+	O foco deste trabalho é a abordagem de caos, que corresponde à primeira linha da Tabela~\ref{tab:modelos_cerebro}. Por conta disso, a presente seção está organizada em três partes. Na Seção~\ref{subsec:teoria_base}, apresenta-se a teoria base de sistemas dinâmicos e caos necessária para o restante do trabalho. Na Seção~\ref{subsec:logistico}, aplicam-se esses conceitos ao mapa logístico, que é um sistema caótico clássico, simples e muito utilizado para introdução à Teoria do Caos. Na Seção~\ref{subsec:caos_eeg}, transpõe-se o raciocínio para os sinais de EEG, direcionando a discussão ao problema de detecção de crises epilépticas.
+
 	\subsection{Teoria Base}
 	\label{subsec:teoria_base}
 	\noindent
-	
-	Este trabalho tem como foco a primeira linha da \ref{tab:modelos_cerebro}: a abordagem de caos. Por conta disso, a seção \ref{sec:caos} está organizada em três partes. A primeira apresenta a teoria base de sistemas dinâmicos e caos necessária para o restante do trabalho. A segunda parte aplica esses conceitos ao mapa logístico, que é um sistema caótico clássico, simples e muito utilizado para introdução à teoria do caos. A terceira parte transporta o raciocínio para os sinais de EEG, direcionando a discussão ao problema de detecção de crises epilépticas.
-	
-	A teoria do caos é útil ao estudar a dinâmica do cérebro pois as suas ferramentas extraem informações qualitativas sobre a dinâmica de um sistema (se ele converge para um ponto fixo, se é periódico ou se é caótico) sem que seja necessário resolver as equações que o governam. Para detectar uma crise epiléptica não é preciso prever o valor exato da tensão medida em cada eletrodo; basta identificar em qual regime o cérebro se encontra. Se a hipótese de que a crise torna a atividade cerebral mais regular estiver correta, a trajetória do sistema se aproxima de uma trajetória periódica. Como as equações não são conhecidas, a trajetória é reconstruída a partir do próprio sinal de EEG pelo Teorema de Takens (Seção~\ref{subsubsec:takens}).
-	
-	O uso da teoria do caos em sinais biológicos já foi utilizado em outros órgãos. O coração é outro órgão cuja atividade elétrica é registrada por eletrodos na superfície do corpo, por meio do eletrocardiograma (ECG), e cujas doenças, como as arritmias, se manifestam como alterações do ritmo, isto é, da dinâmica do sistema. Na referência \cite{aboghazalah2024arrhythmia} estudou-se a detecção de arritmias combinando diferentes representações de um mesmo paciente: o sinal de ECG digitalizado, características extraídas do complexo QRS, dados clínicos do paciente e a aplicação de teoria do caos sobre as características do ECG combinadas aos dados clínicos, descrita pelos autores a partir do expoente de Lyapunov e da imersão por atrasos. Os autores relatam que essa última etapa resultou na maior acurácia entre os experimentos realizados. O trabalho ilustra, em outro sinal bioelétrico, dois pontos discutidos nesta seção: representações diferentes de um mesmo sistema podem ser complementares, e ferramentas da teoria do caos podem ser usadas para extrair características para algoritmos de aprendizado de máquina.
+
+	A Teoria do Caos é útil ao estudar a dinâmica do cérebro pois as suas ferramentas extraem informações qualitativas sobre a dinâmica de um sistema (se ele converge para um ponto fixo, se é periódico ou se é caótico) sem que seja necessário resolver as equações que o governam. Para detectar uma crise epiléptica não é preciso prever o valor exato da tensão medida em cada eletrodo; basta identificar em qual regime o cérebro se encontra. Estudos que aplicam ferramentas de sistemas dinâmicos ao EEG indicam que, durante uma crise epiléptica, o sinal se torna mais regular e periódico do que na ausência de crises, o que se reflete, por exemplo, na redução do expoente de Lyapunov durante a crise \cite{iasemidis1990phase} e na perda de complexidade da atividade cerebral nos períodos que a antecedem \cite{lehnertz1998can}. Se a hipótese de que a crise torna a atividade cerebral mais regular estiver correta, a trajetória do sistema se aproxima de uma trajetória periódica. Como as equações que governam o cérebro não são conhecidas, essa trajetória precisa ser reconstruída a partir do próprio sinal de EEG.
+
+	A Teoria do Caos também é aplicada ao processamento de sinais biológicos em outros contextos além da detecção de crises epilépticas. Por exemplo, o coração é outro órgão cuja atividade elétrica é registrada por eletrodos na superfície do corpo, por meio do eletrocardiograma (ECG), e cujas doenças, como as arritmias, se manifestam como alterações do ritmo, isto é, da dinâmica do sistema. Na referência \cite{aboghazalah2024arrhythmia} estudou-se a detecção de arritmias combinando diferentes representações de um mesmo paciente: o sinal de ECG digitalizado, características extraídas do complexo QRS, dados clínicos do paciente e a aplicação de Teoria do Caos sobre as características do ECG combinadas aos dados clínicos, descrita pelos autores a partir do expoente de Lyapunov e da imersão por atrasos. Os autores relatam que essa última etapa resultou na maior acurácia entre os experimentos realizados. O trabalho ilustra, em outro sinal bioelétrico, dois pontos discutidos nesta seção: representações diferentes de um mesmo sistema podem ser complementares, e ferramentas da Teoria do Caos podem ser usadas para extrair características para algoritmos de aprendizado de máquina.
 	
 	\subsubsection{Sistemas Dinâmicos}
 	\noindent
-	Um sistema dinâmico é uma modelo matemático usado para representar sistemas físicos que evoluem ao longo do tempo. O \textbf{estado} é um vetor $\mathbf{v} \in \mathbb{R}^n$ que reúne todas as variáveis necessárias para determinar a evolução futura do sistema, e o conjunto de todos os estados possíveis é chamado de \textbf{espaço de estados} \cite{strogatz2015nonlinear}.
+	Um sistema dinâmico é um modelo matemático usado para representar sistemas físicos que evoluem ao longo do tempo. O \textbf{estado} é um vetor $\mathbf{v} \in \mathbb{R}^n$ que reúne todas as variáveis necessárias para determinar a evolução futura do sistema, e o conjunto de todos os estados possíveis é chamado de \textbf{espaço de estados} \cite{strogatz2015nonlinear, alligood1996chaos}.
 
 	Um sistema dinâmico discreto é definido por um mapa (função) $f$ e pela iteração
 	\begin{equation}
-		\mathbf{v}(k+1) = f\big(\mathbf{v}(k)\big)
+		\mathbf{v}(k+1) = f\big[\mathbf{v}(k)\big]
 	\end{equation}
 	O primeiro ponto do processo iterativo, $\mathbf{v}(0)$, é chamado de ``ponto inicial'' ou ``condição inicial''. A sequência de estados $\{\mathbf{v}(0), \mathbf{v}(1), \mathbf{v}(2), \dots\}$ e o ``desenho'' formado pela união de todos esses pontos é a chamada \textbf{órbita}.
 
 	Um sistema dinâmico contínuo é definido por um campo vetorial  $F$  (análogo do mapa em tempo discreto) e por um sistema de equações diferenciais (análogo à iteração).
 	\begin{equation}
-		\frac{d\mathbf{v}}{dt} = F\big(\mathbf{v}(t)\big),
+		\frac{d\mathbf{v}(t)}{dt} = F\big[\mathbf{v}(t)\big],
 	\end{equation}
 	A solução geral desse sistema é chamada de ``Fluxo''. A curva percorrida por $\mathbf{v}(t)$ no espaço de fase é chamada de \textbf{trajetória}. 
 	
 	Em ambos os casos o sistema é \textbf{determinístico}: a mesma condição inicial sempre produz a mesma órbita ou trajetória. 
 	
-	Vamos analisar o pêndulo simples como um sistema dinâmico. O estado é a tupla composta pelo ângulo de deslocamento do pêndulo e a velocidade do mesmo (com direção e sentido). Todas as possíveis combinações de velocidade e ângulo (ou posição) para esse pêndulo formam o espaço de estados. A posição de onde se solta o pêndulo e sua velocidade no instante inicial definem a condição inicial. As figuras 1, 2 e 3 mostram interpretações visuais dos conceitos apresentados.
-	O sistema pendulo amortecido pode ser escrito como:
-	
-	[trocar titulos e eixos para portugues pq o texto todo ta em portugues]
-	\begin{equation}
-		\ddot{\theta} = -\left(\frac{g}{L}\right)\theta - b\dot{\theta}
-	\end{equation}
-	[tirar a barrinha deslizante embaixo]
-	[fonte ta pequena dos eixos e do titulo]
-	[trocar fonte para computer Modern - q eh a nativa do Latex]
-	
-	em que ``b'' é a constante de amortecimento do movimento. Para b = 0 o pêndulo é ideal e não dissipa energia.
-	
+	Vamos analisar o pêndulo simples como um sistema dinâmico, conforme ilustrado na Figura~\ref{fig:pendulo_diagrama}. O estado é composto pelo ângulo $\theta$ de deslocamento do pêndulo e por sua velocidade angular $\dot{\theta}$, ou seja, $\mathbf{v}(t) = \begin{bmatrix} \theta(t) & \dot{\theta}(t) \end{bmatrix}^{\mathrm{T}}$, e todas as possíveis combinações de ângulo e velocidade formam o espaço de estados. A posição de onde se solta o pêndulo e sua velocidade no instante inicial definem a condição inicial.
+
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.2\textwidth]{"pendulo_diagrama"}
-		\caption{Diagrama de forças de um pendulo simples}
+		\caption{Diagrama de forças de um pêndulo simples. Fonte: [colocar fonte].}
+		\label{fig:pendulo_diagrama}
 	\end{figure}
-	
-	\begin{figure}[H]
+
+	Na aproximação de pequenos ângulos ($\operatorname{sen}\theta \approx \theta$), o pêndulo amortecido pode ser descrito por
+	\begin{equation}
+		\ddot{\theta} = -\left(\frac{g}{L}\right)\theta - b\dot{\theta},
+		\label{eq:pendulo}
+	\end{equation}
+	em que $g$ é a aceleração da gravidade, $L$ é o comprimento do pêndulo e $b$ é a constante de amortecimento do movimento. Na Figura~\ref{fig:pendulo_ideal}, apresenta-se a trajetória obtida considerando-se a condição inicial $\mathbf{v}(0) = \begin{bmatrix} 1 & 0 \end{bmatrix}^{\mathrm{T}}$ e $b = 0$, o que corresponde a um pêndulo ideal, sem dissipação de energia. Por sua vez, na Figura~\ref{fig:pendulo_amortecido}, apresenta-se a trajetória correspondente à mesma condição inicial, mas com $b = 0{,}67\ \mathrm{s}^{-1}$. Nas duas figuras, foram usados $g = 9{,}81\ \mathrm{m/s^2}$ e $L = 1\ \mathrm{m}$, e a velocidade foi normalizada pela frequência natural $\omega_0 = \sqrt{g/L}$.
+
+	Nota-se que, na Figura~\ref{fig:pendulo_ideal}, a trajetória corresponde a uma circunferência devido à ausência de dissipação de energia: o pêndulo oscila indefinidamente com a mesma amplitude e o estado retorna periodicamente à condição inicial. Já na Figura~\ref{fig:pendulo_amortecido}, a trajetória se assemelha a uma espiral, pois a cada oscilação parte da energia é dissipada e a amplitude diminui, até que o pêndulo pare na posição de equilíbrio $\mathbf{v} = \begin{bmatrix} 0 & 0 \end{bmatrix}^{\mathrm{T}}$, que corresponde à origem do espaço de estados.
+
+	\begin{figure}[htbp]
 		\centering
-		\includegraphics[width=0.5\textwidth]{"espaço_pendulo_simples"}
-		\caption{Espaço de Estados para o caso de Pendulo Ideal - Em roxo a órbita. O ponto (1, 0) é a condição inicial. As linhas em cinza são uma representação visual do campo vetorial do espaço formado pelos estados do sistema}
+		\begin{minipage}[t]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{"espaço_pendulo_simples"}
+			\caption{Espaço de estados do pêndulo ideal ($b = 0$). Em roxo, a trajetória a partir da condição inicial $\mathbf{v}(0) = \begin{bmatrix} 1 & 0 \end{bmatrix}^{\mathrm{T}}$. As linhas em cinza são uma representação visual do campo vetorial do sistema.}
+			\label{fig:pendulo_ideal}
+		\end{minipage}
+		\hfill
+		\begin{minipage}[t]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{"espaço_pendulo_real"}
+			\caption{Espaço de estados do pêndulo amortecido ($b = 0{,}67\ \mathrm{s}^{-1}$), com a mesma condição inicial da Figura~\ref{fig:pendulo_ideal}.}
+			\label{fig:pendulo_amortecido}
+		\end{minipage}
 	\end{figure}
-	
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=0.5\textwidth]{"espaço_pendulo_real"}
-		\caption{Espaço de Estados para o caso de Pendulo Real Amortecido}
-	\end{figure}
-	
-	
-	Um sinal amostrado de um sistema contínuo, como o EEG, pode ser visto como a observação de um fluxo em instantes discretos.
-	
-	\subsubsection{Pontos Fixos e Estabilidade}
+
+	\subsubsection{Pontos Fixos, Estabilidade e Atratores}
 	\noindent
 	
-	Considere um mapa $\mathbf{x}[n+1] = f(\mathbf{x}[n])$ em $\mathbb{R}^m$. Um \textbf{ponto fixo} é um estado que não se altera com a iteração, isto é, $\mathbf{x}^* = f(\mathbf{x}^*)$. Para um mapa em $\mathbb{R}^1$, a estabilidade local de um ponto fixo $x^*$ é obtida observando como o mapa se comporta diante de pequenas perturbações em torno dele. Escrevendo $x[n] = x^* + e[n]$, com $e[n]$ pequeno, a linearização de $f$ fornece
+	Considere um mapa $\mathbf{v}(k+1) = f\big[\mathbf{v}(k)\big]$ em $\mathbb{R}^n$. Um \textbf{ponto fixo} é um estado que não se altera com a iteração, isto é, $\mathbf{v}^* = f(\mathbf{v}^*)$ \cite{strogatz2015nonlinear, alligood1996chaos}. Por simplicidade, considere inicialmente o caso escalar ($n = 1$), em que o estado é denotado por $v$ e o ponto fixo, por $v^*$. A estabilidade local de $v^*$ é obtida observando como o mapa se comporta diante de pequenas perturbações em torno dele. Escrevendo $v(k) = v^* + e(k)$, com $e(k)$ pequeno, a linearização de $f$ fornece
 	\begin{equation}
-		e[n+1] \approx f'(x^*)\, e[n] \quad \Rightarrow \quad e[n] \approx \big(f'(x^*)\big)^n e[0].
+		e(k+1) \approx f'(v^*)\, e(k) \quad \Rightarrow \quad e(k) \approx \big[f'(v^*)\big]^k e(0).
 	\end{equation}
-	Assim, se $|f'(x^*)| < 1$ a perturbação decai e o ponto fixo é \textbf{estável} (atrai as órbitas vizinhas); se $|f'(x^*)| > 1$ a perturbação cresce e o ponto fixo é \textbf{instável}. O caso $|f'(x^*)| = 1$ é marginal e não pode ser decidido apenas pela linearização. Em $\mathbb{R}^m$, o papel de $f'(x^*)$ é desempenhado pelos autovalores da matriz Jacobiana de $f$ em $\mathbf{x}^*$, e a condição de estabilidade é que todos tenham módulo menor que 1. De forma análoga, uma \textbf{órbita periódica de período $p$} é formada por pontos que satisfazem $f^p(\mathbf{x}) = \mathbf{x}$, em que $f^p$ denota $p$ aplicações sucessivas de $f$, e sua estabilidade é determinada pela Jacobiana de $f^p$.
-	
-	Note que a estabilidade é uma propriedade \emph{local}: ela garante a convergência apenas para condições iniciais suficientemente próximas de $\mathbf{x}^*$. O conjunto de todas as condições iniciais cujas trajetórias convergem para o ponto fixo é chamado de \textbf{bacia de atração}. Essa noção será generalizada na próxima subseção.
-	
+	Assim, se $|f'(v^*)| < 1$ a perturbação decai e o ponto fixo é \textbf{estável} (atrai as órbitas vizinhas); se $|f'(v^*)| > 1$ a perturbação cresce e o ponto fixo é \textbf{instável}. O caso $|f'(v^*)| = 1$ é marginal e não pode ser decidido apenas pela linearização. Em $\mathbb{R}^n$, o papel de $f'(v^*)$ é desempenhado pelos autovalores da matriz Jacobiana de $f$ em $\mathbf{v}^*$, e a condição de estabilidade é que todos tenham módulo menor que 1 \cite{alligood1996chaos}. De forma análoga, uma \textbf{órbita periódica de período $p$} é formada por pontos que satisfazem $f^p(\mathbf{v}) = \mathbf{v}$, em que $f^p$ denota $p$ aplicações sucessivas de $f$, e sua estabilidade é determinada pela Jacobiana de $f^p$.
+
+	A estabilidade é uma propriedade \emph{local}: ela garante a convergência apenas para condições iniciais suficientemente próximas de $\mathbf{v}^*$. O conjunto de todas as condições iniciais cujas órbitas convergem para o ponto fixo é chamado de \textbf{bacia de atração} \cite{strogatz2015nonlinear}.
+
 	Os conceitos de sistemas dinâmicos possuem paralelos com processamento digital de sinais. Um filtro IIR de primeira ordem sem entrada,
 	\begin{equation}
 		y[n] = a\, y[n-1],
 	\end{equation}
-	é também um mapa em $\mathbb{R}^1$, com $f(y) = a y$. Para $a \neq 1$, seu único ponto fixo é $y^* = 0$ (se $a = 1$, todo ponto é fixo). Como $f(y) = ay$ é linear, sua derivada é constante, $f'(y) = a$, e o critério de estabilidade de pontos fixos fornece $|a| < 1$, que é exatamente a condição de que o polo do filtro esteja dentro do círculo unitário. Para demonstrar essa condição de convergência compartilhada entre o filtro IIR de ordem um sem entrada e o mapa $y[n+1] = a\, y[n]$, vamos usar uma ferramenta chamada ``Diagrama de Teia'' ou \textit{``Cobweb Plot''}. Esse diagrama mostra a evolução do processo iterativo: a partir de $y[0]$, sobe-se verticalmente até a curva $f(y)$, move-se horizontalmente até a reta $y[n+1] = y[n]$ e repete-se o procedimento; os pontos fixos são as interseções entre a curva e essa reta. A Figura~\ref{fig:cobweb_estavel} mostra como uma pequena perturbação evolui no caso de um mapa com ponto fixo estável $y^* = 0$, e a Figura~\ref{fig:cobweb_instavel} mostra a evolução da mesma perturbação para um sistema com ponto fixo instável, em que $y$ se afasta da origem e tende ao infinito.
+	é também um mapa em $\mathbb{R}^1$, com $f(y) = a y$ (aqui, mantém-se a notação usual de processamento de sinais, com o índice de tempo $n$ entre colchetes). Para $a \neq 1$, seu único ponto fixo é $y^* = 0$ (se $a = 1$, todo ponto é fixo). Como $f(y) = ay$ é linear, sua derivada é constante, $f'(y) = a$, e o critério de estabilidade de pontos fixos fornece $|a| < 1$, que é exatamente a condição de que o polo do filtro esteja dentro do círculo unitário. Para demonstrar essa condição de convergência compartilhada entre o filtro IIR de ordem um sem entrada e o mapa $y[n+1] = a\, y[n]$, vamos usar uma ferramenta chamada ``Diagrama de Teia'' ou \textit{``Cobweb Plot''}. Esse diagrama mostra a evolução do processo iterativo: a partir de $y[0]$, sobe-se verticalmente até a curva $f(y)$, move-se horizontalmente até a reta $y[n+1] = y[n]$ e repete-se o procedimento; os pontos fixos são as interseções entre a curva e essa reta. A Figura~\ref{fig:cobweb_estavel} mostra como uma perturbação, a partir da condição inicial $y[0] = 0{,}64$, evolui no caso de um mapa com ponto fixo estável $y^* = 0$ ($a = 0{,}5$), e a Figura~\ref{fig:cobweb_instavel} mostra a evolução a partir da mesma condição inicial $y[0] = 0{,}64$ para um sistema com ponto fixo instável ($a = 1{,}2$), em que $y$ se afasta da origem e tende ao infinito.
 	
 	\begin{figure}[H]
 		\centering
@@ -407,45 +386,38 @@
 		\label{fig:cobweb_instavel}
 	\end{figure}
 	
-	Para $|a| < 1$, por ser $f$ linear, a convergência não depende da condição inicial: a bacia de atração de $y^* = 0$ é toda a reta real. Em um sistema não-linear isso em geral não ocorre, e a bacia pode ser um subconjunto limitado do espaço de estados.
+	Para $|a| < 1$, por ser $f$ linear, a convergência não depende da condição inicial: a bacia de atração de $y^* = 0$ é toda a reta real. Em um sistema não linear isso em geral não ocorre, e a bacia pode ser um subconjunto limitado do espaço de estados.
 	
-	Para filtros de ordem maior em espaço de estados, $\mathbf{v}[n+1] = \mathbf{A}\mathbf{v}[n]$, os polos são os autovalores de $\mathbf{A}$, que é a própria Jacobiana do mapa. A diferença essencial é que um sistema linear só pode convergir para um ponto fixo, divergir ou, no caso marginal, oscilar com amplitude constante; ele não gera comportamento aperiódico limitado. Um sistema não-linear pode permanecer limitado e, ainda assim, nunca se repetir, o que dá origem ao caos.
+	Para filtros de ordem maior em espaço de estados, $\mathbf{v}[n+1] = \mathbf{A}\mathbf{v}[n]$, os polos são os autovalores de $\mathbf{A}$, que é a própria Jacobiana do mapa. A diferença essencial é que um sistema linear só pode convergir para um ponto fixo, divergir ou, no caso marginal, oscilar com amplitude constante; ele não gera comportamento aperiódico limitado. Um sistema não linear pode permanecer limitado e, ainda assim, nunca se repetir, o que dá origem ao caos.
 	
-	\subsubsection{Atratores e Caos}
-	\noindent
+	Um ponto fixo estável é o caso mais simples de atrator, e uma órbita periódica estável é um ciclo limite. Formalmente, um \textbf{atrator} é um conjunto fechado e invariante $\mathcal{A}$ do espaço de estados (isto é, uma trajetória que começa em $\mathcal{A}$ permanece em $\mathcal{A}$) tal que existe uma vizinhança de $\mathcal{A}$ cujas condições iniciais produzem trajetórias que convergem para ele após um transitório \cite{strogatz2015nonlinear, alligood1996chaos}. Um atrator é, portanto, a generalização de um ponto fixo estável para conjuntos mais gerais de estados, e sua bacia de atração é definida da mesma forma que para um ponto fixo.
 	
-	Um ponto fixo estável é o caso mais simples de atrator, e uma órbita periódica estável é um ciclo limite. Formalmente, um \textbf{atrator} é um conjunto fechado e invariante $\mathcal{A}$ do espaço de estados (isto é, uma trajetória que começa em $\mathcal{A}$ permanece em $\mathcal{A}$) tal que existe uma vizinhança de $\mathcal{A}$ cujas condições iniciais produzem trajetórias que convergem para ele após um transitório. O conjunto de todas essas condições iniciais é a \textbf{bacia de atração} de $\mathcal{A}$. Um atrator é, portanto, o análogo de um ponto fixo estável para conjuntos mais gerais de estados, e a bacia de atração é o análogo do conjunto de condições iniciais que convergem ao ponto fixo.
+	Os tipos mais comuns de atratores são: o ponto fixo estável; o ciclo limite (órbita periódica estável); o toro (movimento quase periódico); e o \textbf{atrator estranho}, que possui estrutura fractal e está associado ao caos \cite{strogatz2015nonlinear}. Um mesmo sistema pode possuir vários atratores coexistentes, cada um com sua própria bacia, e a fronteira entre bacias pode ser, ela mesma, bastante complexa.
 	
-	Os tipos mais comuns de atratores são: o ponto fixo estável; o ciclo limite (órbita periódica estável); o toro (movimento quase-periódico); e o \textbf{atrator estranho}, que possui estrutura fractal e está associado ao caos \cite{strogatz2015nonlinear}. Um mesmo sistema pode possuir vários atratores coexistentes, cada um com sua própria bacia, e a fronteira entre bacias pode ser, ela mesma, bastante complexa.
-	
-	Diz-se que um sistema é \textbf{caótico} quando apresenta, simultaneamente: (i) dinâmica determinística; (ii) trajetórias limitadas; (iii) comportamento aperiódico de longo prazo; e (iv) \textbf{sensibilidade às condições iniciais}, isto é, trajetórias que começam próximas se afastam exponencialmente com o tempo. O atrator estranho é justamente o conjunto onde essas propriedades coexistem: as trajetórias permanecem confinadas (ii), mas nunca se repetem (iii) e divergem localmente entre si (iv). A sensibilidade às condições iniciais é o que torna o comportamento de longo prazo imprevisível na prática, mesmo sendo o sistema determinístico. As ferramentas descritas a seguir (expoente de Lyapunov e seção de Poincaré) são formas de identificar e quantificar o tipo de atrator em que um sistema se encontra.
+	Diz-se que um sistema é \textbf{caótico} quando apresenta, simultaneamente: (i) dinâmica determinística; (ii) trajetórias limitadas; (iii) comportamento aperiódico de longo prazo; e (iv) \textbf{sensibilidade às condições iniciais}, isto é, trajetórias que começam próximas se afastam exponencialmente com o tempo \cite{strogatz2015nonlinear}. O atrator estranho é justamente o conjunto onde essas propriedades coexistem: as trajetórias permanecem confinadas (ii), mas nunca se repetem (iii) e divergem localmente entre si (iv). A sensibilidade às condições iniciais é o que torna o comportamento de longo prazo imprevisível na prática, mesmo sendo o sistema determinístico. As ferramentas descritas a seguir (expoente de Lyapunov e seção de Poincaré) são formas de identificar e quantificar o tipo de atrator em que um sistema se encontra.
 
 	\subsubsection{Expoente de Lyapunov}
 	\label{subsubsec:lyapunov}
 	\noindent
-	O expoente de Lyapunov quantifica a sensibilidade às condições iniciais medindo a taxa média de afastamento de trajetórias inicialmente próximas. Se duas trajetórias começam separadas por uma distância $\delta_0$, a separação evolui aproximadamente como
+	O expoente de Lyapunov quantifica a sensibilidade às condições iniciais medindo a taxa média de afastamento de trajetórias inicialmente próximas \cite{strogatz2015nonlinear, alligood1996chaos}. Se duas trajetórias começam separadas por uma distância $\delta_0$, a separação evolui aproximadamente como
 	\begin{equation}
 		\delta(t) \approx \delta_0\, e^{\lambda t}.
 	\end{equation}
-	Para um mapa em $\mathbb{R}^1$, o expoente é calculado ao longo da órbita como
+	Para um mapa em $\mathbb{R}^1$, o expoente é calculado ao longo da órbita como \cite{alligood1996chaos}
 	\begin{equation}
-		\lambda = \lim_{N \to \infty} \frac{1}{N} \sum_{k=0}^{N-1} \ln \big| f'\big(x(k)\big) \big|.
+		\lambda = \lim_{N \to \infty} \frac{1}{N} \sum_{k=0}^{N-1} \ln \big| f'\big[v(k)\big] \big|.
 	\end{equation}
-	Se a órbita converge para um ponto fixo, $\lambda = \ln|f'(x)|$ é negativo quando $|f'(x)| < 1$. Essa condição é o critério de estabilidade (e, no caso do filtro IIR, o critério do polo dentro do círculo unitário).
+	Se a órbita converge para um ponto fixo $v^*$, tem-se $\lambda = \ln|f'(v^*)|$, que é negativo quando $|f'(v^*)| < 1$. Essa condição é o critério de estabilidade (e, no caso do filtro IIR, o critério do polo dentro do círculo unitário).
 
-	Um sistema em $\mathbb{R}^n$ possui $n$ expoentes de Lyapunov, um para cada direção do espaço de fase, e o comportamento de longo prazo é dominado pelo \textbf{maior expoente de Lyapunov} (do inglês \textit{Largest Lyapunov Exponent} - LLE), denotado $\lambda_1$. A interpretação é:
-	\begin{itemize}
-		\item $\lambda_1 < 0$: órbitas periódicas estáveis ou que convergem para um ponto fixo;
-		\item $\lambda_1 > 0$: dinâmica caótica.
-	\end{itemize}
+	Um sistema em $\mathbb{R}^n$ possui $n$ expoentes de Lyapunov, um para cada direção do espaço de fase, e o comportamento de longo prazo é dominado pelo \textbf{maior expoente de Lyapunov} (do inglês \textit{Largest Lyapunov Exponent} - LLE), denotado $\lambda_1$. Um LLE $\lambda_1 < 0$ corresponde a órbitas periódicas estáveis ou que convergem para um ponto fixo, ao passo que $\lambda_1 > 0$ está associado a uma dinâmica caótica.
 
-	Na prática não se conhece o mapa $f$ do cérebro, apenas uma série temporal medida e com ruído. Para esse caso, Rosenstein \cite{rosenstein1993practical} propôs um método para estimar o maior expoente de Lyapunov a partir de observações da evolução temporal de uma das variáveis do sistema. Primeiro reconstrói-se o espaço de fase (Seção~\ref{subsubsec:takens}); depois, para cada ponto $\mathbf{y}_j$ da trajetória reconstruída, encontra-se o vizinho mais próximo $\mathbf{y}_{\hat{j}}$, exigindo que estejam suficientemente separados no tempo para não pertencerem ao mesmo trecho da trajetória:
+	Na prática, muitas vezes não se conhece o mapa $f$ explicitamente e se tem acesso apenas a medidas ruidosas de uma série temporal. Para esse caso, Rosenstein \cite{rosenstein1993practical} propôs um método para estimar o maior expoente de Lyapunov a partir de observações da evolução temporal de uma das variáveis do sistema. Primeiro reconstrói-se o espaço de fase; depois, para cada ponto $\mathbf{v}_j$ da trajetória reconstruída, encontra-se o vizinho mais próximo $\mathbf{v}_{\hat{j}}$, exigindo que estejam suficientemente separados no tempo para não pertencerem ao mesmo trecho da trajetória:
 	\begin{equation}
-		d_j(0) = \min_{\hat{j}} \big\| \mathbf{y}_j - \mathbf{y}_{\hat{j}} \big\|, \qquad |j - \hat{j}| > \text{período médio}.
+		d_j(0) = \min_{\hat{j}} \big\| \mathbf{v}_j - \mathbf{v}_{\hat{j}} \big\|, \qquad |j - \hat{j}| > \text{período médio}.
 	\end{equation}
 	Acompanha-se então a distância $d_j(i)$ entre os dois pontos após $i$ passos de tempo. Como $d_j(i) \approx d_j(0)\, e^{\lambda_1 i \Delta t}$, a média dos logaritmos
 	\begin{equation}
-		y(i) = \frac{1}{\Delta t} \big\langle \ln d_j(i) \big\rangle_j
+		s(i) = \frac{1}{\Delta t} \big\langle \ln d_j(i) \big\rangle_j
 	\end{equation}
 	cresce linearmente com $i$ em uma região inicial, e $\lambda_1$ é estimado como a inclinação dessa reta.
 
@@ -453,28 +425,28 @@
 	\label{subsubsec:takens}
 	\noindent
 
-	A única grandeza medida e utilizada nos estudos deste projeto é a evolução dos sinais elétricos coletados por cada eletrodo. A variação da tensão ao longo do tempo representa apenas uma dimensão do sistema de ordem maior, que é o cérebro. Porém, as ferramentas anteriores operam sobre o espaço de fase completo.
+	A única grandeza medida e utilizada nos estudos deste trabalho é a evolução dos sinais elétricos coletados por cada eletrodo. A variação da tensão ao longo do tempo representa apenas uma dimensão do sistema de ordem maior, que é o cérebro. Porém, as ferramentas anteriores operam sobre o espaço de fase completo.
 
-	A dinâmica do cérebro é estimada utilizando o Teorema de Takens, que afirma que é possível reconstruir o espaço de fase de um sistema dinâmico a partir de uma única série temporal de observações \cite{takens1981detecting}.
+	A dinâmica do cérebro é estimada utilizando o Teorema de Takens, que afirma que é possível reconstruir o espaço de fase de um sistema dinâmico a partir de uma única série temporal de observações \cite{takens1981detecting}. Denota-se por $x(t)$ essa série observada, que, no contexto deste trabalho, é a tensão medida em um canal de EEG. Note que $x(t)$ é uma grandeza escalar medida, e não o estado do sistema, que continua sendo denotado por $\mathbf{v}$.
 
-	A intuição por trás do teorema é que, em um sistema determinístico, as variáveis estão acopladas: a evolução histórica de uma variável medida carrega também informações sobre as variáveis não medidas. Tomando como exemplo um pêndulo simples, o estado é composto pela tupla [posição, velocidade]. Se observarmos apenas a posição ao longo do tempo, é possível recuperar a velocidade em um determinado instante a partir de duas posições consecutivas (diferença finita) e, assim, recuperar o estado inteiro. O teorema de Takens generaliza essa ideia: em vez de derivadas, utilizam-se cópias atrasadas do sinal como coordenadas,
+	A intuição por trás do teorema é que, em um sistema determinístico, as variáveis estão acopladas: a evolução histórica de uma variável medida carrega também informações sobre as variáveis não medidas. Tomando como exemplo um pêndulo simples, o estado é $\mathbf{v}(t) = \begin{bmatrix} \theta(t) & \dot{\theta}(t) \end{bmatrix}^{\mathrm{T}}$. Se observarmos apenas o ângulo $\theta$ ao longo do tempo, é possível recuperar a velocidade em um determinado instante a partir de duas posições consecutivas (diferença finita) e, assim, recuperar o estado inteiro. O teorema de Takens generaliza essa ideia: em vez de derivadas, utilizam-se cópias atrasadas do sinal como coordenadas,
 	\begin{equation}
-		\mathbf{v}(t) = \big[x(t),\, x(t + \tau),\, \dots,\, x(t + (d - 1)\tau)\big],
+		\mathbf{v}(t) = \begin{bmatrix} x(t) & x(t + \tau) & \cdots & x\big(t + (d - 1)\tau\big) \end{bmatrix}^{\mathrm{T}},
 	\end{equation}
 	em que $d$ é a \textbf{dimensão de imersão} e $\tau$ é o \textbf{atraso}.
 
-	Na literatura, $\tau$ costuma ser escolhido pelo primeiro mínimo da informação mútua do sinal \cite{fraser1986independent} (ou pelo primeiro cruzamento por zero da autocorrelação), e $d$ pelo método dos falsos vizinhos mais próximos \cite{kennel1992determining}. Neste trabalho, a dimensão de imersão é $d = 5$ e o atraso é $\tau = 6$ amostras (aproximadamente 23\,ms a 256\,Hz de frequência de amostragem), seguindo os valores do artigo de referência \cite{zabihi2015analysis}.
+	Na literatura, $\tau$ costuma ser escolhido pelo primeiro mínimo da informação mútua do sinal \cite{fraser1986independent} (ou pelo primeiro cruzamento por zero da autocorrelação), e $d$ pelo método dos falsos vizinhos mais próximos \cite{kennel1992determining}. Neste trabalho, a dimensão de imersão é $d = 5$ e o atraso é $\tau = 6$ amostras (aproximadamente 23\,ms a 256\,Hz de frequência de amostragem), seguindo os valores de \cite{zabihi2015analysis}.
 
 	[Colocar em discussão a possibilidade de trocar esses parâmetros, por exemplo estimando $\tau$ e $d$ por informação mútua e falsos vizinhos mais próximos nos sinais do CHB-MIT].
 
-	Importante: as garantias do teorema de Takens valem para um sistema determinístico, de dimensão finita, observado sem ruído e por tempo suficientemente longo. O EEG não satisfaz rigorosamente nenhuma dessas condições. Por isso, neste trabalho, a reconstrução não é usada para afirmar que o cérebro \emph{é} um sistema caótico de baixa dimensão, mas como uma hipótese de modelagem: o espaço reconstruído é uma representação do sinal da qual se extraem características, e a validade dessa representação é avaliada empiricamente pelo desempenho do classificador em distinguir os regimes com e sem crise.
+	É importante observar que as garantias do teorema de Takens valem para um sistema determinístico, de dimensão finita, observado sem ruído e por tempo suficientemente longo \cite{takens1981detecting, sauer1991embedology}. O EEG não satisfaz rigorosamente nenhuma dessas condições. Por isso, neste trabalho, a reconstrução não é usada para afirmar que o cérebro \emph{é} um sistema caótico de baixa dimensão, mas como uma hipótese de modelagem: o espaço reconstruído é uma representação do sinal da qual se extraem características, e a validade dessa representação é avaliada empiricamente pelo desempenho do classificador em distinguir os regimes com e sem crise.
 
 	\subsubsection{Seção de Poincaré}
 	\label{subsubsec:poincare}
 	\noindent
-	A seção de Poincaré é uma ferramenta usada em teoria do caos para estudar trajetórias de sistemas dinâmicos contínuos. A seção é uma hipersuperfície $\Sigma$ (por exemplo, um hiperplano) transversal à trajetória em estudo. Registram-se os pontos em que a trajetória cruza $\Sigma$ em um mesmo sentido, o que define o \textbf{mapa de Poincaré} $P: \Sigma \to \Sigma$, que leva cada cruzamento ao cruzamento seguinte. Essa construção transforma um fluxo contínuo em $\mathbb{R}^n$ em um mapa discreto em $\mathbb{R}^{n-1}$, reduzindo a dimensão do problema e permitindo aplicar as ferramentas de mapas descritas anteriormente. Por exemplo, um ponto fixo do mapa de Poincaré corresponde a uma órbita periódica do fluxo.
+	A seção de Poincaré é uma ferramenta usada em Teoria do Caos para estudar trajetórias de sistemas dinâmicos contínuos. A seção é uma hipersuperfície $\Sigma$ (por exemplo, um hiperplano) transversal à trajetória em estudo. Registram-se os pontos em que a trajetória cruza $\Sigma$ em um mesmo sentido, o que define o \textbf{mapa de Poincaré} $P: \Sigma \to \Sigma$, que leva cada cruzamento ao cruzamento seguinte. Essa construção transforma um fluxo contínuo em $\mathbb{R}^n$ em um mapa discreto em $\mathbb{R}^{n-1}$, reduzindo a dimensão do problema e permitindo aplicar as ferramentas de mapas descritas anteriormente. Por exemplo, um ponto fixo do mapa de Poincaré corresponde a uma órbita periódica do fluxo.
 
-	O desenho formado pelos pontos de intersecção entre a seção e a trajetória fornece informações sobre a natureza da órbita. Há quatro casos típicos, resumidos na Tabela~\ref{tab:poincare_regimes}.
+	O desenho formado pelos pontos de intersecção entre a seção e a trajetória fornece informações sobre a natureza da órbita. Há quatro casos típicos, resumidos na Tabela~\ref{tab:poincare_regimes}, que podem ser entendidos a partir da forma como a trajetória volta a cruzar a seção \cite{strogatz2015nonlinear}. Em uma órbita periódica simples (ciclo limite), a trajetória se fecha sobre si mesma após uma volta e, portanto, cruza a seção sempre no mesmo ponto, que é um ponto fixo do mapa de Poincaré. Em uma órbita de período $k$, a trajetória só se fecha após $k$ voltas, cruzando a seção em $k$ pontos distintos que são visitados ciclicamente. No movimento quase periódico, a trajetória resulta da composição de oscilações com frequências incomensuráveis e se enrola sobre a superfície de um toro sem nunca se fechar; os cruzamentos não se repetem, mas preenchem progressivamente uma curva fechada, que é a interseção do toro com a seção. Por fim, em um regime caótico a trajetória não se repete nem fica restrita a uma curva simples, e os cruzamentos formam uma nuvem de pontos espalhados, frequentemente com estrutura fractal, que reflete a geometria do atrator estranho.
 
 	\begin{table}[htbp]
 		\centering
@@ -486,7 +458,7 @@
 			\midrule
 			Um único ponto & Órbita periódica (ciclo limite) \\
 			$k$ pontos & Órbita de período $k$ \\
-			Curva fechada & Movimento quase-periódico (toro) \\
+			Curva fechada & Movimento quase periódico (toro) \\
 			Nuvem difusa & Caos \\
 			\bottomrule
 		\end{tabular}
@@ -495,31 +467,29 @@
 	\subsection{Exemplo de Aplicação: Mapa Logístico}
 	\label{subsec:logistico}
 	\noindent
-	O mapa logístico é um modelo simplificado de crescimento populacional e um dos exemplos mais simples de sistema capaz de apresentar caos:
+	O mapa logístico é um modelo simplificado de crescimento populacional e um dos exemplos mais simples de sistema capaz de apresentar caos \cite{strogatz2015nonlinear, alligood1996chaos}:
 	\begin{equation}
-		x(k+1) = f\big(x(k)\big) = r\, x(k)\big(1 - x(k)\big), \qquad x \in [0, 1], \; r \in [0, 4],
+		x(k+1) = f\big[x(k)\big] = r\, x(k)\big[1 - x(k)\big], \qquad x \in [0, 1], \; r \in [0, 4],
 	\end{equation}
-	em que $x(k)$ representa a população normalizada na geração $k$ e $r$ é a taxa de crescimento. Apesar de ser um mapa unidimensional e determinado por uma única equação quadrática, ele percorre todos os regimes descritos na teoria base apenas variando o parâmetro $r$.
+	em que $x(k)$ representa a população normalizada na geração $k$ e $r$ é a taxa de crescimento. Neste exemplo, o estado é escalar e coincide com a variável observada; por isso, ele é denotado por $x$, seguindo a notação usual da literatura. Apesar de ser um mapa unidimensional e determinado por uma única equação quadrática, ele percorre todos os regimes descritos na teoria base apenas variando o parâmetro $r$.
 
-	\textbf{Pontos fixos e estabilidade.} Os pontos fixos são as soluções de $x = r x(1 - x)$, isto é, $x = 0$ e $x = 1 - 1/r$. Como $f'(x) = r(1 - 2x)$, tem-se $f'(0) = r$ e $f'(1 - 1/r) = 2 - r$. Pelo critério $|f'(x)| < 1$, a origem é estável para $r < 1$ e o ponto fixo não trivial é estável para $1 < r < 3$. Para $r = 2{,}8$, por exemplo, qualquer condição inicial em $(0, 1)$ converge para $x = 1 - 1/2{,}8 \approx 0{,}643$.
+	Os pontos fixos do mapa são as soluções de $x = r x(1 - x)$, isto é, $x = 0$ e $x = 1 - 1/r$. Como $f'(x) = r(1 - 2x)$, tem-se $f'(0) = r$ e $f'(1 - 1/r) = 2 - r$. Pelo critério $|f'(x)| < 1$, a origem é estável para $r < 1$ e o ponto fixo não trivial é estável para $1 < r < 3$. Como o mapa logístico já é um sistema discreto, ele desempenha o mesmo papel que o mapa de Poincaré de um fluxo contínuo: cada iteração corresponde a um ``cruzamento''. Assim, o conjunto de valores visitados após o transitório pode ser interpretado diretamente pela Tabela~\ref{tab:poincare_regimes}. A seguir, analisam-se três valores de $r$, cada um associado a um regime dinâmico diferente.
 
-	\textbf{Duplicação de período e caos.} Em $r = 3$ tem-se $f'(x) = -1$, o ponto fixo perde estabilidade e surge uma órbita estável de período 2. Para $r = 3{,}2$, a órbita alterna entre $x \approx 0{,}513$ e $x \approx 0{,}799$. Aumentando $r$, ocorre uma cascata de duplicações de período ($2, 4, 8, \dots$) que se acumula em $r_\infty \approx 3{,}57$. A partir desse valor, o mapa passa a apresentar comportamento caótico para a maior parte dos valores de $r$, e em $r = 4$ a órbita se espalha por todo o intervalo $[0, 1]$ sem nunca se repetir.
+	\subsubsection{Ponto fixo estável ($r = 2{,}8$)}
+	\noindent
+	Para $r = 2{,}8$, qualquer condição inicial em $(0, 1)$ converge para o ponto fixo $x^* = 1 - 1/2{,}8 \approx 0{,}643$, e o conjunto de valores visitados após o transitório é um único ponto. Duas órbitas que partem de condições iniciais muito próximas, como $x(0) = 0{,}2$ e $x(0) = 0{,}2 + 10^{-7}$, convergem para o mesmo ponto fixo, e a diferença entre elas desaparece. Aplicando a definição do expoente de Lyapunov para mapas unidimensionais, obtém-se $\lambda = \ln|f'(x^*)| = \ln|2 - 2{,}8| = \ln 0{,}8 \approx -0{,}22 < 0$.
 
-	\textbf{Sensibilidade às condições iniciais.} Com $r = 4$, duas órbitas que partem de $x(0) = 0{,}2$ e $x(0) = 0{,}2 + 10^{-7}$ são indistinguíveis nas primeiras iterações, mas a diferença entre elas aproximadamente dobra a cada passo e, após cerca de 20 a 25 iterações, as duas sequências já não têm relação entre si. O mesmo experimento com $r = 2{,}8$ faz a diferença desaparecer, pois as duas órbitas convergem para o mesmo ponto fixo.
+	\subsubsection{Órbita periódica ($r = 3{,}2$)}
+	\noindent
+	Em $r = 3$ tem-se $f'(x^*) = -1$, o ponto fixo não trivial perde estabilidade e surge uma órbita estável de período 2. Para $r = 3{,}2$, a órbita alterna entre $x_1 \approx 0{,}513$ e $x_2 \approx 0{,}799$, e o conjunto de valores visitados após o transitório é formado por esses dois pontos. O expoente de Lyapunov, calculado ao longo dessa órbita, vale $\lambda = \frac{1}{2}\ln\big|f'(x_1) f'(x_2)\big| \approx -0{,}92$, ainda negativo. Aumentando $r$, ocorre uma cascata de duplicações de período ($2, 4, 8, \dots$); para $r = 3{,}5$, por exemplo, a órbita visita quatro pontos. Essa cascata se acumula em $r_\infty \approx 3{,}57$, a partir do qual o mapa passa a apresentar comportamento caótico para a maior parte dos valores de $r$.
 
-	\textbf{Expoente de Lyapunov.} Aplicando a definição para mapas unidimensionais:
-	\begin{itemize}
-		\item $r = 2{,}8$ (ponto fixo): $\lambda = \ln|2 - 2{,}8| = \ln 0{,}8 \approx -0{,}22$;
-		\item $r = 3{,}2$ (período 2): $\lambda = \frac{1}{2}\ln\big|f'(x_1) f'(x_2)\big| \approx -0{,}92$;
-		\item $r = 4$ (caos): $\lambda = \ln 2 \approx 0{,}69 > 0$.
-	\end{itemize}
-	O sinal do expoente separa os regimes regulares ($\lambda < 0$) do regime caótico ($\lambda > 0$), e a dobra da distância a cada iteração observada no item anterior corresponde a $e^{\lambda} = 2$.
+	\subsubsection{Caos ($r = 4$)}
+	\noindent
+	Para $r = 4$, a órbita se espalha por todo o intervalo $[0, 1]$ sem nunca se repetir, e os valores visitados formam uma nuvem que preenche o intervalo. Duas órbitas que partem de $x(0) = 0{,}2$ e $x(0) = 0{,}2 + 10^{-7}$ são indistinguíveis nas primeiras iterações, mas a diferença entre elas aproximadamente dobra a cada passo e, após cerca de 20 a 25 iterações, as duas sequências já não têm relação entre si. O expoente de Lyapunov é $\lambda = \ln 2 \approx 0{,}69 > 0$, e a dobra da distância a cada iteração corresponde justamente a $e^{\lambda} = 2$.
 
-	\textbf{Analogia com a seção de Poincaré.} Como o mapa logístico já é um sistema discreto, ele desempenha o mesmo papel que o mapa de Poincaré de um fluxo contínuo: cada iteração corresponde a um ``cruzamento''. Observando o conjunto de valores visitados após o transitório, obtém-se exatamente a classificação da Tabela~\ref{tab:poincare_regimes}: um único ponto para $r = 2{,}8$, dois pontos para $r = 3{,}2$, quatro pontos para $r = 3{,}5$ e uma nuvem que preenche o intervalo para $r = 4$. O \textbf{diagrama de bifurcação}, que mostra esses valores em função de $r$, resume essa transição em uma única figura.
+	Imagine agora que se observe apenas a sequência $x(k)$ com $r = 4$, sem conhecer a equação. No tempo, ela é visualmente indistinguível de um ruído aleatório uniforme em $[0, 1]$. Ao reconstruir o espaço de fase com $d = 2$ e $\tau = 1$, isto é, desenhando os pares $\big(x(k), x(k+1)\big)$, os pontos do sinal caótico caem todos sobre a parábola $x(k+1) = 4x(k)(1 - x(k))$, revelando a regra determinística que gerou o sinal, enquanto os pontos do ruído aleatório preenchem o quadrado uniformemente. Essa é a ideia central da abordagem não linear: um sinal que parece aleatório do ponto de vista estatístico pode ter uma estrutura determinística que só aparece no espaço de fase reconstruído.
 
-	\textbf{Reconstrução do espaço de fase.} Imagine que se observe apenas a sequência $x(k)$ com $r = 4$, sem conhecer a equação. No tempo, ela é visualmente indistinguível de um ruído aleatório uniforme em $[0, 1]$. Ao reconstruir o espaço de fase com $d = 2$ e $\tau = 1$, isto é, desenhando os pares $\big(x(k), x(k+1)\big)$, os pontos do sinal caótico caem todos sobre a parábola $x(k+1) = 4x(k)(1 - x(k))$, revelando a regra determinística que gerou o sinal, enquanto os pontos do ruído aleatório preenchem o quadrado uniformemente. Essa é a ideia central da abordagem não-linear: um sinal que parece aleatório do ponto de vista estatístico pode ter uma estrutura determinística que só aparece no espaço de fase reconstruído.
-
-	O ponto central do exemplo é que \textbf{o mesmo sistema}, sob uma mudança de parâmetro, troca de atrator (de um ponto fixo, para órbitas periódicas e então para o caos), e essa troca é visível tanto no conjunto de pontos visitados quanto no expoente de Lyapunov. É exatamente esse tipo de mudança que se busca detectar no EEG.
+	O sinal do expoente de Lyapunov separa, portanto, os regimes regulares ($\lambda < 0$) do regime caótico ($\lambda > 0$), e o \textbf{diagrama de bifurcação}, que mostra os valores visitados após o transitório em função de $r$, resume essa transição em uma única figura. O ponto central do exemplo é que \textbf{o mesmo sistema}, sob uma mudança de parâmetro, troca de atrator (de um ponto fixo, para órbitas periódicas e então para o caos), e essa troca é visível tanto no conjunto de pontos visitados quanto no expoente de Lyapunov. É exatamente esse tipo de mudança que se busca detectar no EEG.
 
 	[Colocar figuras: (a) \textit{cobweb plot} para $r = 2{,}8$ e $r = 4$; (b) série temporal das duas condições iniciais próximas com $r = 4$; (c) diagrama de bifurcação com o expoente de Lyapunov em função de $r$; (d) pares $(x(k), x(k+1))$ do mapa com $r = 4$ comparados a ruído uniforme].
 
@@ -527,17 +497,17 @@
 	\label{subsec:caos_eeg}
 	\noindent
 
-	O cérebro pode ser modelado como um sistema dinâmico não-linear que opera em pelo menos dois regimes: ictal (durante a crise) e interictal (entre crises). O termo ``regime'' é usado para não causar confusão com o termo ``estado'' de sistemas dinâmicos. Um estado é um único ponto do espaço de fase, e o cérebro passa por inúmeros estados dependendo dos estímulos e das respostas de cada neurônio. O que muda numa crise epiléptica é o \textbf{atrator} ao qual a trajetória está confinada, de forma análoga à mudança do parâmetro $r$ no mapa logístico.
+	Um sinal amostrado de um sistema contínuo, como o EEG, pode ser visto como a observação de um fluxo em instantes discretos. Nesse contexto, o cérebro pode ser modelado como um sistema dinâmico não linear que opera em pelo menos dois regimes: ictal (durante a crise) e interictal (entre crises) \cite{iasemidis1990phase, lehnertz1998can}. O termo ``regime'' é usado para não causar confusão com o termo ``estado'' de sistemas dinâmicos. Um estado é um único ponto do espaço de fase, e o cérebro passa por inúmeros estados dependendo dos estímulos e das respostas de cada neurônio. O que muda numa crise epiléptica é o \textbf{atrator} ao qual a trajetória está confinada, de forma análoga à mudança do parâmetro $r$ no mapa logístico.
 
-	O exame de EEG atua como uma projeção desse sistema de muitas dimensões. Cada eletrodo mede uma atividade elétrica que é, na verdade, a superposição da atividade de milhões de neurônios da região da cabeça onde o eletrodo está posicionado. Diferente do mapa logístico, em que a variável observada é o próprio estado, no EEG observa-se apenas uma projeção de um sistema de dimensão muito maior, e por isso a reconstrução de Takens com $d > 2$ é necessária. A hipótese de diversos trabalhos da literatura é de que, durante uma crise epiléptica, grandes populações de neurônios passam a disparar de forma sincronizada, e o cérebro se torna um sistema com atividade mais regular, cíclica e ``menos caótica''. A hipótese é de há uma \emph{diminuição} de $\lambda_1$ em relação ao regime interictal, e não necessariamente de que ele se torne negativo.
+	O exame de EEG atua como uma projeção desse sistema de muitas dimensões. Cada eletrodo mede uma atividade elétrica que é, na verdade, a superposição da atividade de milhões de neurônios da região da cabeça onde o eletrodo está posicionado. Diferente do mapa logístico, em que a variável observada é o próprio estado, no EEG observa-se apenas uma projeção de um sistema de dimensão muito maior, e por isso a reconstrução de Takens com $d > 2$ é necessária. A hipótese de diversos trabalhos da literatura \cite{iasemidis1990phase, lehnertz1998can, zabihi2015analysis} é de que, durante uma crise epiléptica, grandes populações de neurônios passam a disparar de forma sincronizada, e o cérebro se torna um sistema com atividade mais regular, cíclica e ``menos caótica''. A hipótese é de que há uma \emph{diminuição} de $\lambda_1$ em relação ao regime interictal, ainda que ele não necessariamente se torne negativo.
 
-	Os métodos estatísticos tradicionais analisam o EEG como um sinal estocástico e procuram mudanças na distribuição das amostras, no conteúdo espectral ou na energia em bandas de frequência. Os métodos não-lineares, por sua vez, reconstroem o espaço de fase do sinal e procuram mudanças na geometria da trajetória reconstruída. Neste trabalho a cadeia de processamento aplica ao EEG as ferramentas da teoria base:
+	Os métodos estatísticos tradicionais analisam o EEG como um sinal estocástico e procuram mudanças na distribuição das amostras, no conteúdo espectral ou na energia em bandas de frequência. Os métodos não lineares, por sua vez, reconstroem o espaço de fase do sinal e procuram mudanças na geometria da trajetória reconstruída. Neste trabalho a cadeia de processamento aplica ao EEG as ferramentas da teoria base:
 	\begin{enumerate}
-		\item Cada canal de EEG é dividido em janelas de 1 segundo (256 amostras), e cada janela faz o papel da série observada $x(t)$.
-		\item A trajetória é reconstruída pelo teorema de Takens com $d = 5$ e $\tau = 6$, resultando em $256 - (5-1)\cdot 6 = 232$ pontos em $\mathbb{R}^5$.
-		\item A trajetória é projetada nos dois primeiros componentes principais (PCA, Seção~\ref{subsec:pca}), e uma reta ajustada aos pontos nesse plano é usada como seção de Poincaré.
-		\item Os pontos de intersecção entre a trajetória e a seção são resumidos por estatísticas (amplitude, quantil, amplitude interquartil, entropia, RMS, coeficiente de variação e energia).
-		\item Essas características alimentam um classificador SVM que decide se a janela pertence ao regime ictal ou interictal.
+		\item Cada canal de EEG é dividido em janelas de 1 segundo (256 amostras), e cada janela faz o papel da série observada $x(t)$;
+		\item A trajetória é reconstruída pelo teorema de Takens com $d = 5$ e $\tau = 6$, resultando em $256 - (5-1)\cdot 6 = 232$ pontos em $\mathbb{R}^5$;
+		\item A trajetória é projetada nos dois primeiros componentes principais, obtidos por Análise de Componentes Principais (PCA, do inglês \textit{Principal Component Analysis}), e uma reta ajustada aos pontos nesse plano é usada como seção de Poincaré;
+		\item Os pontos de intersecção entre a trajetória e a seção são resumidos por estatísticas (amplitude, quantil, amplitude interquartil, entropia, valor quadrático médio --- RMS, do inglês \textit{Root Mean Square} ---, coeficiente de variação e energia);
+		\item Essas características alimentam um classificador de Máquina de Vetores de Suporte (SVM, do inglês \textit{Support Vector Machine}), que decide se a janela pertence ao regime ictal ou interictal.
 	\end{enumerate}
 
 	O resultado esperado é que em um regime mais regular (ictal) as intersecções tendem a se concentrar em poucas regiões da seção, enquanto no regime interictal elas se espalham de forma mais difusa. As características estatísticas extraídas das intersecções medem justamente esse grau de concentração ou dispersão. Essas características não constituem uma prova de caos ou de periodicidade no sentido matematicamente rigoroso; elas são uma descrição da geometria da trajetória reconstruída, cuja utilidade é avaliada pela capacidade de separar os dois regimes.
@@ -548,8 +518,8 @@
 	\label{sec:other_theories}
 	\noindent
 
-	Teoria do Caos por si só não é capaz de responder a questão se um sinal de EEG representa ou não uma crise epiléptica. A criação de um algoritmo capaz de detectar crises epilépticas a partir de sinais de EEG requer uma camada de detecção que de usará as informações quantitativas extraídas do sistema usando teoria do caos para classificar o comportamento do cérebro no momento. 
-	Nessa etapa, reduzir dimensionalidade é importante para fazer o algoritmo de detecção ser realizável do ponto de vista computacional, e para isso usamos o PCA. Após essa etapa, um algoritmo de aprendizado de máquina será alimentado com todas as informações extraídas e ajustadas para determinar se aquele trecho de EEG é ou não uma crise epiléptica. Nesse trabalho o modelo de Machine Learning usado está sendo a SVM.
+	Teoria do Caos por si só não é capaz de responder a questão se um sinal de EEG representa ou não uma crise epiléptica. A criação de um algoritmo capaz de detectar crises epilépticas a partir de sinais de EEG requer uma camada de detecção que usará as informações quantitativas extraídas do sistema usando Teoria do Caos para classificar o comportamento do cérebro no momento.
+	Nessa etapa, reduzir a dimensionalidade é importante para tornar o algoritmo de detecção realizável do ponto de vista computacional, e para isso pode-se utilizar uma técnica como o PCA, por exemplo. Após essa etapa, um algoritmo de aprendizado de máquina é alimentado com todas as informações extraídas e ajustadas para determinar se aquele trecho de EEG é ou não uma crise epiléptica. Neste trabalho, o classificador utilizado é a SVM.
 	
 	\subsection{Análise de Componentes Principais (PCA)}
 	\label{subsec:pca}
@@ -571,9 +541,50 @@
 	
 
 
+	\section{Métricas de Desempenho}
+	\label{sec:metricas}
+	\noindent
+	Não há consenso na literatura sobre quais devem ser as métricas de qualidade de um algoritmo de detecção de crises epilépticas. A seguir, apresentam-se algumas das mais utilizadas. Nas expressões, $TP$, $TN$, $FP$ e $FN$ denotam, respectivamente, o número de verdadeiros positivos, verdadeiros negativos, falsos positivos e falsos negativos, considerando-se a crise como a classe positiva.
+
+	[referencia geral de métricas]
+	\subsubsection*{Acurácia (\textit{Accuracy})}
+	\noindent
+	Representa a proporção de classificações corretas em relação ao total de amostras. Essa é uma medida quantitativa do desempenho do algoritmo em detectar uma crise que realmente aconteceu (verdadeiro positivo) e de não detectar uma crise em um sinal realmente saudável (verdadeiro negativo). Seu cálculo é dado por
+	[replicar esse formato para as demais equações]
+	\begin{equation}
+		Acc = \frac{TP + TN}{TP + TN + FP + FN} \times 100\%. 
+	\end{equation}
+
+	\subsection{Sensibilidade (\textit{Sensitivity})}
+	\noindent
+	Mede a capacidade do sistema de detectar corretamente os eventos de crise epiléptica (verdadeiros positivos), isto é, a capacidade de não deixar uma anomalia passar despercebida.
+	\begin{equation}
+		Sens = \frac{TP}{TP + FN} \times 100
+	\end{equation}
+
+	\subsection{Especificidade (\textit{Specificity})}
+	\noindent
+	Mede a capacidade do sistema de detectar corretamente os eventos que não são crises (verdadeiros negativos). É um parâmetro quantitativo da capacidade do sistema de reconhecer um comportamento normal e não gerar alarmes falsos.
+	\begin{equation}
+		\text{Especificidade} = \frac{TN}{TN + FP} \times 100
+	\end{equation}
+
+	Uma falha comum em sistemas de detecção de anomalias é o detector acusar que toda janela de análise é uma anomalia. Isso leva a casos em que a sensibilidade vai para 100\% porém a especificidade cai para 0\%.
+
+	\subsection{Valor Preditivo Positivo (\textit{Precision})}
+	\noindent
+	Indica a proporção de eventos identificados como crise que realmente eram crises epilépticas. Essa métrica responde à pergunta ``Se o sistema disse que tal momento é uma crise, o quão confiável é essa afirmação?''.
+	\begin{equation}
+		\text{Valor Preditivo Positivo} = \frac{TP}{TP + FP} \times 100
+	\end{equation}
+
+	Na revisão da literatura nota-se que cada estudo citado escolhe relatar as métricas que melhor validam seus resultados de pesquisa. Essa escolha está associada ao objetivo do estudo (por exemplo, criar um alarme rápido ou um diagnóstico preciso) e não a uma exigência inerente à matemática do classificador escolhido.
+
 	\section{Resultados}
+	\label{sec:resultados}
 	TODO
 	\section{Conclusão}
+	\label{sec:conclusao}
 	TODO
 	
 	Preencher as referências com os novos artigos que eu salvei. Colocar os sites de documentação do scikit learn e pytorch
