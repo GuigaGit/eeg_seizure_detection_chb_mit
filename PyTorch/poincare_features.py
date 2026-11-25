@@ -34,6 +34,10 @@ CHANNELS_TO_KEEP = [
     'P7-T7', 'T7-FT9', 'FT9-FT10', 'FT10-T8', 'T8-P8'
 ]
 
+# Fixed number of equal-width histogram bins for the Shannon entropy feature
+# (10 = numpy's np.histogram default). Must match SciPy/poincare_features.py.
+N_ENTROPY_BINS = 10
+
 # ==========================================
 # 1. Phase Space Reconstruction (PSR)
 # ==========================================
@@ -98,6 +102,13 @@ def pca_transform(embedded, n_components=None):
     singular value first), matching sklearn's convention: column 0 of the
     output is "PC1", column 1 is "PC2", etc.
 
+    Sign convention: SVD only defines each direction up to its sign (v and -v
+    are equally valid), so without a convention PC1 can flip between windows
+    just from numerical noise. That flips the sign of every Poincaré
+    intersection and corrupts the q_013 and CoV features. Like sklearn's PCA
+    (svd_flip with u_based_decision=False), each direction is flipped so its
+    largest-magnitude entry is positive.
+
     Args:
         embedded: torch.Tensor of shape (n_points, d) - e.g. the output of
             `time_delay_embedding`. Each row is one observation, each column
@@ -114,6 +125,8 @@ def pca_transform(embedded, n_components=None):
     mean = embedded.mean(dim=0, keepdim=True)
     centered = embedded - mean
     _, _, Vh = torch.linalg.svd(centered, full_matrices=False)
+    max_abs_idx = Vh.abs().argmax(dim=1, keepdim=True)
+    Vh = Vh * torch.sign(Vh.gather(1, max_abs_idx))
     if n_components is not None:
         Vh = Vh[:n_components]
     return centered @ Vh.T
@@ -224,9 +237,10 @@ def extract_features(intersections):
       3. Interquartile range (IQR = 75th - 25th percentile): spread that
          ignores outliers, unlike Range.
       4. Shannon entropy: how "spread out"/unpredictable the distribution of
-         values is, estimated from a histogram (density estimate) of the
-         intersections; bin count follows Sturges' rule since torch has no
-         'auto' bin-width heuristic like numpy.
+         values is. The intersections are put in a histogram with
+         N_ENTROPY_BINS equal-width bins, turned into probabilities
+         p_k = count_k / n, and H = -sum(p_k * log2(p_k)) (in bits; 0 when
+         all values fall in one bin, log2(N_ENTROPY_BINS) when spread evenly).
       5. RMS (root-mean-square): overall amplitude/energy scale, but as an
          average rather than a sum, so it doesn't grow with more crossings.
       6. Coefficient of variation: std / mean, a scale-free measure of
@@ -256,18 +270,13 @@ def extract_features(intersections):
     # 3. Interquartile Range (IQR)
     iqr = torch.quantile(intersections, 0.75) - torch.quantile(intersections, 0.25)
 
-    # 4. Shannon Entropy (histogram-based density estimate)
-    # torch.histc has no 'auto' bin rule like np.histogram, so bins are picked
-    # via Sturges' rule as an approximation.
-    n = intersections.numel()
-    bins = max(1, int(torch.log2(torch.tensor(float(n))).ceil().item()) + 1)
+    # 4. Shannon Entropy: H = -sum(p * log2(p)) over a fixed-bin histogram
     lo, hi = intersections.min(), intersections.max()
-    counts = torch.histc(intersections, bins=bins, min=lo.item(), max=hi.item())
-    bin_width = (hi - lo) / bins
-    if bin_width > 0:
-        density = counts / (counts.sum() * bin_width)
-        density = density[density > 0]
-        entropy = -(density * torch.log2(density)).sum()
+    if hi > lo:
+        counts = torch.histc(intersections, bins=N_ENTROPY_BINS, min=lo.item(), max=hi.item())
+        p = counts / counts.sum()
+        p = p[p > 0]  # empty bins contribute 0 (0 * log 0 = 0)
+        entropy = -(p * torch.log2(p)).sum()
     else:
         entropy = torch.tensor(0.0, device=DEVICE)
 

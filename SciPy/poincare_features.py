@@ -27,6 +27,10 @@ CHANNELS_TO_KEEP = [
     'P7-T7', 'T7-FT9', 'FT9-FT10', 'FT10-T8', 'T8-P8'
 ]
 
+# Fixed number of equal-width histogram bins for the Shannon entropy feature
+# (10 = numpy's np.histogram default). Must match PyTorch/poincare_features.py.
+N_ENTROPY_BINS = 10
+
 # ==========================================
 # 1. Phase Space Reconstruction (PSR)
 # ==========================================
@@ -74,7 +78,7 @@ def get_poincare_intersections(embedded_space):
     # So pq eu ainda nao entendi como fazer o Bezier Clipping direito. Mas a ideia é a mesma: encontrar a linha que melhor separa os pontos
     m, c = np.polyfit(pc1, pc2, 1)
 
-    print(f"Fitted line: y = {m:.4f}x + {c:.4f}")
+    # print(f"Fitted line: y = {m:.4f}x + {c:.4f}")
     
     intersection_pc1_values = []
     
@@ -116,11 +120,11 @@ def extract_features(intersections):
     # 3. Interquartile Range (IQR)
     iqr = np.percentile(intersections, 75) - np.percentile(intersections, 25)
     
-    # 4. Shannon Entropy
-    # We estimate the PDF using a histogram
-    hist, _ = np.histogram(intersections, density=True, bins='auto')
-    hist = hist[hist > 0] 
-    entropy = -np.sum(hist * np.log2(hist))
+    # 4. Shannon Entropy: H = -sum(p * log2(p)) over a fixed-bin histogram
+    counts, _ = np.histogram(intersections, bins=N_ENTROPY_BINS)
+    p = counts / counts.sum()
+    p = p[p > 0]  # empty bins contribute 0 (0 * log 0 = 0)
+    entropy = -np.sum(p * np.log2(p))
     
     # 5. Root Mean Squared Amplitude
     rms = np.sqrt(np.mean(intersections**2))
