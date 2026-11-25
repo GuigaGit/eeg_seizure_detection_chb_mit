@@ -45,6 +45,13 @@ class LinearSVM(nn.Module):
         """
         super().__init__()
         self.linear = nn.Linear(n_features, 1, bias=True)
+        # Start at w=0, b=0 instead of nn.Linear's random uniform init. The
+        # SVM objective is convex, so a converged optimizer reaches the same
+        # optimum from any start; zero init just makes training deterministic
+        # and mirrors libsvm (sklearn's SVC), whose dual starts at alpha=0,
+        # i.e. w=0. If results change with the init, training hasn't converged.
+        nn.init.zeros_(self.linear.weight)
+        nn.init.zeros_(self.linear.bias)
 
     def forward(self, x):
         """
@@ -153,17 +160,29 @@ def stratified_kfold_indices(y, n_splits=3, seed=42):
     return folds
 
 
-def train_linear_svm(X, y, C, epochs=300, lr=0.05, seed=42, class_weight_balanced=True):
+def train_linear_svm(X, y, C, epochs=3000, lr=0.01, class_weight_balanced=True, history=None):
     """
     Trains a `LinearSVM` from scratch via gradient descent on the standard
     soft-margin primal SVM objective:
-        loss = 0.5 * ||w||^2 + C * mean(sample_weight * hinge_loss)
+        loss = 0.5 * ||w||^2 + C * sum(sample_weight * hinge_loss)
     where hinge_loss = max(0, 1 - y_signed * decision_score) and
     y_signed in {-1, +1}. This is the same objective sklearn's
     SVC(kernel='linear') solves via quadratic programming - here it's solved
     instead with an ordinary PyTorch optimizer (Adam), which is what makes
     every piece of it (epochs, learning rate, optimizer choice, class
     weighting) directly tunable, unlike a black-box QP solver.
+
+    Why SUM and not MEAN: with mean(), the hinge term is divided by n, so
+    this C would act like sklearn's C / n_samples. With ~500 training windows,
+    C=0.001 here would equal sklearn's C=2e-6: the 0.5*||w||^2 term wins, w
+    collapses to ~0, and every window gets the same label (sign of the bias).
+    That is what produced Sensitivity=1 / Specificity=0 for some patients.
+    With sum(), C means exactly what it means in the SciPy/sklearn pipeline,
+    so both pipelines can share the same C grid.
+
+    Why a cosine-decayed learning rate: the hinge loss is not differentiable
+    at the margin, so with a constant step Adam keeps oscillating around the
+    optimum instead of settling. Decaying lr towards ~0 lets it converge.
 
     Intuition for the two loss terms:
       - 0.5*||w||^2 is the regularizer: it pushes the weights toward zero,
@@ -185,22 +204,27 @@ def train_linear_svm(X, y, C, epochs=300, lr=0.05, seed=42, class_weight_balance
         C: regularization strength (inverse of how much the margin term is
             allowed to dominate) - see the trade-off explanation above.
         epochs: number of full-batch gradient descent steps to run.
-        lr: learning rate for the Adam optimizer.
-        seed: random seed for weight initialization, for reproducibility.
+        lr: initial learning rate for Adam (cosine-annealed to lr/1000).
         class_weight_balanced: if True, re-weights the hinge loss so
             positive (seizure) and negative (background) samples contribute
             equally in total, regardless of how imbalanced the class counts
             are (mirrors sklearn's class_weight='balanced'). If False, every
             sample counts equally, which usually biases the model toward
             always predicting the majority class when seizures are rare.
+        history: optional dict. If given, the per-epoch 'loss', 'w_norm'
+            and 'bias' are appended to it (used by diagnose_svm.py to plot
+            convergence). Leave as None during normal training.
 
     Returns:
         A trained `LinearSVM` instance (already in `.eval()` mode).
     """
-    torch.manual_seed(seed)
     n_features = X.shape[1]
     model = LinearSVM(n_features).to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=lr * 1e-3)
+    if history is not None:
+        for key in ('loss', 'w_norm', 'bias'):
+            history.setdefault(key, [])
 
     y_signed = (y.float() * 2 - 1)
 
@@ -226,12 +250,17 @@ def train_linear_svm(X, y, C, epochs=300, lr=0.05, seed=42, class_weight_balance
         optimizer.zero_grad()
         out = model(X)
         hinge = torch.clamp(1 - y_signed * out, min=0)
-        # 1/n * Sum is equal the mean() function, so we can use mean() to compute the average hinge loss
-        weighted_hinge = (hinge * sample_weight).mean()
+        # sum(), not mean() - see the docstring: mean() silently rescales C by 1/n
+        weighted_hinge = (hinge * sample_weight).sum()
         w = model.linear.weight
         loss = 0.5 * (w ** 2).sum() + C * weighted_hinge
         loss.backward()
         optimizer.step()
+        scheduler.step()
+        if history is not None:
+            history['loss'].append(loss.item())
+            history['w_norm'].append(w.detach().norm().item())
+            history['bias'].append(model.linear.bias.item())
 
     model.eval()
     return model
@@ -300,7 +329,7 @@ def compute_metrics(y_true, y_pred):
 
 
 def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 1, 10, 100),
-                                   epochs=300, lr=0.05, n_splits=3, seed=42):
+                                   epochs=3000, lr=0.01, n_splits=3, seed=42):
     """
     End-to-end training pipeline: for every patient with a saved feature
     dataset (X_chbXX.pt / y_chbXX.pt, produced by poincare_features.py or
@@ -342,7 +371,7 @@ def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 
             (both the cross-validation models and the final refit).
         lr: learning rate passed to `train_linear_svm`.
         n_splits: number of cross-validation folds used to score each C.
-        seed: random seed for the fold splits and model initialization.
+        seed: random seed for the fold splits (model init is deterministic).
 
     Returns:
         None. Side effects: prints per-patient and aggregate metrics to
@@ -414,7 +443,7 @@ def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 
                 if yf_train.sum().item() == 0 or yf_val.sum().item() == 0:
                     continue
 
-                fold_model = train_linear_svm(Xf_train, yf_train, C=C, epochs=epochs, lr=lr, seed=seed)
+                fold_model = train_linear_svm(Xf_train, yf_train, C=C, epochs=epochs, lr=lr)
 
                 _, train_sen, _ = compute_metrics(yf_train, predict_svm(fold_model, Xf_train))
                 _, val_sen, _ = compute_metrics(yf_val, predict_svm(fold_model, Xf_val))
@@ -431,7 +460,7 @@ def train_patient_specific_models(training_rate=0.50, C_grid=(0.001, 0.01, 0.1, 
         best_C = C_grid[best_idx]
 
         # 4. Refit no treino completo com o melhor C
-        model = train_linear_svm(X_train_scaled, y_train, C=best_C, epochs=epochs, lr=lr, seed=seed)
+        model = train_linear_svm(X_train_scaled, y_train, C=best_C, epochs=epochs, lr=lr)
 
         # 5. Avaliação no conjunto de teste (futuro cronológico)
         y_pred = predict_svm(model, X_test_scaled)
